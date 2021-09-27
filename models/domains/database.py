@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from .domain import Domain
 from ...helpers.logger import logger
+from ...helpers.constants import Path
 from ...tools.stdkit import format_error_message
 
 
@@ -16,15 +17,14 @@ db = SQLAlchemy()
 
 class Database(Domain):
     """Utilizes SQLAlchemy database operations."""
-    def __init__(self, db_uri: str):
+    def __init__(self):
         self.db = db
         self.migrate = None
-        self.db_uri = db_uri
 
-    def setup_db(self, flask_app: Flask) -> None:
+    def setup_db(self, flask_app: Flask, db_uri: Path) -> None:
         """Setup database and migration object with given Flask app."""
-        logger.info(f"Set database path: {self.db_uri}")
-        flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.db_uri
+        logger.info(f"Set database path: {db_uri}")
+        flask_app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
         flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
         self.db.init_app(flask_app)
         self.migrate = Migrate(flask_app, self.db)
