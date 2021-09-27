@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Dict, Union, Callable, Literal, TYPE_CHECKING
 
-from .constants import TurboName, ConfigLoadType, Path
+from .constants import ConfigLoadType, Path
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.

@@ -9,7 +9,7 @@ from flask import Flask
 from .logger import logger
 from .helper import Helper
 from .constants import Path
-from ..tools.stdkit import join_paths, format_error_message, parse_config_cell, make_abs_path_for_config_cells
+from ..tools.stdkit import join_paths, format_error_message, parse_config_cell
 from .cells import Cell, MapperCell, InjectionCell, TurboCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:
@@ -69,7 +69,7 @@ class Assembler(Helper):
 
         
     @staticmethod
-    @logger.head_catch
+    @logger.catch
     def create_app(config_cells: List[ConfigCell] = None, db_uri: str = None, root_path: str = None) -> Flask:
         """Initialize Flask app with assembler build context and return this app.
         
@@ -88,7 +88,7 @@ class Assembler(Helper):
 
         return flask_app
 
-    @logger.head_catch
+    @logger.catch
     def build_all(self) -> None:
         """Send commands to build all given instances."""
         # Build instances by key groups.
@@ -112,7 +112,7 @@ class Assembler(Helper):
         if self.mapper_cells_by_name:
             self._build_mappers(mapper_cells=list(self.mapper_cells_by_name.values()))
 
-    @logger.head_catch
+    @logger.catch
     def _build_logger(self, config: dict = None) -> None:
         """Build logger with given config.
         
@@ -120,13 +120,11 @@ class Assembler(Helper):
         # Use full or partially (with replacing missing keys from default) given config.
         logger_kwargs = self.DEFAULT_LOGGER_PARAMS
         if config:
-            for k, v in config:
+            for k, v in config.items():
                 logger_kwargs[k] = v
-        # Join path for log file.
-        logger_kwargs["path"] = join_paths(self.root_path, logger_kwargs["path"]) 
         logger.init_logger(**logger_kwargs)
 
-    @logger.head_catch
+    @logger.catch
     def _build_injection(self, injection_cells_by_name: Dict[str, InjectionCell]) -> None:
         """Setup all injection instances: Controllers, Services and Domain Objects in 1:1:1 relation."""
         def _run_injection_cells(injection_cells: List[InjectionCell]) -> None:
@@ -154,14 +152,14 @@ class Assembler(Helper):
         if "database" in injection_cells_by_name:
             injection_cells_by_name["database"].domain_class().setup_db(flask_app=self.get_flask_app(), db_uri=self.db_uri)
 
-    @logger.head_catch
+    @logger.catch
     def _build_views(self, view_cells_by_name: Dict[str, ViewCell]) -> None:
         """Build all views by registering them to app."""
         for view_cell in view_cells_by_name.values():
             self.app.register_view(view_cell)
 
     @staticmethod
-    @logger.head_catch
+    @logger.catch
     def _build_mappers(mapper_cells: List[MapperCell]) -> None:
         """Assign models parameters to mapper classes."""
         for cell in mapper_cells:

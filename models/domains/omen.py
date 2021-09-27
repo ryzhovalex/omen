@@ -16,32 +16,21 @@ from ...helpers.constants import HTTP_METHODS
 class Omen(Domain):
     """Omen class inherits Domain superclass.
     
-    Implements Flask App operating layer.
-    
-    Args:
-        config (optional): 
-            Source to load app configuration from. It is a tuple with config load type and path to config ot dict, e.g.:
-```
-                config = ("json", "path/to/config.json")
-```
-            or, another example:
-```
-                config = ("map", {"ENV": "development", ...}
-```
-            Look for all load types in the typehint reference for class initialization.
-    """
+    Implements Flask App operating layer."""
+    @logger.catch
     def __init__(
         self, 
         config: dict = None,
         turbo_cells_by_name: Dict[str, TurboCell] = None,
         cli_cmds: List[Callable] = None,
         shell_processors: List[Callable] = None,
+        is_ctx_processor_enabled: bool = False,
         *args,
         **kwargs
     ):
         super().__init__(*args, **kwargs)
         try:
-            self.project_version = self.config["PROJECT_VERSION"]
+            self.project_version = config["PROJECT_VERSION"]
         except KeyError:
             logger.warning("Project version hasn't been set in app config.")
             self.project_version = "not set"
@@ -49,10 +38,10 @@ class Omen(Domain):
         try:
             instance_path = config["INSTANCE_PATH"]
             template_folder = config["TEMPLATE_FOLDER"] 
-            static_folder = config["STATIC_PATH"]
+            static_folder = config["STATIC_FOLDER"]
         except KeyError:
             error_message = format_error_message(
-                "You must specify all of next parameters for app in config: INSTANCE_PATH, TEMPLATE_FOLDER, STATIC_PATH."
+                "You must specify all of next parameters for app in config: INSTANCE_PATH, TEMPLATE_FOLDER, STATIC_FOLDER."
             )
             raise KeyError(error_message)
 
@@ -70,12 +59,14 @@ class Omen(Domain):
         if self.app.config["SECRET_KEY"] is None:
             self.app.config["SECRET_KEY"] = secrets.token_hex(16)
 
+        self.is_ctx_processor_enabled = is_ctx_processor_enabled
+        self.turbo = Turbo(self.app)
         if turbo_cells_by_name:
             # Initialize turbo.js.
             # src: https://blog.miguelgrinberg.com/post/dynamically-update-your-flask-web-pages-using-turbo-flask
             self.turbo_cells_by_name = turbo_cells_by_name
-            self.turbo = Turbo(self.app)
             self.is_turbo_enabled = True
+            self.is_ctx_processor_enabled = True
         else:
             self.is_turbo_enabled = False
 
@@ -118,14 +109,18 @@ class Omen(Domain):
         """Binds various background processes to the app."""
         flask_app = self.get_app()
 
-        @flask_app.context_processor
-        def invoke_context_processor_operations():
-            return self._invoke_context_processor_operations()
+        if self.is_ctx_processor_enabled:
+            @logger.catch
+            @flask_app.context_processor
+            def invoke_ctx_processor_operations():
+                return self._invoke_ctx_processor_operations()
 
+        @logger.catch
         @flask_app.before_request
         def invoke_each_request_operations():
             self._invoke_each_request_operations()
 
+        @logger.catch
         @flask_app.before_first_request
         def invoke_first_request_operations():
             self._invoke_first_request_operations()

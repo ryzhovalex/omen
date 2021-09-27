@@ -1,3 +1,4 @@
+import os
 import sys
 import inspect
 from functools import wraps
@@ -49,19 +50,22 @@ class logger(Helper):
             # Of course, better to put this data directly to code loguru context constructors, 
             # but it requires more deeper researching of loguru project itself, so it could be done later to improve this functionality.
             # But for now, enjoy parsing `extra` field of loguru's output :-).
-            with cls.native_logger.contextualize(node=inspect.getmodule(func).__name__ + "." + func.__name__):
-                try:
-                    output = func(*args, **kwargs)
-                except Exception as error:
-                    if len(error.args) == 2: # i.e some catcher already signed this error
-                        # Just reraise error without logging.
-                        raise error
-                    else:
-                        # Log and reraise error with new sign argument.
-                        logger.error(error)
-                        raise error.__class__(error.args[0], True)
+            try:
+                output = func(*args, **kwargs)
+            except Exception as error:
+                _, _, traceback = sys.exc_info()
+                exception_line = traceback.tb_lineno
+                if len(error.args) == 2: # i.e some catcher already signed this error
+                    # Just reraise error without logging.
+                    raise error
                 else:
-                    return output
+                    node_info = inspect.getmodule(func).__name__ + "." + func.__name__ + f" line: {exception_line}"
+                    with cls.native_logger.contextualize(node=node_info):
+                        # Log and reraise error with new sign node argument.
+                        logger.error(error)
+                        raise error.__class__(node_info, error.args[0])
+            else:
+                return output
         return inner
 
     @classmethod
@@ -76,20 +80,25 @@ class logger(Helper):
     def get_native_logger(cls):
         return cls.native_logger
 
-    @staticmethod
+    @classmethod
     def init_logger(
+        cls,
         *, 
-        logger_class: Callable, 
         path: Path, 
         format: str, 
         rotation: str, 
         level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        serialize: bool
+        serialize: bool,
+        has_to_delete_old: bool = False
     ) -> None:
         """Init logger model instance depending on given arguments. 
 
-        Just a helpful method to recognize which arguments should be added with type hinting, and which is remain static."""
-        logger_class(
+        Just a helpful method to recognize which arguments should be added with type hinting, and which is remain static.
+        
+        Remove previous old log if `has_to_delete_old=True`."""
+        if has_to_delete_old and os.path.isfile(path):
+            os.remove(path)
+        cls(
             path, 
             format=format, 
             level=level,

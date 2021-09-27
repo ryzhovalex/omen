@@ -172,6 +172,8 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path) -> dict:
     """Parse given config cell and return configuration dictionary.
     
     If config `load_type` is json, join cell source path with given `root_path` and load json.
+
+    NOTE: This function performs automatic path absolutize - all paths starting with "./" within config will be joined to given root path.
     
     Raise:
         ValueError: If given config cell with `load_type="json"` has non-relative source path."""
@@ -180,7 +182,15 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path) -> dict:
         if config_cell.source[0] != "." and config_cell.source[1] != "/":
             error_message = format_error_message("Given config cell has non-relative source path {}", config_cell.source)
             raise ValueError(error_message)
-        config = json.load(config_cell.source)
+        else:
+            config_path = join_paths(root_path, config_cell.source)
+            with open(config_path, "r") as config_file:
+                config = json.load(config_file)
+            # Traverse all values and find paths required to be joined to the root path.
+            for k, v in config.items():
+                if type(v) == str:
+                    if v[0] == "." and v[1] == "/":
+                        config[k] = join_paths(root_path, v)
     elif load_type == "map":
         config = config_cell.source
     return config
