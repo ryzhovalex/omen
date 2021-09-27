@@ -38,9 +38,9 @@ class Assembler(Helper):
 
         # Define attributes for getter methods to be used at builder.
         self.app = None
-        self.module_path = build.module_path
+        self.db_uri = None
+        self.root_path = build.root_path
         self.config_cells_by_name = build.config_cells_by_name
-        self.db_uri = build.db_uri
 
         self.injection_cells_by_name = build.injection_cells_by_name
         self.mapper_cells_by_name = build.mapper_cells_by_name
@@ -70,7 +70,7 @@ class Assembler(Helper):
         
     @staticmethod
     @logger.head_catch
-    def create_app(config_cells: List[ConfigCell] = None, db_uri: str = None, module_path: str = None) -> Flask:
+    def create_app(config_cells: List[ConfigCell] = None, db_uri: str = None, root_path: str = None) -> Flask:
         """Initialize Flask app with assembler build context and return this app.
         
         Reassign assembler's attributes to given ones and run it's setup operations to assemble app and other project's instances."""
@@ -78,8 +78,8 @@ class Assembler(Helper):
 
         if db_uri:
             assembler.db_uri = db_uri
-        if module_path:
-            assembler.module_path = module_path
+        if root_path:
+            assembler.root_path = root_path
         if config_cells:
             assembler.extend_config_cells(config_cells=config_cells)
 
@@ -91,20 +91,18 @@ class Assembler(Helper):
     @logger.head_catch
     def build_all(self) -> None:
         """Send commands to build all given instances."""
-        # Make all json config cell's paths to absolute.
-        make_abs_path_for_config_cells(config_cells_by_name=self.config_cells_by_name, root_path=self.module_path)
         # Build instances by key groups.
         if "logger" in self.config_cells_by_name.keys():
-            logger_config = parse_config_cell(config_cell=self.config_cells_by_name["logger"])
+            logger_config = parse_config_cell(config_cell=self.config_cells_by_name["logger"], root_path=self.root_path)
         else:
             logger_config = None
         self._build_logger(config=logger_config)
 
         if self.injection_cells_by_name:
             self._build_injection(injection_cells_by_name=self.injection_cells_by_name)
-        elif not self.injection_cells_by_name or not "app" in self.injection_cells_by_name:
+        elif not "app" in self.injection_cells_by_name:
             error_message = format_error_message(
-                "Empty or None injection cells has been given. App injection cell with token `app` should have been given at minimum."
+                "App injection cell with token `app` should have been given at minimum."
             )
             raise TypeError(error_message)
 
@@ -124,15 +122,25 @@ class Assembler(Helper):
         if config:
             for k, v in config:
                 logger_kwargs[k] = v
-        logger.init_logger(logger_kwargs)
+        # Join path for log file.
+        logger_kwargs["path"] = join_paths(self.root_path, logger_kwargs["path"]) 
+        logger.init_logger(**logger_kwargs)
 
     @logger.head_catch
     def _build_injection(self, injection_cells_by_name: Dict[str, InjectionCell]) -> None:
         """Setup all injection instances: Controllers, Services and Domain Objects in 1:1:1 relation."""
         def _run_injection_cells(injection_cells: List[InjectionCell]) -> None:
-            """Unpack injection cells with loop and init Service, by inject Domain, and Controller, by inject Service."""
+            """Unpack injection cells with loop and init Service, by inject Domain, and Controller, by inject Service.
+            
+            Add config to cell's kwargs for domain, if one with the same name specified (e.g. you have config cell with name "app" and 
+            injections cell with name "app" => domain "app" will receive configuration map from config cell."""
             for cell in injection_cells:
-                cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=cell.domain_kwargs)
+                domain_kwargs = cell.domain_kwargs
+                # Check for domain's config in given cells by comparing names.
+                if cell.name in self.config_cells_by_name:
+                    domain_kwargs["config"] = parse_config_cell(root_path=self.root_path, config_cell=self.config_cells_by_name[cell.name])
+
+                cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)
                 cell.controller_class(controller_kwargs=cell.service_kwargs, service_class=cell.service_class)
 
         _run_injection_cells(list(injection_cells_by_name.values()))

@@ -168,23 +168,19 @@ def normalize_db_uri(cpas_module_path: str, raw_db_uri: str) -> str:
 
 
 @logger.catch
-def parse_config_cell(config_cell: ConfigCell) -> dict:
-    """Parse given config cell and return configuration dictionary."""
+def parse_config_cell(config_cell: ConfigCell, root_path: Path) -> dict:
+    """Parse given config cell and return configuration dictionary.
+    
+    If config `load_type` is json, join cell source path with given `root_path` and load json.
+    
+    Raise:
+        ValueError: If given config cell with `load_type="json"` has non-relative source path."""
     load_type = config_cell.load_type
     if load_type == "json":
-        config = json.dump(config_cell.source)
+        if config_cell.source[0] != "." and config_cell.source[1] != "/":
+            error_message = format_error_message("Given config cell has non-relative source path {}", config_cell.source)
+            raise ValueError(error_message)
+        config = json.load(config_cell.source)
     elif load_type == "map":
         config = config_cell.source
     return config
-
-
-@logger.catch
-def make_abs_path_for_config_cells(config_cells_by_name: Dict[str, ConfigCell], root_path: Path) -> Dict[str, ConfigCell]:
-    """Traverse through given list of config cells and join source path with root path for those who have `load_type=json`.
-    
-    Return:
-        Dict with names and config cells."""
-    for cell in config_cells_by_name:
-        if cell.load_type == "json":
-            cell.source = join_paths(root_path, cell.source)
-    return config_cells_by_name

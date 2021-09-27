@@ -32,7 +32,6 @@ class Omen(Domain):
     """
     def __init__(
         self, 
-        project_version: str = "version not specified",
         config: dict = None,
         turbo_cells_by_name: Dict[str, TurboCell] = None,
         cli_cmds: List[Callable] = None,
@@ -41,14 +40,20 @@ class Omen(Domain):
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-        self.project_version = project_version
+        try:
+            self.project_version = self.config["PROJECT_VERSION"]
+        except KeyError:
+            logger.warning("Project version hasn't been set in app config.")
+            self.project_version = "not set"
 
         try:
             instance_path = config["INSTANCE_PATH"]
             template_folder = config["TEMPLATE_FOLDER"] 
             static_folder = config["STATIC_PATH"]
         except KeyError:
-            error_message = format_error_message("You must specify all of this for app in config: instance_path, template_folder, static_path.")
+            error_message = format_error_message(
+                "You must specify all of next parameters for app in config: INSTANCE_PATH, TEMPLATE_FOLDER, STATIC_PATH."
+            )
             raise KeyError(error_message)
 
         self.app = Flask(

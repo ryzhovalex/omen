@@ -12,7 +12,7 @@ class Builder:
     Should be inherited by build class in root folder."""
     # Use native root module path.
     # NOTE: This path can be overrided by assembler.
-    module_path = os.getcwd()
+    root_path = os.getcwd()
 
     # Basic cell instances that should be defined.
     config_cells_by_name = None
