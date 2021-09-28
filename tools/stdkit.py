@@ -168,15 +168,21 @@ def normalize_db_uri(cpas_module_path: str, raw_db_uri: str) -> str:
 
 
 @logger.catch
-def parse_config_cell(config_cell: ConfigCell, root_path: Path) -> dict:
+def parse_config_cell(config_cell: ConfigCell, root_path: Path, update_with: dict = None) -> dict:
     """Parse given config cell and return configuration dictionary.
     
     If config `load_type` is json, join cell source path with given `root_path` and load json.
 
     NOTE: This function performs automatic path absolutize - all paths starting with "./" within config will be joined to given root path.
+
+    Args:
+        config_cell: Configuration cell to parse from.
+        root_path: Path to join config cell source with.
+        update_with (optional): Dictionary to update config cell mapping with. Defaults to None.
     
     Raise:
-        ValueError: If given config cell with `load_type="json"` has non-relative source path."""
+        ValueError: If given config cell with `load_type="json"` has non-relative source path.
+        ValueError: If given config cell has unrecognized load type."""
     load_type = config_cell.load_type
     if load_type == "json":
         if config_cell.source[0] != "." and config_cell.source[1] != "/":
@@ -193,4 +199,10 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path) -> dict:
                         config[k] = join_paths(root_path, v)
     elif load_type == "map":
         config = config_cell.source
+    else:
+        error_message = format_error_message("Unrecognized config cell load type: {}", load_type)
+        raise ValueError(error_message)
+    # Update given config with extra dictionary if this dictionary given and not empty.
+    if update_with:
+        config = config.update(update_with)
     return config

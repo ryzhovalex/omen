@@ -38,7 +38,7 @@ class Assembler(Helper):
 
         # Define attributes for getter methods to be used at builder.
         self.app = None
-        self.db_uri = None
+        self.extra_configs_by_name = None
         self.root_path = build.root_path
         self.config_cells_by_name = build.config_cells_by_name
 
@@ -47,53 +47,49 @@ class Assembler(Helper):
         self.turbo_cells_by_name = build.turbo_cells_by_name
         self.view_cells_by_name = build.view_cells_by_name
 
-    def get_flask_app(self) -> Flask:
-        """Return Flask App model."""
-        return self.app.get_app()
-
-    def get_db_uri(self) -> Path:
-        """Return db uri.
-        
-        Raise:
-            TypeError: If db uri is None or empty path."""
-        if not self.db_uri:
-            error_message = format_error_message("Requested database uri is None or empty path.")
-            raise TypeError(error_message)
-        else:
-            return self.db_uri
-        
-    def extend_config_cells(self, config_cells: List[ConfigCell]) -> None:
-        """Extend and redefined existing configuration cells."""
-        for cell in config_cells:
-            self.config_cells_by_name[cell.name] = cell
-
-        
     @staticmethod
     @logger.catch
-    def create_app(config_cells: List[ConfigCell] = None, db_uri: str = None, root_path: str = None) -> Flask:
+    def create_app(configs_by_name: Dict[str, dict] = None, root_path: str = None) -> Flask:
         """Initialize Flask app with assembler build context and return this app.
         
-        Reassign assembler's attributes to given ones and run it's setup operations to assemble app and other project's instances."""
+        Reassign assembler's attributes to given ones and run it's setup operations to assemble app and other project's instances.
+
+        Args:
+            configs_by_name (optional):
+                Configs to be appended to appropriate ones described in Build class. Defaults to None.
+                Contain config name as key and configuration mapping as value, e.g.:
+        ```
+                    configs_by_name = {
+                        "app": {"TESTING": True},
+                        "database": {"db_uri": "sqlite3:///:memory:"}
+                    }
+        ```
+            root_path (optional):
+                Root path to execute project from. Defaults to `os.getcwd()`.
+                Required in cases of calling this function not from actual project root (e.g. from tests) to set root path explicitly.
+        """
         assembler = Assembler()  # Get Assembler instance without args, because it should be initialized before (in root create_app function).
 
-        if db_uri:
-            assembler.db_uri = db_uri
         if root_path:
             assembler.root_path = root_path
-        if config_cells:
-            assembler.extend_config_cells(config_cells=config_cells)
+        if configs_by_name:
+            assembler.extra_configs_by_name = configs_by_name
 
-        assembler.build_all()
-        flask_app = assembler.get_flask_app()
+        assembler._build_all()
+        flask_app = assembler.app.get_app()
 
         return flask_app
-
+        
     @logger.catch
-    def build_all(self) -> None:
+    def _build_all(self) -> None:
         """Send commands to build all given instances."""
         # Build instances by key groups.
         if "logger" in self.config_cells_by_name.keys():
-            logger_config = parse_config_cell(config_cell=self.config_cells_by_name["logger"], root_path=self.root_path)
+            logger_config = parse_config_cell(
+                config_cell=self.config_cells_by_name["logger"], 
+                root_path=self.root_path, 
+                update_with=self.extra_configs_by_name.get("logger", None)
+            )
         else:
             logger_config = None
         self._build_logger(config=logger_config)
@@ -136,7 +132,11 @@ class Assembler(Helper):
                 domain_kwargs = cell.domain_kwargs
                 # Check for domain's config in given cells by comparing names.
                 if cell.name in self.config_cells_by_name:
-                    domain_kwargs["config"] = parse_config_cell(root_path=self.root_path, config_cell=self.config_cells_by_name[cell.name])
+                    domain_kwargs["config"] = parse_config_cell(
+                        root_path=self.root_path, 
+                        config_cell=self.config_cells_by_name[cell.name],
+                        update_with=self.extra_configs_by_name.get(cell.name, None)
+                    )
 
                 cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)
                 cell.controller_class(controller_kwargs=cell.service_kwargs, service_class=cell.service_class)
@@ -150,7 +150,7 @@ class Assembler(Helper):
         # Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
         # so it's possible only after App initialization.
         if "database" in injection_cells_by_name:
-            injection_cells_by_name["database"].domain_class().setup_db(flask_app=self.get_flask_app(), db_uri=self.db_uri)
+            injection_cells_by_name["database"].domain_class().setup_db(flask_app=self.get_flask_app())
 
     @logger.catch
     def _build_views(self, view_cells_by_name: Dict[str, ViewCell]) -> None:

@@ -56,5 +56,5 @@ class ViewCell(Cell):
 @dataclass
 class TurboCell(Cell):
     name: str
-    template_path: str  # Path relative to 'templates' folder, e.g. "home/turbo-weather.html"
-    target_id: str  # Id of target element within the template, e.g. "turbo-weather"
+    template_path: str  # Path relative to 'templates' folder, e.g. "turbo/turbo-weather.html".
+    target_id: str  # Id of target element to update within the template, e.g. "turbo-weather".

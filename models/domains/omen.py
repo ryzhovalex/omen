@@ -21,7 +21,6 @@ class Omen(Domain):
     def __init__(
         self, 
         config: dict = None,
-        turbo_cells_by_name: Dict[str, TurboCell] = None,
         cli_cmds: List[Callable] = None,
         shell_processors: List[Callable] = None,
         is_ctx_processor_enabled: bool = False,
@@ -61,15 +60,6 @@ class Omen(Domain):
 
         self.is_ctx_processor_enabled = is_ctx_processor_enabled
         self.turbo = Turbo(self.app)
-        if turbo_cells_by_name:
-            # Initialize turbo.js.
-            # src: https://blog.miguelgrinberg.com/post/dynamically-update-your-flask-web-pages-using-turbo-flask
-            self.turbo_cells_by_name = turbo_cells_by_name
-            self.is_turbo_enabled = True
-            self.is_ctx_processor_enabled = True
-        else:
-            self.is_turbo_enabled = False
-
         if cli_cmds:
             self._register_cli_cmds(cli_cmds)
         if shell_processors:
@@ -113,7 +103,11 @@ class Omen(Domain):
             @logger.catch
             @flask_app.context_processor
             def invoke_ctx_processor_operations():
-                return self._invoke_ctx_processor_operations()
+                ctx_data = self._invoke_ctx_processor_operations()
+                if ctx_data is None:
+                    return {}
+                else:
+                    return ctx_data
 
         @logger.catch
         @flask_app.before_request
@@ -125,21 +119,11 @@ class Omen(Domain):
         def invoke_first_request_operations():
             self._invoke_first_request_operations()
 
-    def _invoke_ctx_processor_operations(self) -> Dict[str, Any]:
+    def _invoke_ctx_processor_operations(self) -> dict:
         """Invoke context processor operations and return dict of their results.
 
-        Proxy function, can be extended in children with functions to call without changing `_init_app_daemons` function.
-
-        Output of all operations should be written to `context_data` dictionary under appropriate key, e.g.:
-        ```
-            context_data["turbo"] = self.fetch_turbo() 
-        ```
-        """
-        if self.is_turbo_enabled:
-            ctx_data = {}
-            # WARNING: Do not use key "turbo" for context data or you get conflict with existing key used by turbo.js.
-            ctx_data["turbo_data"] = self.fetch_turbo()
-            return ctx_data
+        Proxy function, can be extended in children with functions to call without changing `_init_app_daemons` function."""
+        pass
 
     def _invoke_each_request_operations(self) -> None:
         """Invoke before each request operations.
@@ -152,15 +136,3 @@ class Omen(Domain):
         
         Proxy function, can be extended in children with functions to call without changing `_init_app_daemons` function."""
         pass
-
-    def fetch_turbo(self) -> None:
-        """DUMMY!"""
-        # data = self.get_turbo_data()
-        # return data
-        return 0
-
-    @logger.catch
-    def _push_turbo(self, target: str) -> None:
-        """Push updates to turbo template."""
-        with self.app.app_context():
-            self.turbo.push(self.turbo.replace(render_template(f"operation/turbo-detection-message.html"), "turbo-detection-message"))

@@ -53,13 +53,11 @@ class logger(Helper):
             try:
                 output = func(*args, **kwargs)
             except Exception as error:
-                _, _, traceback = sys.exc_info()
-                exception_line = traceback.tb_lineno
                 if len(error.args) == 2: # i.e some catcher already signed this error
                     # Just reraise error without logging.
                     raise error
                 else:
-                    node_info = inspect.getmodule(func).__name__ + "." + func.__name__ + f" line: {exception_line}"
+                    node_info = inspect.getmodule(func).__name__ + "." + func.__name__
                     with cls.native_logger.contextualize(node=node_info):
                         # Log and reraise error with new sign node argument.
                         logger.error(error)
