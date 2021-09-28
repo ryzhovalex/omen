@@ -38,7 +38,7 @@ class Assembler(Helper):
 
         # Define attributes for getter methods to be used at builder.
         self.app = None
-        self.extra_configs_by_name = None
+        self.extra_configs_by_name = {}  # Do not set this to None at initialization, because `get()` method called from this dictionary.
         self.root_path = build.root_path
         self.config_cells_by_name = build.config_cells_by_name
 

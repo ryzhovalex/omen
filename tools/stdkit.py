@@ -183,6 +183,7 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path, update_with: dic
     Raise:
         ValueError: If given config cell with `load_type="json"` has non-relative source path.
         ValueError: If given config cell has unrecognized load type."""
+    config = {}
     load_type = config_cell.load_type
     if load_type == "json":
         if config_cell.source[0] != "." and config_cell.source[1] != "/":
@@ -204,5 +205,5 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path, update_with: dic
         raise ValueError(error_message)
     # Update given config with extra dictionary if this dictionary given and not empty.
     if update_with:
-        config = config.update(update_with)
+        config.update(update_with)
     return config

@@ -20,7 +20,7 @@ class Omen(Domain):
     @logger.catch
     def __init__(
         self, 
-        config: dict = None,
+        config: dict,
         cli_cmds: List[Callable] = None,
         shell_processors: List[Callable] = None,
         is_ctx_processor_enabled: bool = False,
@@ -66,10 +66,12 @@ class Omen(Domain):
             self._register_shell_processors(shell_processors)
         self._init_app_daemons()
 
+    @logger.catch
     def get_app(self) -> Flask:
         """Return native app."""
         return self.app
 
+    @logger.catch
     def get_version(self):
         """Return project's version."""
         return self.project_version
@@ -85,16 +87,19 @@ class Omen(Domain):
             view = view_cell.view_class.as_view(view_cell.name)
         self.app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHODS)
 
+    @logger.catch
     def _register_cli_cmds(self, cmds: List[Callable]) -> None:
         """Register cli cmds for the app."""
         for cmd in cmds:
             self.app.cli.add_command(cmd)
 
+    @logger.catch
     def _register_shell_processors(self, shell_processors: List[Callable]) -> None:
         """Register shell processors for the app."""
         for processor in shell_processors:
             self.app.shell_context_processor(processor)
 
+    @logger.catch
     def _init_app_daemons(self) -> None:
         """Binds various background processes to the app."""
         flask_app = self.get_app()
