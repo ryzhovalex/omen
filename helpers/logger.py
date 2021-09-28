@@ -60,7 +60,7 @@ class logger(Helper):
                     node_info = inspect.getmodule(func).__name__ + "." + func.__name__
                     with cls.native_logger.contextualize(node=node_info):
                         # Log and reraise error with new sign node argument.
-                        logger.error(error)
+                        logger.error(f"{error.__class__.__name__}: {error}")
                         raise error.__class__(node_info, error.args[0])
             else:
                 return output
