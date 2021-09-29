@@ -6,7 +6,7 @@ from .builder import Builder
 from .assembler import Assembler
 
 if TYPE_CHECKING:
-    from flask.app import Flask
+    from flask import Flask
 
 
 def create_app(*args, **kwargs) -> Flask:

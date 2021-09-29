@@ -3,7 +3,7 @@ from flask.views import MethodView
 from ...helpers.logger import logger
 from ...tools.noconflict import makecls
 from ...helpers.singleton import Singleton
-from ...tools.stdkit import format_error_message
+from ...tools.regular import format_error_message
 
 
 class View(MethodView):

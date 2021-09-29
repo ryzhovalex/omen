@@ -6,7 +6,7 @@ from flask import Response, make_response, redirect, flash
 
 from ...helpers.logger import logger
 from ...helpers.singleton import Singleton
-from ...tools.stdkit import format_error_message
+from ...tools.regular import format_error_message
 
 
 class Service(metaclass=Singleton):

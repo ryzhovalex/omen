@@ -9,7 +9,7 @@ from flask import Flask
 from .logger import logger
 from .helper import Helper
 from .constants import Path
-from ..tools.stdkit import join_paths, format_error_message, parse_config_cell
+from ..tools.regular import join_paths, format_error_message, parse_config_cell
 from .cells import Cell, MapperCell, InjectionCell, TurboCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:

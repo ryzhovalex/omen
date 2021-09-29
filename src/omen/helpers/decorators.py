@@ -8,7 +8,7 @@ from typing import Any, List, Dict, Union, Callable
 from flask import g, redirect, url_for
 
 from .logger import logger
-from ..tools.stdkit import format_error_message
+from ..tools.regular import format_error_message
 
 
 def login_required(allowed_types: List[str] = None, endpoint_if_not_logged: str = "auth.login", endpoint_if_not_allowed: str = "home.basic"):

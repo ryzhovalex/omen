@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from .domain import Domain
 from ...helpers.logger import logger
 from ...helpers.constants import Path
-from ...tools.stdkit import format_error_message
+from ...tools.regular import format_error_message
 
 
 # Here database variable are referenced at top layer to be visible for ORMs.

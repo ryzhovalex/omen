@@ -4,7 +4,7 @@ from typing import Any, List, Dict, Tuple, Union, Callable, Literal
 from ...errors.error import Error
 from ...helpers.logger import logger
 from ...helpers.singleton import Singleton
-from ...tools.stdkit import format_error_message
+from ...tools.regular import format_error_message
 
 
 class Domain(metaclass=Singleton):

@@ -9,7 +9,7 @@ from flask import Flask, Blueprint, render_template, session, g
 from .domain import Domain
 from ...helpers.logger import logger
 from ...helpers.cells import TurboCell, ViewCell
-from ...tools.stdkit import format_error_message
+from ...tools.regular import format_error_message
 from ...helpers.constants import HTTP_METHODS
 
 

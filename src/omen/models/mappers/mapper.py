@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from ...helpers.logger import logger
 from ...helpers.singleton import Singleton
-from ...tools.stdkit import format_error_message
+from ...tools.regular import format_error_message
 
 if TYPE_CHECKING:
     from ..domains.database import db
