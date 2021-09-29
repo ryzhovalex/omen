@@ -108,6 +108,8 @@ class Assembler(Helper):
         if self.mapper_cells_by_name:
             self._build_mappers(mapper_cells=list(self.mapper_cells_by_name.values()))
 
+        os.environ["ROOT_PATH"] = self.root_path  # Set root path environ for various usage within project.
+
     @logger.catch
     def _build_logger(self, config: dict = None) -> None:
         """Build logger with given config.
