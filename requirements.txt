@@ -1,0 +1,6 @@
+flask
+requests
+turbo-flask
+flask-migrate
+loguru
+pytest
