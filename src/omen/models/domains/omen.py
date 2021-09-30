@@ -50,6 +50,12 @@ class Omen(Domain):
             template_folder=template_folder, 
             static_folder=static_folder
         )
+        # Set server name for app from config.
+        try:
+            self.app.config["SERVER_NAME"] = config["SERVER_NAME"]
+        except KeyError:
+            error_message = format_error_message("You must specify key `SERVER_NAME` in your `app.json` config.")
+            raise ValueError(error_message)
 
         if config is not None:
             self.app.config.from_mapping(config)

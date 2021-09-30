@@ -51,10 +51,3 @@ class ViewCell(Cell):
     view_class: View
     view_kwargs: Dict[str, Any]
     route: str  # Route will be the same for all methods.
-
-
-@dataclass
-class TurboCell(Cell):
-    name: str
-    template_path: str  # Path relative to 'templates' folder, e.g. "turbo/turbo-weather.html".
-    target_id: str  # Id of target element to update within the template, e.g. "turbo-weather".
