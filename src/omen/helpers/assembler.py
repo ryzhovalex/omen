@@ -83,6 +83,9 @@ class Assembler(Helper):
     @logger.catch
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
+        # Set root path environ for various usage within project.
+        os.environ["ROOT_PATH"] = self.root_path
+
         # Build instances by key groups.
         if "logger" in self.config_cells_by_name.keys():
             logger_config = parse_config_cell(
@@ -94,6 +97,7 @@ class Assembler(Helper):
             logger_config = None
         self._build_logger(config=logger_config)
 
+        # Call command to build injections.
         if self.injection_cells_by_name:
             self._build_injection(injection_cells_by_name=self.injection_cells_by_name)
         elif not "app" in self.injection_cells_by_name:
@@ -102,13 +106,13 @@ class Assembler(Helper):
             )
             raise TypeError(error_message)
 
+        # Build views.
         if self.view_cells_by_name:
             self._build_views(view_cells_by_name=self.view_cells_by_name)
 
+        # Build mappers.
         if self.mapper_cells_by_name:
             self._build_mappers(mapper_cells=list(self.mapper_cells_by_name.values()))
-
-        os.environ["ROOT_PATH"] = self.root_path  # Set root path environ for various usage within project.
 
     @logger.catch
     def _build_logger(self, config: dict = None) -> None:
