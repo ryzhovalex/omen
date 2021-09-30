@@ -64,7 +64,11 @@ class Omen(Domain):
         if self.app.config["SECRET_KEY"] is None:
             self.app.config["SECRET_KEY"] = secrets.token_hex(16)
 
+        # Resolve context processor actions.
         self.is_ctx_processor_enabled = is_ctx_processor_enabled
+        if self.is_ctx_processor_enabled:
+            self.ctx_data = {}  # Live context data continiously pushed to app template context.
+
         self.turbo = Turbo(self.app)
         if cli_cmds:
             self._register_cli_cmds(cli_cmds)
@@ -114,11 +118,11 @@ class Omen(Domain):
             @logger.catch
             @flask_app.context_processor
             def invoke_ctx_processor_operations():
-                ctx_data = self._invoke_ctx_processor_operations()
-                if ctx_data is None:
-                    return {}
-                else:
-                    return ctx_data
+                """Return continiously self live context data to app template processor.
+                
+                It might be useful in chain with turbo.js, when you push template changes
+                and thus call flask context processor which in turn calls this return to template context."""
+                return self.ctx_data
 
         @logger.catch
         @flask_app.before_request
@@ -129,12 +133,6 @@ class Omen(Domain):
         @flask_app.before_first_request
         def invoke_first_request_operations():
             self._invoke_first_request_operations()
-
-    def _invoke_ctx_processor_operations(self) -> dict:
-        """Invoke context processor operations and return dict of their results.
-
-        Proxy function, can be extended in children with functions to call without changing `_init_app_daemons` function."""
-        pass
 
     def _invoke_each_request_operations(self) -> None:
         """Invoke before each request operations.
