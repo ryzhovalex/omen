@@ -69,6 +69,8 @@ class Omen(Domain):
         if self.is_ctx_processor_enabled:
             self.ctx_data = {}  # Live context data continiously pushed to app template context.
 
+        # Initialize turbo.js.
+        # src: https://blog.miguelgrinberg.com/post/dynamically-update-your-flask-web-pages-using-turbo-flask
         self.turbo = Turbo(self.app)
         if cli_cmds:
             self._register_cli_cmds(cli_cmds)
