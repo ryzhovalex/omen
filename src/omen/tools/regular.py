@@ -207,3 +207,19 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path, update_with: dic
     if update_with:
         config.update(update_with)
     return config
+
+
+@logger.catch
+def get_or_error(object_to_return: Any) -> Any:
+    """Return given object after checking.
+    
+    Raise:
+        TypeError: If given object is None.
+        TypeError: If given object is empty mapping."""
+    if object_to_return is None:
+        error_message = format_error_message("Requested object is None.")
+        raise TypeError(error_message)
+    elif isinstance(object_to_return, (list, dict, tuple, set)) and not object_to_return:
+        error_message = format_error_message("Requested object is empty mapping: {}.", object_to_return)
+        raise TypeError(error_message)
+    return object_to_return
