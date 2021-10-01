@@ -84,7 +84,7 @@ class Omen(Domain):
         return self.app
 
     @logger.catch
-    def get_version(self):
+    def get_version(self) -> str:
         """Return project's version."""
         return self.project_version
 
