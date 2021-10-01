@@ -100,7 +100,7 @@ class Omen(Domain):
         self.app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHODS)
 
     @logger.catch
-    def replace_turbo(self, name: str, data: dict) -> None:
+    def update_turbo(self, name: str, data: dict) -> None:
         """Update turbo element at given name with given data.
         
         More detailed: replace content of element with given name with template with this name and data context.
