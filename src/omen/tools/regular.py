@@ -4,7 +4,7 @@ import json
 from typing import Any, List, Dict, Literal, Callable, Union, Tuple
 
 import yaml
-from flask import Response, make_response, redirect
+from flask import Response, make_response, redirect, flash, render_template
 
 from ..helpers.logger import logger
 from ..helpers.constants import Path
@@ -223,3 +223,26 @@ def get_or_error(object_to_return: Any) -> Any:
         error_message = format_error_message("Requested object is empty mapping: {}.", object_to_return)
         raise TypeError(error_message)
     return object_to_return
+
+
+@logger.catch
+def make_fail_response(
+    template_path: str, template_ctx: dict = {}, flash_message: str = "Error", flash_category: Literal["message", "error", "info", "warning"] = "error"
+) -> Response:
+    """Generate fail response with rendered template by given path with status code 422 compatible with turbo.js.
+    
+    Also able to flash message to template context.
+    
+    Args:
+        template_path: Path to template to render.
+        template_ctx (optional): Context to push to template. Defaults to empty dict.
+        flash_message (optional): Message to flash to template context. Defaults to "Error".
+        flash_category (optional): Category for flash message according to Flask's `flash` categories. Defaults to "error".
+    """
+    # Login errors should be flashed to user.
+    flash(flash_message, category=flash_category)
+    response = make_response(render_template(template_path, **template_ctx))
+    # Always set status code of failed to form posts responses to 422 or turbo.js will raise an error.
+    # Source: https://github.com/miguelgrinberg/turbo-flask/issues/11#issuecomment-883248949
+    response.status_code = 422
+    return response
