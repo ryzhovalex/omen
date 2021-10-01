@@ -100,16 +100,28 @@ class Omen(Domain):
         self.app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHODS)
 
     @logger.catch
-    def update_turbo(self, name: str, data: dict) -> None:
-        """Update turbo element at given name with given data.
+    def update_turbo(self, target: str, ctx_data: dict, prepath: str = "turbo") -> None:
+        """Update turbo element at given name with given context data.
         
         More detailed: replace content of element with given name with template with this name and data context.
         
-        This method often called from Operation domain when new data arrives to it for representing this data for user."""
+        This method often called from Operation domain when new data arrives to it for representing this data for user.
+        
+        Args:
+            target: General name of turbo element, e.g. "cpu_usage".
+            ctx_data: Data to be pushed to template context.
+            prepath: 
+                Path to template before given `name`. Defaults to "turbo".
+
+        Example:
+            `target="cpu_usage"`, and `prepath="turbo"` => `render_template("turbo/turbo_cpu_usage.html", **ctx_data)`
+        """
         with self.app.app_context():
-            replaced_template = self.turbo.replace(render_template(f"turbo/{name}.html", **data), name)
+            replaced_template = self.turbo.update(render_template(f"{prepath}/{target}.html", **ctx_data), target)
             logger.debug(replaced_template)
             self.turbo.push(replaced_template)
+
+    @logger.catch
 
     @logger.catch
     def _register_cli_cmds(self, cmds: List[Callable]) -> None:
