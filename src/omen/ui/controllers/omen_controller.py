@@ -15,6 +15,6 @@ class OmenController(Controller):
         """Return project's version."""
         return self.service.get_version()
 
-    def update_turbo(self, name: str, data: dict) -> None:
+    def push_turbo(self, name: str, data: dict) -> None:
         """Update turbo element at given name with given data."""
-        self.service.update_turbo(name=name, data=data)
+        self.service.push_turbo(name=name, data=data)

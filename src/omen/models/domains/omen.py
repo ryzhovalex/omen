@@ -8,9 +8,9 @@ from flask import Flask, Blueprint, render_template, session, g
 
 from .domain import Domain
 from ...helpers.logger import logger
-from ...helpers.cells import TurboCell, ViewCell
+from ...helpers.cells import ViewCell
 from ...tools.regular import format_error_message
-from ...helpers.constants import HTTP_METHODS
+from ...helpers.constants import HTTP_METHODS, TurboAction
 
 
 class Omen(Domain):
@@ -100,28 +100,24 @@ class Omen(Domain):
         self.app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHODS)
 
     @logger.catch
-    def update_turbo(self, target: str, ctx_data: dict, prepath: str = "turbo") -> None:
-        """Update turbo element at given name with given context data.
-        
-        More detailed: replace content of element with given name with template with this name and data context.
-        
-        This method often called from Operation domain when new data arrives to it for representing this data for user.
+    def push_turbo(self, action: TurboAction, target: str, template_path: str, ctx_data: dict = {}) -> None:
+        """Push turbo action to target with rendered from path template contextualized with given data.
         
         Args:
-            target: General name of turbo element, e.g. "cpu_usage".
-            ctx_data: Data to be pushed to template context.
-            prepath: 
-                Path to template before given `name`. Defaults to "turbo".
-
-        Example:
-            `target="cpu_usage"`, and `prepath="turbo"` => `render_template("turbo/turbo_cpu_usage.html", **ctx_data)`
+            action: Turbo-Flask action to perform.
+            target: Id of HTML element to push action to.
+            template_path: Path to template to render.
+            ctx_data (optional): Context data to push to rendered template. Defaults to empty dict.
         """
         with self.app.app_context():
-            replaced_template = self.turbo.update(render_template(f"{prepath}/{target}.html", **ctx_data), target)
+            action = action
+            target = target
+            template_path = template_path
+            ctx_data = ctx_data
+            replaced_template = ""
+            exec(f"replaced_template = self.turbo.action(render_template(template_path, **ctx_data), target)")
             logger.debug(replaced_template)
             self.turbo.push(replaced_template)
-
-    @logger.catch
 
     @logger.catch
     def _register_cli_cmds(self, cmds: List[Callable]) -> None:

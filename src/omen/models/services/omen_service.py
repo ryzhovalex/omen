@@ -15,6 +15,6 @@ class OmenService(Service):
         """Return project's version."""
         return self.domain.get_version()
 
-    def update_turbo(self, name: str, data: dict) -> None:
+    def push_turbo(self, name: str, data: dict) -> None:
         """Update turbo element at given name with given data."""
-        self.domain.update_turbo(name=name, data=data)
+        self.domain.push_turbo(name=name, data=data)
