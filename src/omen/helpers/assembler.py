@@ -10,7 +10,7 @@ from .logger import logger
 from .helper import Helper
 from .constants import Path
 from ..tools.regular import join_paths, format_error_message, parse_config_cell
-from .cells import Cell, MapperCell, InjectionCell, TurboCell, ViewCell, ConfigCell
+from .cells import Cell, MapperCell, InjectionCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:
     from ..models.domains.omen import Omen
@@ -44,7 +44,6 @@ class Assembler(Helper):
 
         self.injection_cells_by_name = build.injection_cells_by_name
         self.mapper_cells_by_name = build.mapper_cells_by_name
-        self.turbo_cells_by_name = build.turbo_cells_by_name
         self.view_cells_by_name = build.view_cells_by_name
 
     @staticmethod
