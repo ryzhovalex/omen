@@ -114,10 +114,8 @@ class Omen(Domain):
             target = target
             template_path = template_path
             ctx_data = ctx_data
-            replaced_template = ""
-            exec(f"replaced_template = self.turbo.action(render_template(template_path, **ctx_data), target)")
-            logger.debug(replaced_template)
-            self.turbo.push(replaced_template)
+            logger.debug(ctx_data)
+            exec(f"self.turbo.push(self.turbo.{action}(render_template('{template_path}', **{ctx_data}), '{target}'))")
 
     @logger.catch
     def _register_cli_cmds(self, cmds: List[Callable]) -> None:
