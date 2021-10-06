@@ -21,6 +21,7 @@ class Omen(Domain):
     def __init__(
         self, 
         config: dict,
+        project_version: str = None,
         cli_cmds: List[Callable] = None,
         shell_processors: List[Callable] = None,
         is_ctx_processor_enabled: bool = False,
@@ -28,10 +29,10 @@ class Omen(Domain):
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-        try:
-            self.project_version = config["PROJECT_VERSION"]
-        except KeyError:
-            logger.warning("Project version hasn't been set in app config.")
+        if project_version:
+            self.project_version = project_version
+        else:
+            logger.warning("Project version hasn't been set.")
             self.project_version = "not set"
 
         try:
