@@ -20,8 +20,8 @@ class Omen(Domain):
     @logger.catch
     def __init__(
         self, 
+        project_version: str,
         config: dict,
-        project_version: str = None,
         cli_cmds: List[Callable] = None,
         shell_processors: List[Callable] = None,
         is_ctx_processor_enabled: bool = False,
@@ -29,11 +29,7 @@ class Omen(Domain):
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-        if project_version:
-            self.project_version = project_version
-        else:
-            logger.warning("Project version hasn't been set.")
-            self.project_version = "not set"
+        self.project_version = project_version
 
         try:
             instance_path = config["INSTANCE_PATH"]

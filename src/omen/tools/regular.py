@@ -3,7 +3,6 @@ import os
 import json
 from typing import Any, List, Dict, Literal, Callable, Union, Tuple
 
-import yaml
 from flask import Response, make_response, redirect, flash, render_template
 
 from ..helpers.logger import logger
@@ -64,22 +63,6 @@ def join_paths(*args) -> str:
             path = path[:len(path)-1]
         summary_path += "/" + path
     return summary_path
-
-@logger.catch
-def parse_yaml_config(
-        config_path: str, 
-        loader_name: Literal["base", "safe", "full"] = "full"
-    ) -> Dict[str, Any]:
-    """Parse YAML config and return all documents and their fields within it as dictionary."""
-    loaders_by_name = {  # dict to resolve loader by given name
-        "base": yaml.BaseLoader,
-        "safe": yaml.SafeLoader,
-        "full": yaml.FullLoader
-    } 
-
-    with open(config_path, "r") as cfg:
-        content = yaml.load(cfg, Loader=loaders_by_name[loader_name])
-    return content
 
 
 @logger.catch

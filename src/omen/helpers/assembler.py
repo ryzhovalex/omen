@@ -142,6 +142,15 @@ class Assembler(Helper):
                         config_cell=self.config_cells_by_name[cell.name],
                         update_with=self.extra_configs_by_name.get(cell.name, None)
                     )
+                # Fetch project version from info.json from the root path. 
+                if cell.name == "app":
+                    with open(join_paths(self.root_path, "./info.json")) as info_file:
+                        info_data = json.load(info_file)
+                        try:
+                            domain_kwargs["project_version"] = info_data["version"]
+                        except KeyError:
+                            error_message =  format_error_message("Project version is not specified in `info.json` file.")
+                            raise KeyError(error_message)
 
                 cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)
                 cell.controller_class(controller_kwargs=cell.service_kwargs, service_class=cell.service_class)
