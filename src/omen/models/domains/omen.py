@@ -114,7 +114,6 @@ class Omen(Domain):
             logger.debug(ctx_data)
             exec(f"self.turbo.push(self.turbo.{action}(render_template('{template_path}', **{ctx_data}), '{target}'))")
 
-    @logger.catch
     def postbuild(self) -> None:
         """Abstract method to perform post-injection operation related to app. Generally used by Assembler.
         
