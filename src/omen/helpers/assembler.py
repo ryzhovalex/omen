@@ -166,6 +166,12 @@ class Assembler(Helper):
         if "database" in injection_cells_by_name:
             injection_cells_by_name["database"].domain_class().setup_db(flask_app=self.get_flask_app())
 
+        # Call postponed build from created App.
+        try:
+            self.app.postbuild()
+        except NotImplementedError:
+            pass
+
     @logger.catch
     def _build_views(self, view_cells_by_name: Dict[str, ViewCell]) -> None:
         """Build all views by registering them to app."""

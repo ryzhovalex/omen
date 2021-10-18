@@ -115,6 +115,14 @@ class Omen(Domain):
             exec(f"self.turbo.push(self.turbo.{action}(render_template('{template_path}', **{ctx_data}), '{target}'))")
 
     @logger.catch
+    def postbuild(self) -> None:
+        """Abstract method to perform post-injection operation related to app. Generally used by Assembler.
+        
+        Raise:
+            NotImplementedError: If not re-implemented in children."""
+        raise NotImplementedError("Method `postbuild` hasn't been reimplemented.")
+
+    @logger.catch
     def _register_cli_cmds(self, cmds: List[Callable]) -> None:
         """Register cli cmds for the app."""
         for cmd in cmds:
