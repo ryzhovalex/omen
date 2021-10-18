@@ -21,11 +21,6 @@ class Service(metaclass=Singleton):
         if domain_class:
             self.domain = domain_class(**domain_kwargs)  # Create instance of given base model class with given kwargs
 
-    @logger.catch
-    def get_domain(self) -> Domain:
-        """Return bound domain."""
-        return self.domain
-
     def get_bound_by_id(self, id: int) -> Any:
         """Fetch bound instance by id from domain and return it."""
         return self.domain.get_bound_by_id(id=id)
