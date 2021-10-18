@@ -111,7 +111,6 @@ class Omen(Domain):
             target = target
             template_path = template_path
             ctx_data = ctx_data
-            logger.debug(ctx_data)
             exec(f"self.turbo.push(self.turbo.{action}(render_template('{template_path}', **{ctx_data}), '{target}'))")
 
     def postbuild(self) -> None:
