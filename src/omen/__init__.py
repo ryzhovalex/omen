@@ -17,7 +17,7 @@ from .models.services.omen_service import OmenService
 from .ui.controllers.omen_controller import OmenController
 from .models.services.database_service import DatabaseService
 from .ui.controllers.database_controller import DatabaseController
-from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell)
+from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell, EmitterCell)
 from .helpers.constants import (
     Json, Path, HttpMethod, ConfigLoadType, HTTP_METHODS, CONFIG_LOAD_TYPES
 )
