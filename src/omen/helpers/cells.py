@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Dict, Union, Callable, Literal, TYPE_CHECKING
 
-from ..ui.views.emitter import Emitter
+from ..ui.emitters.emitter import Emitter
 from .constants import ConfigLoadType, Path
 
 if TYPE_CHECKING:
