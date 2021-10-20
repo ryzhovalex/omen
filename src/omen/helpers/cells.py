@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Dict, Union, Callable, Literal, TYPE_CHECKING
 
-from ..ui.emitters.emitter import Emitter
 from .constants import ConfigLoadType, Path
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.
     from ..ui.views.view import View
     from ..models.domains.database import db
+    from ..ui.emitters.emitter import Emitter
     from ..models.mappers.mapper import Mapper
     from ..models.domains.domain import Domain
     from ..models.services.service import Service
