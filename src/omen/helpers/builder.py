@@ -19,4 +19,5 @@ class Builder:
     injection_cells_by_name = None
     mapper_cells_by_name = None
     view_cells_by_name = None
+    emitter_cells_by_name = None
     shell_processor_cells_by_name = None

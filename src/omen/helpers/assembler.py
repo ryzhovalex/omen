@@ -10,7 +10,7 @@ from .logger import logger
 from .helper import Helper
 from .constants import Path
 from ..tools.regular import join_paths, format_error_message, parse_config_cell
-from .cells import Cell, MapperCell, InjectionCell, ViewCell, ConfigCell
+from .cells import Cell, EmitterCell, MapperCell, InjectionCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:
     from ..models.domains.omen import Omen
@@ -45,6 +45,7 @@ class Assembler(Helper):
         self.injection_cells_by_name = build.injection_cells_by_name
         self.mapper_cells_by_name = build.mapper_cells_by_name
         self.view_cells_by_name = build.view_cells_by_name
+        self.emitter_cells_by_name = build.emitter_cells_by_name
 
     @staticmethod
     @logger.catch
@@ -112,6 +113,10 @@ class Assembler(Helper):
         # Build mappers.
         if self.mapper_cells_by_name:
             self._build_mappers(mapper_cells=list(self.mapper_cells_by_name.values()))
+
+        # Build Emitters with Omen injection.
+        if self.emitter_cells_by_name:
+            self._build_emitters(emitter_cells_by_name=list(self.emitter_cells_by_name.values()))
 
     @logger.catch
     def _build_logger(self, config: dict = None) -> None:
@@ -185,3 +190,9 @@ class Assembler(Helper):
         for cell in mapper_cells:
             cell.mapper_class.model = cell.model
             cell.mapper_class.params = cell.mapper_kwargs
+
+    @logger.catch
+    def _build_emitters(self, emitter_cells: List[EmitterCell]) -> None:
+        """Build emitters from given cells and inject Omen application to each."""
+        for cell in emitter_cells:
+            cell.emitter_class(app=self.app)
