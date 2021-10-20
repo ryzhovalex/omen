@@ -13,8 +13,9 @@ from ..tools.regular import join_paths, format_error_message, parse_config_cell
 from .cells import Cell, EmitterCell, MapperCell, InjectionCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:
-    from ..models.domains.omen import Omen
     from .builder import Builder
+    from ..models.domains.omen import Omen
+    from ..ui.controllers.omen_controller import OmenController
 
 
 class Assembler(Helper):
@@ -38,6 +39,7 @@ class Assembler(Helper):
 
         # Define attributes for getter methods to be used at builder.
         self.app = None
+        self.app_controller = None
         self.extra_configs_by_name = {}  # Do not set this to None at initialization, because `get()` method called from this dictionary.
         self.root_path = build.root_path
         self.config_cells_by_name = build.config_cells_by_name
@@ -164,6 +166,8 @@ class Assembler(Helper):
 
         # Assign app to use within assembler.
         self.app = injection_cells_by_name["app"].domain_class()  # type: Omen
+        # Assign app controller mainly to be used as injection for emitters.
+        self.app_controller = injection_cells_by_name["app"].controller_class()  # type: OmenController
 
         # Check if database given as service cell and perform it's postponed setup.
         # Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
@@ -193,6 +197,6 @@ class Assembler(Helper):
 
     @logger.catch
     def _build_emitters(self, emitter_cells: List[EmitterCell]) -> None:
-        """Build emitters from given cells and inject Omen application to each."""
+        """Build emitters from given cells and inject Omen application controllers to each."""
         for cell in emitter_cells:
-            cell.emitter_class(app=self.app)
+            cell.emitter_class(app=self.app_controller)

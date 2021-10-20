@@ -1,5 +1,5 @@
-from ...models.domains.omen import Omen
 from ...helpers.singleton import Singleton
+from ..controllers.omen_controller import OmenController
 
 
 class Emitter(metaclass=Singleton):
@@ -8,6 +8,6 @@ class Emitter(metaclass=Singleton):
     It acts with Views, which calls methods from Emitters.
     
     Attributes:
-        app: Omen application to work with, mainly using methods related to turbo.js."""
-    def __init__(self, app: Omen) -> None:
-        self.app = app
+        app_controller: Omen application controller to work with, mainly using methods related to turbo.js."""
+    def __init__(self, app_controller: OmenController) -> None:
+        self.app_controller = app_controller
