@@ -3,6 +3,7 @@ from .ui.views.view import View
 from .helpers.helper import Helper
 from .helpers.logger import logger
 from .helpers.builder import Builder
+from .ui.views.emitter import Emitter
 from .models.domains.omen import Omen
 from .helpers.assembler import Assembler
 from .helpers.singleton import Singleton
