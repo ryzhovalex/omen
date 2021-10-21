@@ -110,7 +110,7 @@ class Assembler(Helper):
 
         # Build views.
         if self.view_cells_by_name:
-            self._build_views(view_cells_by_name=self.view_cells_by_name)
+            self._build_views(view_cells=list(self.view_cells_by_name.values()))
 
         # Build mappers.
         if self.mapper_cells_by_name:
@@ -118,7 +118,7 @@ class Assembler(Helper):
 
         # Build Emitters with Omen injection.
         if self.emitter_cells_by_name:
-            self._build_emitters(emitter_cells_by_name=list(self.emitter_cells_by_name.values()))
+            self._build_emitters(emitter_cells=list(self.emitter_cells_by_name.values()))
 
     @logger.catch
     def _build_logger(self, config: dict = None) -> None:
@@ -182,9 +182,9 @@ class Assembler(Helper):
             pass
 
     @logger.catch
-    def _build_views(self, view_cells_by_name: Dict[str, ViewCell]) -> None:
+    def _build_views(self, view_cells: List[ViewCell]) -> None:
         """Build all views by registering them to app."""
-        for view_cell in view_cells_by_name.values():
+        for view_cell in view_cells:
             self.app.register_view(view_cell)
 
     @staticmethod
@@ -199,4 +199,4 @@ class Assembler(Helper):
     def _build_emitters(self, emitter_cells: List[EmitterCell]) -> None:
         """Build emitters from given cells and inject Omen application controllers to each."""
         for cell in emitter_cells:
-            cell.emitter_class(app=self.app_controller)
+            cell.emitter_class(app_controller=self.app_controller)
