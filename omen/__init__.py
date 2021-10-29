@@ -21,6 +21,3 @@ from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCel
 from .helpers.constants import (
     Json, Path, HttpMethod, ConfigLoadType, HTTP_METHODS, CONFIG_LOAD_TYPES
 )
-
-
-__version__ = "0.1.0-proto"
