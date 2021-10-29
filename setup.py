@@ -2,15 +2,15 @@ from distutils.core import setup
 
 
 setup(
-    name="omen",
+    name="omen-web",
     packages=["omen"],
-    version="0.1.2",
+    version="0.1.3",
     license="MIT",
     description="Upgraded layer over Flask.",
     author = "Alexander Ryzhov",
     author_email = "thed4rkof@gmail.com",
     url = "https://github.com/ryzhovalex/omen",
-    download_url = "https://github.com/ryzhovalex/omen/archive/refs/tags/v0.1.1-proto.tar.gz",
+    download_url = "https://github.com/ryzhovalex/omen/archive/refs/tags/0.1.2-proto.tar.gz",
     keywords = ["flask+", "web-framework", "flask", "flask-template"],
     install_requires=[
         "flask",
