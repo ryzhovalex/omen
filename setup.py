@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
     name="omen",
     packages=["omen"],
-    version="v0.1.0-proto",
+    version="v0.1.1-proto",
     license="MIT",
     description="Upgraded layer over Flask.",
     author = "Alexander Ryzhov",
