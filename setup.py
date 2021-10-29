@@ -10,7 +10,7 @@ setup(
     author = "Alexander Ryzhov",
     author_email = "thed4rkof@gmail.com",
     url = "https://github.com/ryzhovalex/omen",
-    download_url = "https://github.com/ryzhovalex/omen/archive/refs/tags/0.1.4.tar.gz",
+    download_url = "https://github.com/ryzhovalex/omen/archive/refs/tags/0.1.5.tar.gz",
     keywords = ["flask+", "web-framework", "flask", "flask-template"],
     install_requires=[
         "flask",
