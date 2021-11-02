@@ -3,11 +3,9 @@ from typing import Any, List, Dict, Tuple, Callable
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from warepy import logger, format_message
 
 from .domain import Domain
-from ...helpers.logger import logger
-from ...helpers.constants import Path
-from ...tools.regular import format_error_message
 
 
 # Here database variable are referenced at top layer to be visible for ORMs.
@@ -24,7 +22,7 @@ class Database(Domain):
         try:
             self.db_uri = config["db_uri"]
         except KeyError:
-            error_message = format_error_message("You must specify db URI for database in config.")
+            error_message = format_message("You must specify db URI for database in config.")
             raise ValueError(error_message)
 
     @logger.catch
@@ -49,7 +47,7 @@ class Database(Domain):
         if self.migrate:
             return self.migrate
         else:
-            error_message = format_error_message("Migrate object hasn't implemented yet.")
+            error_message = format_message("Migrate object hasn't implemented yet.")
             raise AttributeError(error_message)
 
     @logger.catch

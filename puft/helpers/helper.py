@@ -1,4 +1,4 @@
-from .singleton import Singleton
+from warepy import Singleton
 
 
 class Helper(metaclass=Singleton):

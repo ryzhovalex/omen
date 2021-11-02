@@ -2,12 +2,10 @@ import json
 from abc import abstractmethod
 from typing import Any, List, Dict, Literal, Union, Callable
 
+from warepy import logger, Singleton, format_message
 from flask import Response, make_response, redirect, flash
 
 from ..domains.domain import Domain
-from ...helpers.logger import logger
-from ...helpers.singleton import Singleton
-from ...tools.regular import format_error_message
 
 
 class Service(metaclass=Singleton):

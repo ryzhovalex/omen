@@ -1,10 +1,9 @@
 from abc import abstractmethod
 from typing import Any, List, Dict, Tuple, Union, Callable, Literal
 
+from warepy import logger, Singleton, format_message
+
 from ...errors.error import Error
-from ...helpers.logger import logger
-from ...helpers.singleton import Singleton
-from ...tools.regular import format_error_message
 
 
 class Domain(metaclass=Singleton):

@@ -5,11 +5,10 @@ import json
 from typing import Dict, Any, List, Literal, Tuple, Callable, Union, TYPE_CHECKING
 
 from flask import Flask
+from warepy import logger, join_paths, format_message
 
-from .logger import logger
 from .helper import Helper
-from .constants import Path
-from ..tools.regular import join_paths, format_error_message, parse_config_cell
+from ..tools.regular import parse_config_cell
 from .cells import Cell, EmitterCell, MapperCell, InjectionCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:
@@ -103,7 +102,7 @@ class Assembler(Helper):
         if self.injection_cells_by_name:
             self._build_injection(injection_cells_by_name=self.injection_cells_by_name)
         elif not "app" in self.injection_cells_by_name:
-            error_message = format_error_message(
+            error_message = format_message(
                 "App injection cell with token `app` should have been given at minimum."
             )
             raise TypeError(error_message)
@@ -156,7 +155,7 @@ class Assembler(Helper):
                         try:
                             domain_kwargs["project_version"] = info_data["version"]
                         except KeyError:
-                            error_message =  format_error_message("Project version is not specified in `info.json` file.")
+                            error_message =  format_message("Project version is not specified in `info.json` file.")
                             raise KeyError(error_message)
 
                 cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)

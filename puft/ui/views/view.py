@@ -1,9 +1,7 @@
 from flask.views import MethodView
+from warepy import logger, Singleton, format_message
 
-from ...helpers.logger import logger
 from ...tools.noconflict import makecls
-from ...helpers.singleton import Singleton
-from ...tools.regular import format_error_message
 
 
 class View(MethodView):
@@ -17,17 +15,17 @@ class View(MethodView):
     decorators = [logger.catch]  # List of decorators to apply to all view's methods.
 
     def get(self):
-        error_message = format_error_message("Method GET is not implemented at view: {}", self.__class__.__name__)
+        error_message = format_message("Method GET is not implemented at view: {}", self.__class__.__name__)
         raise NotImplementedError(error_message)
     
     def post(self):
-        error_message = format_error_message("Method POST is not implemented at view: {}", self.__class__.__name__)
+        error_message = format_message("Method POST is not implemented at view: {}", self.__class__.__name__)
         raise NotImplementedError(error_message)
 
     def put(self):
-        error_message = format_error_message("Method PUT is not implemented at view: {}", self.__class__.__name__)
+        error_message = format_message("Method PUT is not implemented at view: {}", self.__class__.__name__)
         raise NotImplementedError(error_message)
 
     def delete(self):
-        error_message = format_error_message("Method DELETE is not implemented at view: {}", self.__class__.__name__)
+        error_message = format_message("Method DELETE is not implemented at view: {}", self.__class__.__name__)
         raise NotImplementedError(error_message)

@@ -1,4 +1,5 @@
-from ...helpers.singleton import Singleton
+from warepy import logger, Singleton
+
 from ..controllers.puft_controller import PuftController
 
 

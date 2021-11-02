@@ -1,9 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from ...helpers.logger import logger
-from ...helpers.singleton import Singleton
-from ...tools.regular import format_error_message
+from warepy import logger, Singleton, format_message
 
 if TYPE_CHECKING:
     from ..domains.database import db
@@ -25,7 +23,7 @@ class Mapper(metaclass=Singleton):
             ValueError: if there is no such ORM model in database matched given kwargs."""
         model = cls.model.query.filter_by(**kwargs).first()
         if model is None:
-            error_message = format_error_message("There is no model {} with such parameters: {}", [cls.model, kwargs])            
+            error_message = format_message("There is no model {} with such parameters: {}", [cls.model, kwargs])            
             raise ValueError(error_message)
         else:
             return model
@@ -49,7 +47,7 @@ class Mapper(metaclass=Singleton):
             # Calculate order target.
             order_target = None
             if order_by not in cls.model.__dict__:
-                error_message = format_error_message("No such attribute in ORM model {}, matched given order argument: {}", [cls.model, order_by])
+                error_message = format_message("No such attribute in ORM model {}, matched given order argument: {}", [cls.model, order_by])
                 raise ValueError(error_message)
             # Also consider asc/desc order.
             if descending_order:
@@ -61,7 +59,7 @@ class Mapper(metaclass=Singleton):
             models = cls.model.query.filter_by(**kwargs).all()
 
         if not models:
-            error_message = format_error_message("There is no model {} with such parameters: {}", [cls.model, kwargs])            
+            error_message = format_message("There is no model {} with such parameters: {}", [cls.model, kwargs])            
             raise ValueError(error_message)
         else:
             return models

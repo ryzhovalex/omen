@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, List, Dict, Tuple, Union, Literal, Callable
 
-from ...helpers.logger import logger
-from ...helpers.singleton import Singleton
+from warepy import logger, Singleton
+
 from ...models.services.service import Service
 
 

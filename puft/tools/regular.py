@@ -5,8 +5,8 @@ from typing import Any, List, Dict, Literal, Callable, Union, Tuple
 
 from flask import Response, make_response, redirect, flash, render_template
 
-from ..helpers.logger import logger
-from ..helpers.constants import Path
+from warepy import logger, join_paths, format_message
+
 from ..helpers.cells import Cell, ConfigCell
 
 
@@ -16,6 +16,7 @@ def generate_redirect_response(url: Any, status_code: int = 302) -> Response:
     response = redirect(url, code=status_code)
     return response
 
+@logger.catch
 def generate_success_response(data: Any, is_json_enabled: bool, ok_status_code: int = 200, no_content_status_code: int = 204) -> Response:
     """Generate success response with given data and return this response.
     
@@ -44,39 +45,6 @@ def generate_error_response(error: Exception, status_code: int = 400) -> Respons
     response = make_response(json_data)
     response.status_code = status_code
     return response
-
-@logger.catch
-def join_paths(*args) -> str:
-    """Collect given paths and return summary joined absolute path.
-    
-    Also calculate logic for `./` starting path, consider it as "from me" relative point."""
-    summary_path = ""
-    for path in args:
-        # Check if path starts from slash, to remove it to avoid errors.
-        if path[0] == "/": 
-            path = path[1:]
-        # Check if path given in logical form (starts from "./").
-        elif path[:2] == "./":  
-            path = path[2:]  # Remove leading "./" to perform proper paths joining.
-        # Check if path ends with slash, to remove it to avoid errors.
-        if path[len(path)-1] == "/":
-            path = path[:len(path)-1]
-        summary_path += "/" + path
-    return summary_path
-
-
-@logger.catch
-def dump_json_to_environ(environ_key: str, map_to_dump: Union[List, Dict, Tuple]) -> None:
-    """Dump given map with converting to json to environment variable by given key."""
-    os.environ[environ_key] = json.dumps(map_to_dump)
-
-
-@logger.catch
-def load_json_from_environ(environ_key: str) -> Dict[str, Any]:
-    """Load json with converting to Python's map object from environment variable by given key and return data dictionary."""
-    return json.loads(os.environ[environ_key])
-
-
 @logger.catch
 def unpack_cell(cell: Cell) -> Dict[str, Any]:
     """Unpack given cell to dictionary and return this dictionary."""
@@ -94,64 +62,13 @@ def generate_cells_by_name(cells: List[Cell]) -> Dict[str, Cell]:
 
 
 @logger.catch
-def convert_snake_to_camel_case(snake_string: str) -> str:
-    """Convert given in snake_case string to CamelCase string and return it.
-    
-    Raise error if given string doesn't contain underscores."""
-    camel_string = ""
-    words = snake_string.split("_")
-    if len(words) == 1:  # i.e word didn't contain underscores
-        raise ValueError("Given string doesn't contain underscores.")
-    for word in words:
-        camel_string += word.capitalize()
-    return camel_string
-
-
-@logger.catch
-def format_error_message(text: str, vars: Union[Any, List[Any]] = None, no_arg_phrase: str = "None") -> str:
-    """Construct error message from given text with inserting given vars to it and return resulting message.
-    Use 'no_arg_phrase' as phrase to insert instead of empty (Python's bool checking == False) given argument.
-    Helpful when you want to format error message with variables with unknown values."""
-    # Pack variable to list if given only one.
-    if not isinstance(vars, list):
-        vars = [vars]
-        
-    vars_for_format = []
-    for var in vars:
-        # Check var and append it to vars for formatting if it's not empty.
-        if bool(var):
-            vars_for_format.append(var)
-        else:
-            vars_for_format.append(no_arg_phrase)
-    error_message = text.format(*vars_for_format)
-    return error_message
-
-@logger.catch
 def get_next_dict_key(dictionary: dict) -> str:
     """Return next key in dictionary by using its iterator."""
     return next(iter(dictionary.keys()))
 
 
 @logger.catch
-def normalize_db_uri(cpas_module_path: str, raw_db_uri: str) -> str:
-    """Normalize given db (i.e. convert rel paths to abs and check for errors) uri and return it."""
-    if ":memory:" in raw_db_uri:
-        return "sqlite:///:memory:"
-    db_name, db_rel_path = raw_db_uri.split("://")
-    if db_name == "sqlite":
-        db_path = join_paths(cpas_module_path, db_rel_path)
-        db_uri = db_name + ":///" + db_path  # It is necessary to set ":///" in sqlite3 abs paths
-        return db_uri
-    elif db_name == "postgresql":
-        error_message = format_error_message("PostgreSQL database temporarily not supported.")
-        raise ValueError(error_message)
-    else:
-        error_message = format_error_message("Couldn't recognize database name: {}", db_name)
-        raise ValueError(error_message)
-
-
-@logger.catch
-def parse_config_cell(config_cell: ConfigCell, root_path: Path, update_with: dict = None) -> dict:
+def parse_config_cell(config_cell: ConfigCell, root_path: str, update_with: dict = None) -> dict:
     """Parse given config cell and return configuration dictionary.
     
     If config `load_type` is json, join cell source path with given `root_path` and load json.
@@ -170,7 +87,7 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path, update_with: dic
     load_type = config_cell.load_type
     if load_type == "json":
         if config_cell.source[0] != "." and config_cell.source[1] != "/":
-            error_message = format_error_message("Given config cell has non-relative source path {}", config_cell.source)
+            error_message = format_message("Given config cell has non-relative source path {}", config_cell.source)
             raise ValueError(error_message)
         else:
             config_path = join_paths(root_path, config_cell.source)
@@ -184,28 +101,12 @@ def parse_config_cell(config_cell: ConfigCell, root_path: Path, update_with: dic
     elif load_type == "map":
         config = config_cell.source
     else:
-        error_message = format_error_message("Unrecognized config cell load type: {}", load_type)
+        error_message = format_message("Unrecognized config cell load type: {}", load_type)
         raise ValueError(error_message)
     # Update given config with extra dictionary if this dictionary given and not empty.
     if update_with:
         config.update(update_with)
     return config
-
-
-@logger.catch
-def get_or_error(object_to_return: Any) -> Any:
-    """Return given object after checking.
-    
-    Raise:
-        TypeError: If given object is None.
-        TypeError: If given object is empty mapping."""
-    if object_to_return is None:
-        error_message = format_error_message("Requested object is None.")
-        raise TypeError(error_message)
-    elif isinstance(object_to_return, (list, dict, tuple, set)) and not object_to_return:
-        error_message = format_error_message("Requested object is empty mapping: {}.", object_to_return)
-        raise TypeError(error_message)
-    return object_to_return
 
 
 @logger.catch

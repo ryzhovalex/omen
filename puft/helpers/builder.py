@@ -2,8 +2,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, List, Dict, Any
 
-from .logger import logger
-from .constants import Path
+from warepy import logger
 
 
 class Builder:

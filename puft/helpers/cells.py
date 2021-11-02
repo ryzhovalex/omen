@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Dict, Union, Callable, Literal, TYPE_CHECKING
 
-from .constants import ConfigLoadType, Path
+from .constants import ConfigLoadType
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.
@@ -25,7 +25,7 @@ class Cell:
 class ConfigCell(Cell):
     """Config cell which can be used to load maps or json files to appropriate instance's configuration by name."""
     load_type: ConfigLoadType
-    source: Union[Path, dict]
+    source: Union[str, dict]
 
 
 @dataclass
