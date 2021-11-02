@@ -1,5 +1,5 @@
 from ...helpers.singleton import Singleton
-from ..controllers.omen_controller import OmenController
+from ..controllers.puft_controller import PuftController
 
 
 class Emitter(metaclass=Singleton):
@@ -8,6 +8,6 @@ class Emitter(metaclass=Singleton):
     It acts with Views, which calls methods from Emitters.
     
     Attributes:
-        app_controller: Omen application controller to work with, mainly using methods related to turbo.js."""
-    def __init__(self, app_controller: OmenController) -> None:
+        app_controller: Puft application controller to work with, mainly using methods related to turbo.js."""
+    def __init__(self, app_controller: PuftController) -> None:
         self.app_controller = app_controller

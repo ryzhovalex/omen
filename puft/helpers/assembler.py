@@ -14,8 +14,8 @@ from .cells import Cell, EmitterCell, MapperCell, InjectionCell, ViewCell, Confi
 
 if TYPE_CHECKING:
     from .builder import Builder
-    from ..models.domains.omen import Omen
-    from ..ui.controllers.omen_controller import OmenController
+    from ..models.domains.puft import Puft
+    from ..ui.controllers.puft_controller import PuftController
 
 
 class Assembler(Helper):
@@ -116,7 +116,7 @@ class Assembler(Helper):
         if self.mapper_cells_by_name:
             self._build_mappers(mapper_cells=list(self.mapper_cells_by_name.values()))
 
-        # Build Emitters with Omen injection.
+        # Build Emitters with Puft injection.
         if self.emitter_cells_by_name:
             self._build_emitters(emitter_cells=list(self.emitter_cells_by_name.values()))
 
@@ -165,9 +165,9 @@ class Assembler(Helper):
         _run_injection_cells(list(injection_cells_by_name.values()))
 
         # Assign app to use within assembler.
-        self.app = injection_cells_by_name["app"].domain_class()  # type: Omen
+        self.app = injection_cells_by_name["app"].domain_class()  # type: Puft
         # Assign app controller mainly to be used as injection for emitters.
-        self.app_controller = injection_cells_by_name["app"].controller_class()  # type: OmenController
+        self.app_controller = injection_cells_by_name["app"].controller_class()  # type: PuftController
 
         # Check if database given as service cell and perform it's postponed setup.
         # Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
@@ -197,6 +197,6 @@ class Assembler(Helper):
 
     @logger.catch
     def _build_emitters(self, emitter_cells: List[EmitterCell]) -> None:
-        """Build emitters from given cells and inject Omen application controllers to each."""
+        """Build emitters from given cells and inject Puft application controllers to each."""
         for cell in emitter_cells:
             cell.emitter_class(app_controller=self.app_controller)

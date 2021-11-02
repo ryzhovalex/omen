@@ -13,8 +13,8 @@ from ...tools.regular import format_error_message
 from ...helpers.constants import HTTP_METHODS, TurboAction
 
 
-class Omen(Domain):
-    """Omen class inherits Domain superclass.
+class Puft(Domain):
+    """Puft class inherits Domain superclass.
     
     Implements Flask App operating layer."""
     @logger.catch

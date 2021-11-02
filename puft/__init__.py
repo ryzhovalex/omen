@@ -3,7 +3,7 @@ from .ui.views.view import View
 from .helpers.helper import Helper
 from .helpers.logger import logger
 from .helpers.builder import Builder
-from .models.domains.omen import Omen
+from .models.domains.puft import Puft
 from .ui.emitters.emitter import Emitter
 from .helpers.assembler import Assembler
 from .helpers.singleton import Singleton
@@ -13,8 +13,8 @@ from .models.services.service import Service
 from .models.domains.database import Database
 from .helpers.decorators import login_required
 from .ui.controllers.controller import Controller
-from .models.services.omen_service import OmenService
-from .ui.controllers.omen_controller import OmenController
+from .models.services.puft_service import PuftService
+from .ui.controllers.puft_controller import PuftController
 from .models.services.database_service import DatabaseService
 from .ui.controllers.database_controller import DatabaseController
 from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell, EmitterCell)
