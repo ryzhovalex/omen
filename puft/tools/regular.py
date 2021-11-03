@@ -84,10 +84,10 @@ def parse_config_cell(config_cell: ConfigCell, root_path: str, update_with: dict
         raise ValueError(error_message)
 
     # Fetch config's extension.
-    if "json" in config_path[-5, len(config_path)]:
+    if "json" in config_path[-5:len(config_path)]:
         with open(config_path, "r") as config_file:
             config = json.load(config_file)
-    elif "yaml" in config_path[-5, len(config_path)]:
+    elif "yaml" in config_path[-5:len(config_path)]:
         config = load_yaml(config_path)
     else:
         error_message = format_message("Unrecognized config cell source's extension.")
