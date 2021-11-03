@@ -5,7 +5,7 @@ from typing import Any, List, Dict, Literal, Callable, Union, Tuple
 
 from flask import Response, make_response, redirect, flash, render_template
 
-from warepy import logger, join_paths, format_message
+from warepy import logger, join_paths, format_message, load_yaml
 
 from ..helpers.cells import Cell, ConfigCell
 
@@ -66,8 +66,6 @@ def get_next_dict_key(dictionary: dict) -> str:
 def parse_config_cell(config_cell: ConfigCell, root_path: str, update_with: dict = None) -> dict:
     """Parse given config cell and return configuration dictionary.
     
-    If config `load_type` is json, join cell source path with given `root_path` and load json.
-
     NOTE: This function performs automatic path absolutize - all paths starting with "./" within config will be joined to given root path.
 
     Args:
@@ -76,28 +74,31 @@ def parse_config_cell(config_cell: ConfigCell, root_path: str, update_with: dict
         update_with (optional): Dictionary to update config cell mapping with. Defaults to None.
     
     Raise:
-        ValueError: If given config cell with `load_type="json"` has non-relative source path.
-        ValueError: If given config cell has unrecognized load type."""
+        ValueError: If given config cell has non-relative source path.
+        ValueError: If given config cell's source has unrecognized extension."""
     config = {}
-    load_type = config_cell.load_type
-    if load_type == "json":
-        if config_cell.source[0] != "." and config_cell.source[1] != "/":
-            error_message = format_message("Given config cell has non-relative source path {}", config_cell.source)
-            raise ValueError(error_message)
-        else:
-            config_path = join_paths(root_path, config_cell.source)
-            with open(config_path, "r") as config_file:
-                config = json.load(config_file)
-            # Traverse all values and find paths required to be joined to the root path.
-            for k, v in config.items():
-                if type(v) == str:
-                    if v[0] == "." and v[1] == "/":
-                        config[k] = join_paths(root_path, v)
-    elif load_type == "map":
-        config = config_cell.source
-    else:
-        error_message = format_message("Unrecognized config cell load type: {}", load_type)
+    config_path = join_paths(root_path, config_cell.source)
+
+    if config_cell.source[0] != "." and config_cell.source[1] != "/":
+        error_message = format_message("Given config cell has non-relative source path {}", config_cell.source)
         raise ValueError(error_message)
+
+    # Fetch config's extension.
+    if "json" in config_path[-5, len(config_path)]:
+        with open(config_path, "r") as config_file:
+            config = json.load(config_file)
+    elif "yaml" in config_path[-5, len(config_path)]:
+        config = load_yaml(config_path)
+    else:
+        error_message = format_message("Unrecognized config cell source's extension.")
+        raise ValueError(error_message)
+
+    # Traverse all values and find paths required to be joined to the root path.
+    for k, v in config.items():
+        if type(v) == str:
+            if v[0] == "." and v[1] == "/":
+                config[k] = join_paths(root_path, v)
+
     # Update given config with extra dictionary if this dictionary given and not empty.
     if update_with:
         config.update(update_with)

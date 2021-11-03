@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import os
-import json
 from typing import Dict, Any, List, Literal, Tuple, Callable, Union, TYPE_CHECKING
 
 from flask import Flask
-from warepy import logger, join_paths, format_message
+from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
 from ..tools.regular import parse_config_cell
@@ -148,15 +147,14 @@ class Assembler(Helper):
                         config_cell=self.config_cells_by_name[cell.name],
                         update_with=self.extra_configs_by_name.get(cell.name, None)
                     )
-                # Fetch project version from info.json from the root path. 
+                # Fetch project version from info.yaml from the root path. 
                 if cell.name == "app":
-                    with open(join_paths(self.root_path, "./info.json")) as info_file:
-                        info_data = json.load(info_file)
-                        try:
-                            domain_kwargs["project_version"] = info_data["version"]
-                        except KeyError:
-                            error_message =  format_message("Project version is not specified in `info.json` file.")
-                            raise KeyError(error_message)
+                    info_data = load_yaml(join_paths(self.root_path, "./info.yaml"))
+                    try:
+                        domain_kwargs["project_version"] = info_data["version"]
+                    except KeyError:
+                        error_message =  format_message("Project version is not specified in `info.yaml` file.")
+                        raise KeyError(error_message)
 
                 cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)
                 cell.controller_class(controller_kwargs=cell.service_kwargs, service_class=cell.service_class)

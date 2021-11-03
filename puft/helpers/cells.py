@@ -23,9 +23,8 @@ class Cell:
 
 @dataclass
 class ConfigCell(Cell):
-    """Config cell which can be used to load maps or json files to appropriate instance's configuration by name."""
-    load_type: ConfigLoadType
-    source: Union[str, dict]
+    """Config cell which can be used to load configs to appropriate instance's configuration by name."""
+    source: str
 
 
 @dataclass
