@@ -45,11 +45,6 @@ def generate_error_response(error: Exception, status_code: int = 400) -> Respons
     response = make_response(json_data)
     response.status_code = status_code
     return response
-@logger.catch
-def unpack_cell(cell: Cell) -> Dict[str, Any]:
-    """Unpack given cell to dictionary and return this dictionary."""
-    data = cell.__dict__
-    return data
 
 
 @logger.catch
