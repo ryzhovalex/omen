@@ -16,7 +16,7 @@ from .models.services.database_service import DatabaseService
 from .ui.controllers.database_controller import DatabaseController
 from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell, EmitterCell)
 from .helpers.constants import (
-    HttpMethod, ConfigLoadType, TurboAction, HTTP_METHODS, CONFIG_LOAD_TYPES
+    HttpMethod, TurboAction, HTTP_METHODS, CONFIG_LOAD_TYPES
 )
 from .tools.regular import (
     make_fail_response,
