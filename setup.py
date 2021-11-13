@@ -10,7 +10,7 @@ setup(
     author = "Alexander Ryzhov",
     author_email = "thed4rkof@gmail.com",
     url = "https://github.com/ryzhovalex/puft",
-    download_url = "",
+    download_url = "https://github.com/ryzhovalex/puft/archive/refs/tags/0.2.0.tar.gz",
     keywords = ["flask+", "web-framework", "flask", "flask-template"],
     install_requires=[
         "flask",
