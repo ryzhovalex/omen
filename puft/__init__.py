@@ -8,9 +8,9 @@ from .helpers.assembler import Assembler
 from .models.domains.domain import Domain
 from .models.mappers.mapper import Mapper
 from .models.services.service import Service
-from .models.domains.database import Database
 from .ui.controllers.controller import Controller
 from .models.services.puft_service import PuftService
+from .models.domains.database import Database, native_db
 from .ui.controllers.puft_controller import PuftController
 from .models.services.database_service import DatabaseService
 from .ui.controllers.database_controller import DatabaseController

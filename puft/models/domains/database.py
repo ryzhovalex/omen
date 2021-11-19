@@ -10,14 +10,14 @@ from .domain import Domain
 
 # Here database variable are referenced at top layer to be visible for ORMs.
 # It is kinda messy, and in future it may be refactored (nothing more permanent than temporary).
-db = SQLAlchemy()
+native_db = SQLAlchemy()
 
 
 class Database(Domain):
     """Utilizes SQLAlchemy database operations."""
     @logger.catch
     def __init__(self, config: dict):
-        self.db = db
+        self.db = native_db
         self.migrate = None
         try:
             raw_uri = config["URI"]  # type: str
