@@ -20,16 +20,16 @@ class Database(Domain):
         self.db = db
         self.migrate = None
         try:
-            self.db_uri = config["DB_URI"]
+            self.uri = config["URI"]
         except KeyError:
-            error_message = format_message("You must specify DB_URI for database in config.")
+            error_message = format_message("You must specify URI for database in config.")
             raise ValueError(error_message)
 
     @logger.catch
     def setup_db(self, flask_app: Flask) -> None:
         """Setup database and migration object with given Flask app."""
-        logger.info(f"Set database path: {self.db_uri}")
-        flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.db_uri
+        logger.info(f"Set database path: {self.uri}")
+        flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
         flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
         self.db.init_app(flask_app)
         self.migrate = Migrate(flask_app, self.db)
