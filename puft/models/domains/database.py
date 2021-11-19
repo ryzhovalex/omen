@@ -20,9 +20,9 @@ class Database(Domain):
         self.db = db
         self.migrate = None
         try:
-            self.db_uri = config["db_uri"]
+            self.db_uri = config["DB_URI"]
         except KeyError:
-            error_message = format_message("You must specify db URI for database in config.")
+            error_message = format_message("You must specify DB_URI for database in config.")
             raise ValueError(error_message)
 
     @logger.catch
