@@ -20,10 +20,15 @@ class Database(Domain):
         self.db = db
         self.migrate = None
         try:
-            self.uri = config["URI"]
+            raw_uri = config["URI"]  # type: str
         except KeyError:
             error_message = format_message("You must specify URI for database in config.")
             raise ValueError(error_message)
+        
+        # Since URI from config is a raw path, need to calculate protocol.
+        # Case 1: SQLite database.
+        if "sqlite" in raw_uri or ".db" in raw_uri:
+            self.uri = "sqlite://" + raw_uri
 
     @logger.catch
     def setup_db(self, flask_app: Flask) -> None:
