@@ -10,7 +10,8 @@ class Builder:
     
     Should be inherited by build class in root folder."""
     # Use native root module path.
-    # NOTE: This path can be overrided by assembler.
+    # Because this class imported from root directory, root_path below will be assigned from there during class's initialization.
+    # NOTE: This path can be overrided by assembler in order of getting arguments on it's own initialization.
     root_path = os.getcwd()
 
     # Basic cell instances that should be defined.
