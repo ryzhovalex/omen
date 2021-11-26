@@ -170,7 +170,7 @@ class Assembler(Helper):
         # Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
         # so it's possible only after App initialization.
         if "database" in injection_cells_by_name:
-            injection_cells_by_name["database"].domain_class().setup_db(flask_app=self.get_flask_app())
+            injection_cells_by_name["database"].domain_class().setup_db(flask_app=self.app)
 
         # Call postponed build from created App.
         try:
