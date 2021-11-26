@@ -28,7 +28,9 @@ class Database(Domain):
         # Since URI from config is a raw path, need to calculate protocol.
         # Case 1: SQLite database.
         if "sqlite" in raw_uri or ".db" in raw_uri:
-            self.uri = "sqlite://" + raw_uri
+            # Set absolute path to db.
+            # Source: https://stackoverflow.com/a/44687471/14748231.
+            self.uri = "sqlite:///" + raw_uri
 
     @logger.catch
     def setup_db(self, flask_app: Flask) -> None:
