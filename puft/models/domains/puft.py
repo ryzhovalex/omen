@@ -85,6 +85,11 @@ class Puft(Domain):
         return get_or_error(self.project_version)
 
     @logger.catch
+    def get_instance_path(self) -> str:
+        """Return app's instance path."""
+        return self.app.instance_path
+
+    @logger.catch
     def register_view(self, view_cell: ViewCell) -> None:
         """Register given view cell for the app."""
         # Check if view has kwargs to avoid sending empty dict.
