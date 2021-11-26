@@ -16,6 +16,10 @@ class PuftController(Controller):
         """Return project's version."""
         return self.service.get_version()
 
+    def get_instance_path(self) -> str:
+        """Return app's instance path."""
+        return self.service.get_instance_path()
+
     def push_turbo(self, action: TurboAction, target: str, template_path: str, ctx_data: dict = {}) -> None:
         """Update turbo element at given name with given data."""
         self.service.push_turbo(action=action, target=target, template_path=template_path, ctx_data=ctx_data)
