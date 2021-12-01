@@ -63,6 +63,7 @@ class Database(Domain):
 
     @logger.catch
     def drop_all(self):
+        "Drop all tables."
         self.db.drop_all()
 
     @logger.catch
