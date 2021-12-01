@@ -41,11 +41,16 @@ def login_required(
 
             if g.user is None:
                 error_message = format_message("Reject request of unauthorized user to view: {}", view.__name__)
-                result = Response(redirect(url_for(endpoint_if_not_logged), headers=negative_response_headers))
+                result = redirect(url_for(endpoint_if_not_logged))
+                # To not overwrite origin headers of the redirect by just passing `result.headers = ...`, 
+                # which will produce `Redirecting...` inter-window, use another way to handle this.
+                # Source: https://stackoverflow.com/questions/47638855/flask-redirect-after-login-with-token-in-header/58176689#58176689.
+                result.headers["headers"] = negative_response_headers
             elif allowed_types is not None:
                 if g.user.type not in allowed_types:
                     error_message = format_message("Reject request of user {} with type {} to view {}.", [g.user.username, g.user.type, view.__name__])
-                    result = Response(redirect(url_for(endpoint_if_not_allowed), headers=negative_response_headers))
+                    result = redirect(url_for(endpoint_if_not_allowed))
+                    result.headers["headers"] = negative_response_headers
             
             # Check if error occured, else normally call view. Finally return result with error or view output.
             if error_message is not None:
