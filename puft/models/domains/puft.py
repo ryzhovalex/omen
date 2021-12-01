@@ -5,6 +5,7 @@ from typing import Any, List, Dict, Tuple, Callable, Union
 from turbo_flask import Turbo
 from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
+from flask_cors import CORS
 
 
 from .domain import Domain
@@ -52,6 +53,12 @@ class Puft(Domain):
         # except KeyError:
         #     error_message = format_message("You must specify key `SERVER_NAME` in your `app.json` config.")
         #     raise ValueError(error_message)
+
+        # Enable CORS for the app's resources.
+        is_cors_enabled = config.get("IS_CORS_ENABLED", None)
+        if is_cors_enabled is not None:
+            if is_cors_enabled:
+                CORS(self.app)
 
         if config is not None:
             self.app.config.from_mapping(config)
