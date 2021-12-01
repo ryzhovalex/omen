@@ -14,7 +14,6 @@ def login_required(
     allowed_types: List[str] = None, 
     endpoint_if_not_logged: str = "auth.login", 
     endpoint_if_not_allowed: str = "home.basic",
-    is_cors_allowed: bool = False
 ):
     """Check if user logged in before giving access to wrapped view.
     
@@ -25,8 +24,6 @@ def login_required(
         allowed_types: Types of users that should have access to the view. Defaults to None, i.e. all logged users have access.
         endpoint_if_not_logged: Endpoint to redirect to if user is not logged in. Defaults to `auth.login`.
         endpoint_if_not_allowed: Endpoint to redirect to if user not in allowed types to access wrapped view. Defaults to `home.basic`.
-        is_cors_allowed: 
-            If set to True and user is not logged or allowed to visit View, return redirect response with header `Access-Control-Allow-Origin="*"`.
     """
     def decorator(view: Callable):
         @wraps(view)
@@ -34,23 +31,13 @@ def login_required(
             result = None
             error_message = None
 
-            if is_cors_allowed:
-                negative_response_headers = {"Access-Control-Allow-Origin": "*"}
-            else:
-                negative_response_headers = None
-
             if g.user is None:
                 error_message = format_message("Reject request of unauthorized user to view: {}", view.__name__)
                 result = redirect(url_for(endpoint_if_not_logged))
-                # To not overwrite origin headers of the redirect by just passing `result.headers = ...`, 
-                # which will produce `Redirecting...` inter-window, use another way to handle this.
-                # Source: https://stackoverflow.com/questions/47638855/flask-redirect-after-login-with-token-in-header/58176689#58176689.
-                result.headers["headers"] = negative_response_headers
             elif allowed_types is not None:
                 if g.user.type not in allowed_types:
                     error_message = format_message("Reject request of user {} with type {} to view {}.", [g.user.username, g.user.type, view.__name__])
                     result = redirect(url_for(endpoint_if_not_allowed))
-                    result.headers["headers"] = negative_response_headers
             
             # Check if error occured, else normally call view. Finally return result with error or view output.
             if error_message is not None:
