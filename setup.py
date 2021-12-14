@@ -19,6 +19,7 @@ setup(
         "turbo-flask",
         "flask-migrate",
         "pytest",
+        "flask-cors"
     ],
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
