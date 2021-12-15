@@ -1,16 +1,19 @@
-from distutils.core import setup
+import pathlib
+from setuptools import setup, find_packages
+
+
+here = pathlib.Path(__file__).parent.resolve()
 
 
 setup(
     name="puft",
-    packages=["puft"],
-    version="0.3.0dev0",
+    version="0.3.0dev1",
+    packages=find_packages(),
     license="MIT",
     description="Upgraded layer over Flask.",
     author="Alexander Ryzhov",
     author_email="thed4rkof@gmail.com",
     url="https://github.com/ryzhovalex/puft",
-    download_url="https://github.com/ryzhovalex/puft/archive/refs/tags/0.2.0.tar.gz",
     keywords=["flask+", "web-framework", "flask", "flask-template"],
     entry_points={
         "console_scripts": [
