@@ -21,7 +21,7 @@ def login_required(
     If user is not logged in, redirect him to the login page.
     If user doesn't have access to the view (i.e. his type is not in `allowed_types`), redirect him to backup page.
 
-    Login checked against `flask.session` object. Your user mapping in session should have keys `username` and `type` (temporary limitation):
+    Login checked against `flask.session` object with key specified under argument `user_id_session_key`.
     ```py
         session = {
             "user": {
