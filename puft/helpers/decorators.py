@@ -21,11 +21,11 @@ def login_required(
     If user is not logged in, redirect him to the login page.
     If user doesn't have access to the view (i.e. his type is not in `allowed_types`), redirect him to backup page.
 
-    Login checked against `flask.session` object. Your user mapping in session should have keys `name` and `type` (temporary limitation):
+    Login checked against `flask.session` object. Your user mapping in session should have keys `username` and `type` (temporary limitation):
     ```py
         session = {
             "user": {
-                "name": USERNAME,  # To display during errors, etc.
+                "username": USERNAME,  # To display during errors, etc.
                 "type": USER_TYPE,  # User type to check against argument `allowed_types`.
                 # ... another restriction-free fields.
             }
@@ -60,7 +60,7 @@ def login_required(
                 result = redirect(url_for(endpoint_if_not_logged))
             elif allowed_types is not None:
                 if session["user"]["type"] not in allowed_types:
-                    error_message = format_message("Reject request of user {} with type {} to view {}.", [session["user"]["name"], session["user"]["name"], view.__name__])
+                    error_message = format_message("Reject request of user {} with type {} to view {}.", [session["user"]["username"], session["user"]["name"], view.__name__])
                     result = redirect(url_for(endpoint_if_not_allowed))
             
             # Check if error occured, else normally call view. Finally return result with error or view output.
