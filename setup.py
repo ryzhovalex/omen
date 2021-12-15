@@ -7,8 +7,9 @@ here = pathlib.Path(__file__).parent.resolve()
 
 setup(
     name="puft",
-    version="0.3.0.dev4",
+    version="0.3.0.dev6",
     packages=find_packages(),
+    include_package_data=True,
     license="MIT",
     description="Upgraded layer over Flask.",
     author="Alexander Ryzhov",
