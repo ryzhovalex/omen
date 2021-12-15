@@ -8,19 +8,31 @@ from functools import wraps
 from typing import Any, List, Dict, Union, Callable
 
 from warepy import logger, format_message
-from flask import g, redirect, url_for, Response
+from flask import session, redirect, url_for, Response
 
 
 
 def login_required(
     endpoint_if_not_logged: str, 
     allowed_types: List[str] = None, 
-    endpoint_if_not_allowed: str = None,
+    endpoint_if_not_allowed: str = None
 ):
     """Check if user logged in before giving access to wrapped view.
     
     If user is not logged in, redirect him to the login page.
     If user doesn't have access to the view (i.e. his type is not in `allowed_types`), redirect him to backup page.
+
+    Login checked against `flask.session` object. Your user mapping in session should have keys `name` and `type` (temporary limitation):
+    ```py
+        session = {
+            "user": {
+                "name": USERNAME,  # To display during errors, etc.
+                "type": USER_TYPE,  # User type to check against argument `allowed_types`.
+                # ... another restriction-free fields.
+            }
+            # ... another session fields.
+        }
+    ```
 
     Args:
         endpoint_if_not_logged: 
@@ -44,12 +56,12 @@ def login_required(
             result = None
             error_message = None
 
-            if g.user is None:
+            if session.get("user", None) is None:
                 error_message = format_message("Reject request of unauthorized user to view: {}", view.__name__)
                 result = redirect(url_for(endpoint_if_not_logged))
             elif allowed_types is not None:
-                if g.user.type not in allowed_types:
-                    error_message = format_message("Reject request of user {} with type {} to view {}.", [g.user.username, g.user.type, view.__name__])
+                if session["user"]["type"] not in allowed_types:
+                    error_message = format_message("Reject request of user {} with type {} to view {}.", [session["user"]["name"], session["user"]["name"], view.__name__])
                     result = redirect(url_for(endpoint_if_not_allowed))
             
             # Check if error occured, else normally call view. Finally return result with error or view output.
