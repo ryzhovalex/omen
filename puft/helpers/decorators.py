@@ -11,7 +11,6 @@ from warepy import logger, format_message
 from flask import session, redirect, url_for, Response
 
 
-
 def login_required(
     endpoint_if_not_logged: str, 
     allowed_types: List[str] = None, 
