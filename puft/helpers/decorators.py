@@ -1,8 +1,10 @@
 """Module with various decorators.
-NOTE: It's extremely important to not set return typehint in decorators with wraps 
-if you want save your wrapped function's docstring (occurred in VsCode's Pylance Python Language Server)."""
-from functools import wraps
+
+NOTE: It's extremely important to not set return typehint in decorators with wraps,
+if you want to save your wrapped function's docstring (occurred in VsCode's Pylance Python Language Server).
+"""
 from os import error
+from functools import wraps
 from typing import Any, List, Dict, Union, Callable
 
 from warepy import logger, format_message
@@ -11,9 +13,9 @@ from flask import g, redirect, url_for, Response
 
 
 def login_required(
+    endpoint_if_not_logged: str, 
     allowed_types: List[str] = None, 
-    endpoint_if_not_logged: str = "auth.login", 
-    endpoint_if_not_allowed: str = "home.basic",
+    endpoint_if_not_allowed: str = None,
 ):
     """Check if user logged in before giving access to wrapped view.
     
@@ -21,10 +23,21 @@ def login_required(
     If user doesn't have access to the view (i.e. his type is not in `allowed_types`), redirect him to backup page.
 
     Args:
-        allowed_types: Types of users that should have access to the view. Defaults to None, i.e. all logged users have access.
-        endpoint_if_not_logged: Endpoint to redirect to if user is not logged in. Defaults to `auth.login`.
-        endpoint_if_not_allowed: Endpoint to redirect to if user not in allowed types to access wrapped view. Defaults to `home.basic`.
+        endpoint_if_not_logged: 
+            Endpoint to redirect to if user is not logged in.
+        allowed_types: 
+            Types of users that should have access to the view. Defaults to None, i.e. all logged users have access.
+        endpoint_if_not_allowed: 
+            Endpoint to redirect to if user not in allowed types to access wrapped view. 
+            Defaults to None. Should be set if `allowed_types` argument given.
+
+    Raise:
+        ValueError:
+            If `allowed_types` given, but `endpoint_if_not_allowed` is not.
     """
+    if allowed_types and not endpoint_if_not_allowed is None or not allowed_types and endpoint_if_not_allowed:
+        raise ValueError(format_message("List of allowed types to view is provided, but endpoint of not-logged users is not."))
+
     def decorator(view: Callable):
         @wraps(view)
         def inner(**kwargs):
