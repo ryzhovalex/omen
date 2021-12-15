@@ -7,7 +7,7 @@ here = pathlib.Path(__file__).parent.resolve()
 
 setup(
     name="puft",
-    version="0.3.0.dev8",
+    version="0.3.0.dev9",
     packages=find_packages(),
     include_package_data=True,
     license="MIT",
