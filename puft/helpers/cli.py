@@ -5,7 +5,11 @@ from typing import Tuple, Literal
 
 from warepy import format_message
 
-from constants import Modes, MODES
+# Attempt relative import, and it its failed, use absolute import.
+try:
+    from .constants import Modes, MODES
+except ImportError:
+    from constants import Modes, MODES
 
 
 def main() -> int:
