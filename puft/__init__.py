@@ -18,7 +18,7 @@ from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCel
 from .helpers.constants import (
     HttpMethod, TurboAction, HTTP_METHODS
 )
-from .tools.regular import (
+from .tools import (
     make_fail_response,
 )
 from .helpers.decorators import (

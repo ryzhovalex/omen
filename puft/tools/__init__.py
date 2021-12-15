@@ -57,12 +57,6 @@ def generate_cells_by_name(cells: List[Cell]) -> Dict[str, Cell]:
 
 
 @logger.catch
-def get_next_dict_key(dictionary: dict) -> str:
-    """Return next key in dictionary by using its iterator."""
-    return next(iter(dictionary.keys()))
-
-
-@logger.catch
 def parse_config_cell(config_cell: ConfigCell, root_path: str, update_with: dict = None) -> dict:
     """Parse given config cell and return configuration dictionary.
     
@@ -126,3 +120,26 @@ def make_fail_response(
     # Source: https://github.com/miguelgrinberg/turbo-flask/issues/11#issuecomment-883248949
     response.status_code = 422
     return response
+
+
+@logger.catch
+def do_or_flash(func: Callable, message: str = None, *args, **kwargs) -> Any:
+    """Call given function with given args and kwargs and flask.flash message if the function raised an error. Return function output if there was no exception.
+    
+    Args:
+        func: Function to execute and grab output.  
+        message: Message to flash by Flask engine. Defaults to None, which means;
+        - If `PUFT_MODE` is `dev`, `test`: flash error text.    
+        - If `PUFT_MODE` is `prod`: flash text: "Something bad happened."  
+    """
+    puft_mode = os.environ["PUFT_MODE"]
+
+    try:
+        output = func(*args, **kwargs)
+    except Exception as error:
+        if puft_mode in ["dev", "test"]:
+            flash(message)
+        elif puft_mode in ["prod"]:
+            flash("Something bad happened.")
+    else:
+        return output

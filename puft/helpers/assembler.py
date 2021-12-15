@@ -7,7 +7,7 @@ from flask import Flask
 from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
-from ..tools.regular import parse_config_cell
+from ..tools import parse_config_cell
 from .cells import Cell, EmitterCell, MapperCell, InjectionCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:
