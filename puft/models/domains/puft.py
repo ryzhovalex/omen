@@ -2,10 +2,11 @@ import os
 import secrets
 from typing import Any, List, Dict, Tuple, Callable, Union
 
+from flask_cors import CORS
 from turbo_flask import Turbo
+from flask_session import Session
 from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
-from flask_cors import CORS
 
 
 from .domain import Domain
@@ -41,18 +42,13 @@ class Puft(Domain):
             )
             raise KeyError(error_message)
 
+        # Initialize app.
         self.app = Flask(
             __name__, 
             instance_path=instance_path, 
             template_folder=template_folder, 
             static_folder=static_folder
         )
-        # Set server name for app from config.
-        # try:
-        #     self.app.config["SERVER_NAME"] = config["SERVER_NAME"]
-        # except KeyError:
-        #     error_message = format_message("You must specify key `SERVER_NAME` in your `app.json` config.")
-        #     raise ValueError(error_message)
 
         # Enable CORS for the app's resources.
         is_cors_enabled = config.get("IS_CORS_ENABLED", None)
@@ -80,6 +76,9 @@ class Puft(Domain):
         if shell_processors:
             self._register_shell_processors(shell_processors)
         self._init_app_daemons()
+
+        # Initialize flask-session after all settings are applied.
+        self.flask_session = Session(self.app)
 
     @logger.catch
     def get_app(self) -> Flask:
