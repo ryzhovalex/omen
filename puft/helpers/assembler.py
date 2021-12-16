@@ -118,6 +118,12 @@ class Assembler(Helper):
         if self.emitter_cells_by_name:
             self._build_emitters(emitter_cells=list(self.emitter_cells_by_name.values()))
 
+        # Call postponed build from created App.
+        try:
+            self.app.postbuild()
+        except NotImplementedError:
+            pass
+
     @logger.catch
     def _build_logger(self, config: dict = None) -> None:
         """Build logger with given config.
@@ -148,13 +154,14 @@ class Assembler(Helper):
                         update_with=self.extra_configs_by_name.get(cell.name, None)
                     )
                 # Fetch project version from info.yaml from the root path. 
+                # TEMP: Replace this logic with senseful one. Better use configuration's version? Or __init__.py or main.py specified.
                 if cell.name == "app":
-                    info_data = load_yaml(join_paths(self.root_path, "./info.yaml"))
                     try:
+                        info_data = load_yaml(join_paths(self.root_path, "./info.yaml"))
                         domain_kwargs["project_version"] = info_data["version"]
-                    except KeyError:
-                        error_message =  format_message("Project version is not specified in `info.yaml` file.")
-                        raise KeyError(error_message)
+                    except (FileNotFoundError, KeyError):
+                        warn_message = format_message("Project version is not specified in `./info.yaml` file.")
+                        logger.warning(warn_message)
 
                 cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)
                 cell.controller_class(controller_kwargs=cell.service_kwargs, service_class=cell.service_class)
@@ -171,12 +178,6 @@ class Assembler(Helper):
         # so it's possible only after App initialization.
         if "database" in injection_cells_by_name:
             injection_cells_by_name["database"].domain_class().setup_db(flask_app=self.app.get_app())  # The setup_db requres native flask app to work with.
-
-        # Call postponed build from created App.
-        try:
-            self.app.postbuild()
-        except NotImplementedError:
-            pass
 
     @logger.catch
     def _build_views(self, view_cells: List[ViewCell]) -> None:

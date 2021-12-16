@@ -81,7 +81,7 @@ class Puft(Domain):
         self.flask_session = Session(self.app)
 
         # Flush redis session db if mode is not `prod`. 
-        if os.environ["PUFT_MODE"] is not "prod" and self.app.config["SESSION_TYPE"] == "redis":
+        if os.environ["PUFT_MODE"] != "prod" and self.app.config["SESSION_TYPE"] == "redis":
             logger.info("Flush redis db because of non-production run.")
             self.app.session_interface.redis.flushdb()
 
@@ -132,6 +132,8 @@ class Puft(Domain):
         """Abstract method to perform post-injection operation related to app. 
         
         Called by Assembler.
+
+        WARNING: This method not working as intended now (runs not actually after app starting), so better to not use it temporary.
         
         Raise:
             NotImplementedError: If not re-implemented in children."""
