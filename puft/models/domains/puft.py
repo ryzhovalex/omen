@@ -80,6 +80,11 @@ class Puft(Domain):
         # Initialize flask-session after all settings are applied.
         self.flask_session = Session(self.app)
 
+        # Flush redis session db if mode is not `prod`. 
+        if os.environ["PUFT_MODE"] is not "prod" and self.app.config["SESSION_TYPE"] == "redis":
+            logger.info("Flush redis db because of non-production run.")
+            self.app.session_interface.redis.flushdb()
+
     @logger.catch
     def get_app(self) -> Flask:
         """Return native app."""
@@ -124,7 +129,9 @@ class Puft(Domain):
             exec(f"self.turbo.push(self.turbo.{action}(render_template('{template_path}', **{ctx_data}), '{target}'))")
 
     def postbuild(self) -> None:
-        """Abstract method to perform post-injection operation related to app. Generally used by Assembler.
+        """Abstract method to perform post-injection operation related to app. 
+        
+        Called by Assembler.
         
         Raise:
             NotImplementedError: If not re-implemented in children."""
