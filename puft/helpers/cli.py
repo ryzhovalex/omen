@@ -3,7 +3,7 @@ import argparse
 import subprocess
 from typing import Tuple, Literal
 
-from warepy import format_message, join_paths
+from warepy import format_message, join_paths, logger
 
 # Attempt relative import, and it its failed, use absolute import.
 try:
@@ -20,6 +20,7 @@ def main() -> int:
     user_environs_file_path = args.user_environs_file_path
     host, port = parse_hostname(args.hostname)
     python_bin = parse_python_bin(args.python_bin)
+    is_verbose = args.is_verbose
 
     # Generate and run flask-related command.
     action = resolve_flask_action(mode)
@@ -30,6 +31,8 @@ def main() -> int:
         cmd += f" -h {host} -p {port}"
 
     subprocess_environs = generate_environs(args).update(parse_user_environs_from_file(caller_root_dir=root_dir, user_environs_file_path=user_environs_file_path))
+    if is_verbose:
+        logger.info(f"Apply environs: {subprocess_environs}.")
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, text=True, env=subprocess_environs, shell=True) as process:
         for line in process.stdout:
             print(line, end="")
@@ -129,6 +132,7 @@ def parse_input() -> argparse.Namespace:
         default=None, 
         help="Path to file with user environs in format `ENVIRON_NAME=VALUE\\n`. Defaults to file `./environs` in given directory (calling directory by default)."
     )
+    parser.add_argument("-v", dest="is_verbose", action="store_true", help="Enable verbose mode.")
     return parser.parse_args()
 
 
