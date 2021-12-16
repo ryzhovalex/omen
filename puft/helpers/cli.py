@@ -118,9 +118,9 @@ def parse_input() -> argparse.Namespace:
     """Parse cli input and return argparse.Namespace object."""
     # TODO: Add descriptions to args.
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", nargs="*", default="dev", choices=MODES)
-    parser.add_argument("source_file", nargs="*", default="main")
-    parser.add_argument("hostname", nargs="*", default="127.0.0.1:5000")
+    parser.add_argument("mode", nargs="?", default="dev", choices=MODES)
+    parser.add_argument("source_file", nargs="?", default="main")
+    parser.add_argument("hostname", nargs="?", default="127.0.0.1:5000")
     parser.add_argument("-dir", dest="root_dir", default=os.getcwd())
     parser.add_argument("-py", dest="python_bin", default="python3", help="Python bin path. If default, look also for $VIRTUAL_ENV environ.")
     parser.add_argument(
