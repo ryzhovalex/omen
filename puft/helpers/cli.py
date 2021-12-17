@@ -67,7 +67,13 @@ def generate_environs(args: argparse.Namespace) -> dict:
 
     # Generate Flask-related environs.
     environs["FLASK_APP"] = args.source_file
-    environs["FLASK_ENV"] = args.mode
+
+    if args.mode == "dev":
+        environs["FLASK_ENV"] = "development"
+    elif args.mode == "production":
+        environs["FLASK_ENV"] = "production"
+    elif args.mode == "test":
+        environs["FLASK_ENV"] = "development"
 
     return environs
 

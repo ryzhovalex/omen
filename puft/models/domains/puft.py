@@ -59,6 +59,15 @@ class Puft(Domain):
         if config is not None:
             self.app.config.from_mapping(config)
 
+            # Enable testing if appropriate mode has been set. Do not rely on environ if given config explicitly sets TESTING.
+            if config.get("TESTING", None) is None:
+                if os.environ["PUFT_MODE"] == "test":
+                    self.app.config["TESTING"] = True
+                else:
+                    self.app.config["TESTING"] = False
+            else:
+                self.app.config["TESTING"] = config["TESTING"]
+
         # Generate random hex token for App's secret key, if noone given in config.
         if self.app.config["SECRET_KEY"] is None:
             self.app.config["SECRET_KEY"] = secrets.token_hex(16)
