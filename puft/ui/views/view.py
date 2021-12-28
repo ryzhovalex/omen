@@ -12,7 +12,10 @@ class View(MethodView):
     Source: [Flask Pluggable Views for APIs](https://flask.palletsprojects.com/en/2.0.x/views/#method-views-for-apis)."""
     __metaclass__ = makecls()
     methods = ["GET", "POST"]  # Methods allowed to access this view.
-    decorators = [logger.catch]  # List of decorators to apply to all view's methods.
+
+    # List of decorators to apply to all view's methods.
+    decorators = [logger.catch]  
+    # To extend decorators in child class, use `decorators = View.decorators + [your_shiny_decorator]` in your class variable definition.
 
     def get(self):
         error_message = format_message("Method GET is not implemented at view: {}", self.__class__.__name__)
