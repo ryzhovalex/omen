@@ -18,7 +18,8 @@ def main() -> int:
     mode = args.mode
     root_dir = args.root_dir
     user_environs_file_path = args.user_environs_file_path
-    host, port = parse_hostname(args.hostname)
+    host = args.host
+    port = args.port
     python_bin = parse_python_bin(args.python_bin)
     is_verbose = args.is_verbose
 
@@ -78,16 +79,6 @@ def generate_environs(args: argparse.Namespace) -> dict:
     return environs
 
 
-def parse_hostname(hostname: str) -> Tuple[str, str]:
-    """Parse given hostname into host and port and return tuple with host and port."""
-    splitted = hostname.split(":")
-    if len(splitted) != 2:
-        raise ValueError(format_message("Given hostname {} should contain host and port, e.g. `127.0.0.1:5000`.", hostname))
-    # TODO: Add regex checking for host and maybe port.
-    else:
-        return (splitted[0], splitted[1])
-
-
 def parse_python_bin(python_bin: str) -> str:
     """Parse given python bin path and return appropriate implementation.
     
@@ -121,11 +112,24 @@ def parse_user_environs_from_file(caller_root_dir: str, user_environs_file_path:
     # Parse received lines.
     values_by_environ = {}
     for line in lines:
-        formatted_line = line.replace("\n", "").split("=")
+        # Error that may be raised during parsing.
+        wrong_format_error = ValueError(format_message("Wrong format of given file environ: {}.", line))
+
+        # Split line into two pieces by first equal sign from the left (i.e. with lowest index).
+        equal_sign_index = line.find("=")
+        if equal_sign_index == -1:
+            raise wrong_format_error
+        formatted_line = [line[:equal_sign_index], line[equal_sign_index+1:]]
+        formatted_line = line.strip().split("=")
+
         if len(formatted_line) != 2:
-            raise ValueError(format_message("Wrong format of given file environ: {}.", line))
+            raise wrong_format_error
         else:
-            values_by_environ[formatted_line[0]] = formatted_line[1]
+            # Also perform strip to environ and value to solve cases when environ `ENVIRON = VALUE` written with spaces before and after equal sign.
+            environ = formatted_line[0].strip()
+            value = formatted_line[1].strip()
+
+            values_by_environ[environ] = value
     return values_by_environ
 
 
@@ -133,13 +137,14 @@ def parse_input() -> argparse.Namespace:
     """Parse cli input and return argparse.Namespace object."""
     # TODO: Add descriptions to args.
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", nargs="?", default="dev", choices=MODES)
-    parser.add_argument("source_file", nargs="?", default="main")
-    parser.add_argument("hostname", nargs="?", default="127.0.0.1:5000")
+    parser.add_argument("mode", default="dev", choices=MODES)
+    parser.add_argument("-a", dest="host", default="127.0.0.1")
+    parser.add_argument("-p", dest="port", default="5000")
+    parser.add_argument("-src", dest="source_file", default="main")
     parser.add_argument("-dir", dest="root_dir", default=os.getcwd())
-    parser.add_argument("-py", dest="python_bin", default="python3", help="Python bin path. If default, look also for $VIRTUAL_ENV environ.")
+    parser.add_argument("-py", dest="python_bin", default="python3", help="Python bin path. If default, looking for $VIRTUAL_ENV environ performed at first.")
     parser.add_argument(
-        "-envsfile", 
+        "-envdir", 
         dest="user_environs_file_path", 
         default=None, 
         help="Path to file with user environs in format `ENVIRON_NAME=VALUE\\n`. Defaults to file `./environs` in given directory (calling directory by default)."
