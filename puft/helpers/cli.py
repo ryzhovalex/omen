@@ -82,13 +82,13 @@ def generate_environs(args: argparse.Namespace) -> dict:
 def parse_python_bin(python_bin: str) -> str:
     """Parse given python bin path and return appropriate implementation.
     
-    Look for virtual environment environs, if `python_bin = "python3"`."""
+    Look for virtual environment environs, if `python_bin == "python3"`."""
+    res_python_bin = "python3"
     if python_bin == "python3":
         virtual_env = os.environ.get("VIRTUAL_ENV", None)
         if virtual_env:
-            return f"{virtual_env}/bin/python3"
-        else:
-            return "python3"
+            res_python_bin = f"{virtual_env}/bin/python3"
+    return res_python_bin
 
 
 def parse_user_environs_from_file(caller_root_dir: str, user_environs_file_path: str) -> dict:
