@@ -90,9 +90,14 @@ class Puft(Domain):
         self.flask_session = Session(self.app)
 
         # Flush redis session db if mode is not `prod`. 
-        if os.environ["PUFT_MODE"] != "prod" and self.app.config["SESSION_TYPE"] == "redis":
-            logger.info("Flush redis db because of non-production run.")
-            self.app.session_interface.redis.flushdb()
+        if os.environ["PUFT_MODE"] != "prod": 
+            if self.app.config.get["SESSION_TYPE", None]:
+                if self.app.config["SESSION_TYPE"] == "redis":
+                    logger.info("Flush redis db because of non-production run.")
+                    self.app.session_interface.redis.flushdb()
+            else:
+                # Apply default null interface, basically do nothing.
+                pass
 
     @logger.catch
     def get_app(self) -> Flask:
