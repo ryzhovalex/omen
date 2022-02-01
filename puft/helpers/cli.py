@@ -41,8 +41,9 @@ def main() -> int:
         logger.info(f"Apply environs: {subprocess_environs}.")
         logger.info(f"Run command: {cmd}.")
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, text=True, env=subprocess_environs, shell=True) as process:
-        for line in process.stdout:
-            print(line, end="")
+        if process.stdout is not None:
+            for line in process.stdout:
+                print(line, end="")
     if process.returncode != 0:
         raise subprocess.CalledProcessError(process.returncode, process.args)
 
