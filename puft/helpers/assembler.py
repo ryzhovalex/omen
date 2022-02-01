@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Any, List, Literal, Tuple, Callable, Union, TYPE_CHECKING
+from typing import Dict, Any, List, Literal, Tuple, Callable, Union, TYPE_CHECKING, Type
 
 from flask import Flask
 from warepy import logger, join_paths, format_message, load_yaml
@@ -30,7 +30,7 @@ class Assembler(Helper):
 
     def __init__(
         self, 
-        build: Builder,
+        build: Type[Builder],
         *args, **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
