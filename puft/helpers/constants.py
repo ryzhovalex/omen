@@ -1,12 +1,23 @@
 """Module with constants and typehints."""
 from typing import Any, List, Dict, Tuple, Union, Callable, Literal
 
+from warepy import get_literal_args
 
-Modes = Literal["dev", "prod", "test", "init", "migrate", "upgrade"]
-MODES = Modes.__args__
+
+PuftDatabaseMode = Literal["init", "migrate", "upgrade"]
+PUFT_DATABASE_MODES = get_literal_args(PuftDatabaseMode)
+#
+PuftRunMode = Literal["dev", "prod", "test"]
+PUFT_RUN_MODES = get_literal_args(PuftRunMode)
+#
+PuftConstructMode = Literal["deploy"]
+PUFT_CONSTRUCT_MODES = get_literal_args(PuftConstructMode)
+#
+PuftMode = Union[PuftDatabaseMode, PuftRunMode, PuftConstructMode]
+PUFT_MODES = PUFT_DATABASE_MODES + PUFT_RUN_MODES + PUFT_CONSTRUCT_MODES
 
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE"]
-HTTP_METHODS = HttpMethod.__args__
+HTTP_METHODS = get_literal_args(HttpMethod)
 
 TurboAction = Literal["append", "prepend", "replace", "update", "remove"]
-TURBO_ACTIONS = TurboAction.__args__
+TURBO_ACTIONS = get_literal_args(TurboAction)

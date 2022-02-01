@@ -2,20 +2,41 @@ import os
 import argparse
 import subprocess
 from typing import Tuple, Literal
+from puft.helpers.constants import PUFT_CONSTRUCT_MODES, PUFT_DATABASE_MODES
 
 from warepy import format_message, join_paths, logger
 
-# Attempt relative import, and it its failed, use absolute import.
+# Attempt relative import, and if its failed, use absolute import.
 try:
-    from .constants import Modes, MODES
+    from .constants import PuftMode, PUFT_MODES, PUFT_CONSTRUCT_MODES
 except ImportError:
-    from constants import Modes, MODES
+    from constants import PuftMode, PUFT_MODES, PUFT_CONSTRUCT_MODES
 
 
 def main() -> int:
     args = parse_input()
 
     mode = args.mode
+
+    action = resolve_action(mode)
+
+    if action in PUFT_CONSTRUCT_MODES:
+        # Do project construction related task.
+        if action == "deploy":
+            # TODO: Create project structure. 
+            pass
+    else:
+        # Run Flask by command chain.
+        invoke_flask(action, args)
+        
+
+    return 0
+
+
+def invoke_flask(action: str, args: argparse.Namespace) -> None:
+    """Chain actions to invoke flask.
+
+    It might be done for common run, or for database changes.""" 
     root_dir = args.root_dir
     user_environs_file_path = args.user_environs_file_path
     host = args.host
@@ -23,8 +44,6 @@ def main() -> int:
     python_bin = parse_python_bin(args.python_bin)
     is_verbose = args.is_verbose
 
-    # Generate and run flask-related command.
-    action = resolve_flask_action(mode)
     cmd = f"{python_bin} -m flask {action}"
 
     # Add additional arguments only if command not targeted to database changes.
@@ -47,12 +66,10 @@ def main() -> int:
     if process.returncode != 0:
         raise subprocess.CalledProcessError(process.returncode, process.args)
 
-    return 0
 
-
-def resolve_flask_action(mode: Modes) -> str:
-    """Resolve appropriate action for Flask cli depending on given mode and return this action name."""
-    if mode in ["init", "migrate", "upgrade"]:
+def resolve_action(mode: PuftMode) -> str:
+    """Resolve appropriate action for Flask or Puft cli depending on given mode and return this action name."""
+    if mode in PUFT_DATABASE_MODES:
         action = f"db {mode}"
     else:
         action = "run"
@@ -138,7 +155,7 @@ def parse_input() -> argparse.Namespace:
     """Parse cli input and return argparse.Namespace object."""
     # TODO: Add descriptions to args.
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", default="dev", choices=MODES)
+    parser.add_argument("mode", default="dev", choices=PUFT_MODES)
     parser.add_argument("-a", dest="host", default="127.0.0.1")
     parser.add_argument("-p", dest="port", default="5000")
     parser.add_argument("-src", dest="source_file", default="main")
