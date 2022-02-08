@@ -6,7 +6,7 @@ from warepy import logger, Singleton, format_message
 from ...errors.error import Error
 
 
-class Domain(Singleton):
+class Domain(metaclass=Singleton):
     """Represents abstract model which chained to own certain controller and has start and stop actions and states."""
     def __init__(self) -> None:
         pass

@@ -6,7 +6,7 @@ from warepy import logger, Singleton
 from ...models.services.service import Service
 
 
-class Controller(Singleton):
+class Controller(metaclass=Singleton):
     """Layer between Views and Services."""
     def __init__(self, controller_kwargs: Dict[str, Any], service_class: Type[Service] = None) -> None:
         self.params = controller_kwargs
