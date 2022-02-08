@@ -1,4 +1,8 @@
+from typing import Any, Dict, Type
+
 from flask import Flask
+
+from ...models.services.puft_service import PuftService
 
 from .controller import Controller
 from ...helpers.constants import TurboAction
@@ -8,6 +12,10 @@ class PuftController(Controller):
     """Processes requests to Puft Service.
 
     Should be inherited by project's AppController."""
+    def __init__(self, controller_kwargs: Dict[str, Any], service_class: Type[PuftService]) -> None:
+        super().__init__(controller_kwargs, service_class)
+        self.service = service_class()  # type: ignore
+
     def get_app(self) -> Flask:
         """Return native app."""
         return self.service.get_app()

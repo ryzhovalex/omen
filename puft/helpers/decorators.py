@@ -8,7 +8,7 @@ from functools import wraps
 from typing import Any, List, Dict, Union, Callable
 
 from warepy import logger, format_message
-from flask import session, redirect, url_for, Response
+from flask import session, redirect, url_for
 
 
 def login_required(
@@ -58,7 +58,8 @@ def login_required(
             if session.get("user", None) is None:
                 error_message = format_message("Reject request of unauthorized user to view: {}", view.__name__)
                 result = redirect(url_for(endpoint_if_not_logged))
-            elif allowed_types is not None:
+            # Variable `endpoint_if_not_allowed` checked here for the second time since Pyright gives error on redirect line.
+            elif allowed_types is not None and endpoint_if_not_allowed:
                 if session["user"]["type"] not in allowed_types:
                     error_message = format_message("Reject request of user {} with type {} to view {}.", [session["user"]["username"], session["user"]["name"], view.__name__])
                     result = redirect(url_for(endpoint_if_not_allowed))

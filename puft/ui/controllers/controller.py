@@ -8,12 +8,11 @@ from ...models.services.service import Service
 
 class Controller(metaclass=Singleton):
     """Layer between Views and Services."""
-    def __init__(self, controller_kwargs: Dict[str, Any], service_class: Type[Service] = None) -> None:
+    def __init__(self, controller_kwargs: Dict[str, Any], service_class: Type[Service]) -> None:
         self.params = controller_kwargs
 
-        if service_class:
-            # Just init service class without kwargs, because it's suppossed to be instantiated before with Domain object injected.
-            self.service = service_class()  # type: ignore
+        # Just init service class without kwargs, because it's suppossed to be instantiated before with Domain object injected.
+        self.service = service_class()  # type: ignore
 
     @logger.catch
     def get_bound_by_id(self, id: int) -> Any:

@@ -1,6 +1,9 @@
+from typing import Any, Dict, Type
+
 from flask import Flask
 
 from .service import Service
+from ..domains.puft import Puft
 from ...helpers.constants import TurboAction
 
 
@@ -8,6 +11,10 @@ class PuftService(Service):
     """Operates over Puft processes.
     
     Should be inherited by project's AppService."""
+    def __init__(self, service_kwargs: Dict[str, Any], domain_class: Type[Puft], domain_kwargs: Dict[str, Any]) -> None:
+        super().__init__(service_kwargs, domain_class, domain_kwargs)
+        self.domain = domain_class(**domain_kwargs)
+
     def get_app(self) -> Flask:
         """Return native app."""
         return self.domain.get_app()

@@ -151,32 +151,71 @@ class Assembler(Helper):
         
         Add config to cell's kwargs for domain, if one with the same name specified (e.g. you have config cell with name "app" and 
         injections cell with name "app" => domain "app" will receive configuration map from config cell."""
-        # Run special cells.
-        # Assign app to use within assembler.
-        self.app = self.app_injection_cell.domain_class()
-        # Assign app controller mainly to be used as injection for emitters.
-        self.app_controller = self.app_injection_cell.controller_class()  # type: ignore
-        # Assign database domain if it exists to use within assembler.
+        # TODO: Refactor repeated initialization code for special and other cells.
+
+        # Run special cells. #
+        ## App ##
+        # Look for config.
+        # App config is required, so it's lack raises error, so give `is_errors_enabled` to enable errors raising on config problems.
+        app_config = self._assemble_domain_kwargs_config(name="app", is_errors_enabled=True)
+        if app_config:
+            self.app_injection_cell.domain_kwargs["config"] = app_config
+
+        # Initialize service and controller.
+        self.app_injection_cell.service_class(
+            service_kwargs=self.app_injection_cell.service_kwargs,
+            domain_class=self.app_injection_cell.domain_class,
+            domain_kwargs=self.app_injection_cell.domain_kwargs
+        )
+        self.app_controller = self.app_injection_cell.controller_class(
+            controller_kwargs=self.app_injection_cell.controller_kwargs, 
+            service_class=self.app_injection_cell.service_class
+        )
+
+        # Finally, assign app to use within assembler, since it was initialized at service initialization.
+        self.app = self.app_injection_cell.domain_class()  # type: ignore
+
+        ## Database ##
         if self.database_injection_cell:
+            # Look for config.
+            database_config = self._assemble_domain_kwargs_config(name="database")
+            if database_config:
+                self.database_injection_cell.domain_kwargs["config"] = database_config
+
+            # Initialize service and controller.
+            self.database_injection_cell.service_class(
+                service_kwargs=self.database_injection_cell.service_kwargs,
+                domain_class=self.database_injection_cell.domain_class,
+                domain_kwargs=self.database_injection_cell.domain_kwargs
+            )
+            self.database_injection_cell.controller_class(
+                controller_kwargs=self.database_injection_cell.controller_kwargs, 
+                service_class=self.database_injection_cell.service_class
+            )
+
+            # Assign database domain if it exists to use within assembler.
             self.database = self.database_injection_cell.domain_class()  # type: ignore
+
             # Perform database postponed setup.
             self._perform_database_postponed_setup()
 
-        # Run other cells.
+        # Run other cells. #
         if self.injection_cells_by_name:
             for cell in list(self.injection_cells_by_name.values()):
                 domain_kwargs = cell.domain_kwargs
-                # Check for domain's config in given cells by comparing names.
-                self._assemble_domain_kwargs_config(name=cell.name) 
-                # Initialize cell's controller and service singletons.
+                # Check for domain's config in given cells by comparing names and apply to domain kwargs if it exists.
+                config = self._assemble_domain_kwargs_config(name=cell.name) 
+                if config:
+                    domain_kwargs["config"] = config
+                # Initialize cell's service (first) and controller (second) singletons.
                 cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)
-                cell.controller_class(controller_kwargs=cell.service_kwargs, service_class=cell.service_class)
+                cell.controller_class(controller_kwargs=cell.controller_kwargs, service_class=cell.service_class)
 
     @logger.catch
-    def _assemble_domain_kwargs_config(self, name: str) -> dict:
+    def _assemble_domain_kwargs_config(self, name: str, is_errors_enabled: bool = False) -> dict:
         """Check for domain's config in config cells by comparing its given name.
 
-        If appropriate config hasn't been found, write warning log and return empty dict."""
+        If appropriate config hasn't been found, write warning log (or raise ValueError if `is_errors_enabled = True`) and return empty dict."""
         if self.config_cells_by_name:
             if name in self.config_cells_by_name:
                 config = parse_config_cell(
@@ -185,8 +224,12 @@ class Assembler(Helper):
                     update_with=self.extra_configs_by_name.get(name, None)
                 )
                 return config
-        logger.warning(format_message("Appropriate config for given name {} hasn't been found.", name))
-        return {}
+        message = format_message("Appropriate config for given name {} hasn't been found.", name)
+        if not is_errors_enabled:
+            logger.warning(message)
+            return {}
+        else:
+            raise ValueError(message)
 
     @logger.catch
     def _apply_project_version(self) -> None:
