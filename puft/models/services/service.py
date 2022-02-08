@@ -8,7 +8,7 @@ from flask import Response, make_response, redirect, flash
 from ..domains.domain import Domain
 
 
-class Service(metaclass=Singleton):
+class Service(Singleton):
     """Service superclass inherits Singleton metaclass.
 
     Layer between Domain Objects (Domains) and UI layer (Controllers and Views).

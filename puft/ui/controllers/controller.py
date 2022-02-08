@@ -1,17 +1,19 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, List, Dict, Tuple, Union, Literal, Callable
+from typing import Any, List, Dict, Tuple, Union, Literal, Callable, Type
 
 from warepy import logger, Singleton
 
 from ...models.services.service import Service
 
 
-class Controller(metaclass=Singleton):
+class Controller(Singleton):
     """Layer between Views and Services."""
-    def __init__(self, controller_kwargs: Dict[str, Any], service_class: Service) -> None:
+    def __init__(self, controller_kwargs: Dict[str, Any], service_class: Type[Service] = None) -> None:
         self.params = controller_kwargs
-        # Just init service class without kwargs, because it's suppossed to be instantiated before with Domain object injected.
-        self.service = service_class()
+
+        if service_class:
+            # Just init service class without kwargs, because it's suppossed to be instantiated before with Domain object injected.
+            self.service = service_class()  # type: ignore
 
     @logger.catch
     def get_bound_by_id(self, id: int) -> Any:

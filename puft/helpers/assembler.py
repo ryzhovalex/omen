@@ -68,7 +68,8 @@ class Assembler(Helper):
                 Root path to execute project from. Defaults to `os.getcwd()`.
                 Required in cases of calling this function not from actual project root (e.g. from tests) to set root path explicitly.
         """
-        assembler = Assembler()  # Get Assembler instance without args, because it should be initialized before (in root create_app function).
+        # Get Assembler instance without args, because it should be initialized before (in root create_app function).
+        assembler = Assembler()
 
         if root_path:
             assembler.root_path = root_path
