@@ -53,9 +53,6 @@ def invoke_flask(action: str, args: argparse.Namespace) -> None:
     base_environs = generate_environs(args)
     user_environs = parse_user_environs_from_file(caller_root_dir=root_dir, user_environs_file_path=user_environs_file_path)
     subprocess_environs = {**base_environs, **user_environs}
-    for x in subprocess_environs.values():
-        if type(x) != str:
-            raise ValueError("Heh", x)
     if is_verbose:
         logger.info(f"Apply environs: {subprocess_environs}.")
         logger.info(f"Run command: {cmd}.")
