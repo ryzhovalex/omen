@@ -14,7 +14,7 @@ from .models.domains.database import Database, native_db
 from .ui.controllers.puft_controller import PuftController
 from .models.services.database_service import DatabaseService
 from .ui.controllers.database_controller import DatabaseController
-from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell, EmitterCell)
+from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell, EmitterCell, AppInjectionCell, DatabaseInjectionCell)
 from .helpers.constants import (
     HttpMethod, TurboAction, HTTP_METHODS
 )
