@@ -11,11 +11,11 @@ class Build:
         self,
         app_injection_cell: AppInjectionCell,
         database_injection_cell: DatabaseInjectionCell = None,
-        config_cells_by_name: Dict[str, ConfigCell] = None,
-        injection_cells_by_name: Dict[str, InjectionCell] = None, 
-        mapper_cells_by_name: Dict[str, MapperCell] = None,
-        view_cells_by_name: Dict[str, ViewCell] = None,
-        emitter_cells_by_name: Dict[str, EmitterCell] = None
+        config_cells: List[ConfigCell] = None,
+        injection_cells: List[InjectionCell] = None, 
+        mapper_cells: List[MapperCell] = None,
+        view_cells: List[ViewCell] = None,
+        emitter_cells: List[EmitterCell] = None
     ) -> None:
         # Use native root module path.
         # Because this class imported from root directory, root_path below will be assigned from there during class's initialization.
@@ -24,8 +24,8 @@ class Build:
 
         self.app_injection_cell = app_injection_cell
         self.database_injection_cell = database_injection_cell
-        self.config_cells_by_name = config_cells_by_name
-        self.injection_cells_by_name = injection_cells_by_name
-        self.mapper_cells_by_name = mapper_cells_by_name
-        self.view_cells_by_name = view_cells_by_name
-        self.emitter_cells_by_name = emitter_cells_by_name
+        self.config_cells = config_cells
+        self.injection_cells = injection_cells
+        self.mapper_cells = mapper_cells
+        self.view_cells = view_cells
+        self.emitter_cells = emitter_cells

@@ -7,7 +7,7 @@ from flask import Flask
 from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
-from ..tools import parse_config_cell
+from ..tools import find_cell_by_name, parse_config_cell
 from .cells import AppInjectionCell, Cell, DatabaseInjectionCell, EmitterCell, MapperCell, InjectionCell, ViewCell, ConfigCell
 
 if TYPE_CHECKING:
@@ -40,11 +40,11 @@ class Assembler(Helper):
         self.root_path = build.root_path
         self.app_injection_cell = build.app_injection_cell
         self.database_injection_cell = build.database_injection_cell
-        self.config_cells_by_name = build.config_cells_by_name
-        self.injection_cells_by_name = build.injection_cells_by_name
-        self.mapper_cells_by_name = build.mapper_cells_by_name
-        self.view_cells_by_name = build.view_cells_by_name
-        self.emitter_cells_by_name = build.emitter_cells_by_name
+        self.config_cells = build.config_cells
+        self.injection_cells = build.injection_cells
+        self.mapper_cells = build.mapper_cells
+        self.view_cells = build.view_cells
+        self.emitter_cells = build.emitter_cells
 
     @staticmethod
     @logger.catch
@@ -56,7 +56,7 @@ class Assembler(Helper):
         Args:
             configs_by_name (optional):
                 Configs to be appended to appropriate ones described in Build class. Defaults to None.
-                Contain config name as key and configuration mapping as value, e.g.:
+                Contain config name as key (which is compared to ConfigCell name field) and configuration mapping as value, e.g.:
         ```py
         configs_by_name = {
             "app": {"TESTING": True},
@@ -87,8 +87,9 @@ class Assembler(Helper):
         os.environ["PUFT_ROOT_PATH"] = self.root_path
 
         # Build instances by key groups.
-        if self.config_cells_by_name:
-            if "logger" in self.config_cells_by_name.keys():
+        if self.config_cells:
+            logger_config_cell = find_cell_by_name(self.config_cells, "logger")
+            if "logger" in self.config_cells.keys():
                 logger_config = parse_config_cell(
                     config_cell=self.config_cells_by_name["logger"], 
                     root_path=self.root_path, 

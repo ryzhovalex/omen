@@ -1,9 +1,10 @@
 """Module with various tools."""
 import os
 import json
-from typing import Any, List, Dict, Literal, Callable, Union, Tuple
+from typing import Any, List, Dict, Literal, Callable, Union, Tuple, Type
 
-from flask import Response, make_response, redirect, flash, render_template
+from werkzeug.wrappers.response import Response
+from flask import make_response, redirect, flash, render_template
 
 from warepy import logger, join_paths, format_message, load_yaml
 
@@ -137,9 +138,17 @@ def do_or_flash(func: Callable, message: str = None, *args, **kwargs) -> Any:
     try:
         output = func(*args, **kwargs)
     except Exception as error:
-        if puft_mode in ["dev", "test"]:
+        if puft_mode in ["dev", "test"] and message:
             flash(message)
         elif puft_mode in ["prod"]:
             flash("Something bad happened.")
     else:
         return output
+
+
+def find_cell_by_name(cells: List[Cell], name: str) -> Cell:
+    """Traverse through given list of cells and return first one with specified name."""
+    for cell in cells:
+        if cell.name == name:
+            return cell
+    raise ValueError(format_message("No cell with name {} in given cells.", name))
