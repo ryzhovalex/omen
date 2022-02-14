@@ -87,33 +87,11 @@ class Assembler(Helper):
         os.environ["PUFT_ROOT_PATH"] = self.root_path
 
         # Build instances by key groups.
-        if self.config_cells:
-            logger_config_cell = find_cell_by_name(self.config_cells, "logger")
-            if "logger" in self.config_cells.keys():
-                logger_config = parse_config_cell(
-                    config_cell=self.config_cells_by_name["logger"], 
-                    root_path=self.root_path, 
-                    update_with=self.extra_configs_by_name.get("logger", None)
-                )
-            else:
-                logger_config = None
-            self._build_logger(config=logger_config)
 
-        # Build injections.
-        if self.injection_cells_by_name:
-            self._build_injection()
-
-        # Build views.
-        if self.view_cells_by_name:
-            self._build_views(view_cells=list(self.view_cells_by_name.values()))
-
-        # Build mappers.
-        if self.mapper_cells_by_name:
-            self._build_mappers(mapper_cells=list(self.mapper_cells_by_name.values()))
-
-        # Build Emitters with Puft injection.
-        if self.emitter_cells_by_name:
-            self._build_emitters(emitter_cells=list(self.emitter_cells_by_name.values()))
+        self._build_injection()
+        self._build_views()
+        self._build_mappers()
+        self._build_emitters()
 
         # Call postponed build from created App.
         try:
@@ -122,7 +100,26 @@ class Assembler(Helper):
             pass
 
     @logger.catch
-    def _build_logger(self, config: dict = None) -> None:
+    def _build_logger(self) -> None:
+        """Call chain to build logger."""
+
+        # Try to find logger config cell and build logger class from it.
+        if self.config_cells:
+            logger_config_cell = find_cell_by_name(self.config_cells, "logger")
+            if logger_config_cell is None:
+                # Logger config is not attached.
+                logger_config = None
+            else:
+                # Parse config mapping from cell and append extra configs, if they are given.
+                logger_config = parse_config_cell(
+                    config_cell=logger_config_cell, 
+                    root_path=self.root_path, 
+                    update_with=self.extra_configs_by_name.get("logger", None)
+                )
+            self._init_logger_class(config=logger_config)
+
+    @logger.catch
+    def _init_logger_class(self, config: dict = None) -> None:
         """Build logger with given config.
         
         If config is None, build with default parameters."""
@@ -153,9 +150,15 @@ class Assembler(Helper):
         Add config to cell's kwargs for domain, if one with the same name specified (e.g. you have config cell with name "app" and 
         injections cell with name "app" => domain "app" will receive configuration map from config cell."""
         # TODO: Refactor repeated initialization code for special and other cells.
-
         # Run special cells. #
-        ## App ##
+        self._run_app_injection_cell()
+        self._run_database_injection_cell()
+
+        # Run other cells. #
+        self._run_custom_injection_cells()
+    
+    @logger.catch
+    def _run_app_injection_cell(self) -> None:
         # Look for config.
         # App config is required, so it's lack raises error, so give `is_errors_enabled` to enable errors raising on config problems.
         app_config = self._assemble_domain_kwargs_config(name="app", is_errors_enabled=True)
@@ -176,7 +179,8 @@ class Assembler(Helper):
         # Finally, assign app to use within assembler, since it was initialized at service initialization.
         self.app = self.app_injection_cell.domain_class()  # type: ignore
 
-        ## Database ##
+    @logger.catch
+    def _run_database_injection_cell(self) -> None:
         if self.database_injection_cell:
             # Look for config.
             database_config = self._assemble_domain_kwargs_config(name="database")
@@ -200,9 +204,10 @@ class Assembler(Helper):
             # Perform database postponed setup.
             self._perform_database_postponed_setup()
 
-        # Run other cells. #
-        if self.injection_cells_by_name:
-            for cell in list(self.injection_cells_by_name.values()):
+    @logger.catch
+    def _run_custom_injection_cells(self) -> None:
+        if self.injection_cells:
+            for cell in self.injection_cells:
                 domain_kwargs = cell.domain_kwargs
                 # Check for domain's config in given cells by comparing names and apply to domain kwargs if it exists.
                 config = self._assemble_domain_kwargs_config(name=cell.name) 
@@ -214,20 +219,20 @@ class Assembler(Helper):
 
     @logger.catch
     def _assemble_domain_kwargs_config(self, name: str, is_errors_enabled: bool = False) -> dict:
-        """Check for domain's config in config cells by comparing its given name.
+        """Check for domain's config in config cells by comparing its given name and return it as dict.
 
         If appropriate config hasn't been found, write warning log (or raise ValueError if `is_errors_enabled = True`) and return empty dict."""
-        if self.config_cells_by_name:
-            if name in self.config_cells_by_name:
+        if self.config_cells:
+            config_cell_with_target_name = find_cell_by_name(self.config_cells, name)
+            if config_cell_with_target_name:
                 config = parse_config_cell(
                     root_path=self.root_path, 
-                    config_cell=self.config_cells_by_name[name],
+                    config_cell=config_cell_with_target_name,
                     update_with=self.extra_configs_by_name.get(name, None)
                 )
                 return config
         message = format_message("Appropriate config for given name {} hasn't been found.", name)
         if not is_errors_enabled:
-            logger.warning(message)
             return {}
         else:
             raise ValueError(message)
@@ -238,7 +243,7 @@ class Assembler(Helper):
         # Try to fetch project version.
         project_version = None
         try:
-            project_version = self._fetch_yaml_project_version
+            project_version = self._fetch_yaml_project_version()
         except FileNotFoundError:
             warn_message = format_message("The file `./info.yaml` is not specified under root path.")
             logger.warning(warn_message)
@@ -258,21 +263,23 @@ class Assembler(Helper):
         return project_version
 
     @logger.catch
-    def _build_views(self, view_cells: List[ViewCell]) -> None:
+    def _build_views(self) -> None:
         """Build all views by registering them to app."""
-        for view_cell in view_cells:
-            self.app.register_view(view_cell)
+        if self.view_cells:
+            for view_cell in self.view_cells:
+                self.app.register_view(view_cell)
 
-    @staticmethod
     @logger.catch
-    def _build_mappers(mapper_cells: List[MapperCell]) -> None:
+    def _build_mappers(self) -> None:
         """Assign models parameters to mapper classes."""
-        for cell in mapper_cells:
-            cell.mapper_class.set_orm_model(cell.model)
-            cell.mapper_class.set_params(cell.mapper_kwargs)
+        if self.mapper_cells:
+            for cell in self.mapper_cells:
+                cell.mapper_class.set_orm_model(cell.model)
+                cell.mapper_class.set_params(cell.mapper_kwargs)
 
     @logger.catch
-    def _build_emitters(self, emitter_cells: List[EmitterCell]) -> None:
+    def _build_emitters(self) -> None:
         """Build emitters from given cells and inject Puft application controllers to each."""
-        for cell in emitter_cells:
-            cell.emitter_class(app_controller=self.app_controller)
+        if self.emitter_cells:
+            for cell in self.emitter_cells:
+                cell.emitter_class(app_controller=self.app_controller)

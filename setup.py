@@ -4,6 +4,8 @@ from setuptools import setup, find_packages
 
 here = pathlib.Path(__file__).parent.resolve()
 
+with open("requirements.txt", "r") as file:
+    install_requires = [x.strip() for x in file.readlines()]
 
 setup(
     name="puft",
@@ -21,16 +23,7 @@ setup(
             "puft = puft.helpers.cli:main",
         ],
     },
-    install_requires=[
-        "flask",
-        "warepy",
-        "requests",
-        "turbo-flask",
-        "flask-migrate",
-        "pytest",
-        "flask-cors",
-        "flask-session"
-    ],
+    install_requires=install_requires,
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
 

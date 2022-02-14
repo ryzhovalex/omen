@@ -1,7 +1,7 @@
 """Module with various tools."""
 import os
 import json
-from typing import Any, List, Dict, Literal, Callable, Union, Tuple, Type
+from typing import Any, List, Dict, Literal, Callable, Union, Tuple, Type, Sequence, TypeVar
 
 from werkzeug.wrappers.response import Response
 from flask import make_response, redirect, flash, render_template
@@ -146,9 +146,10 @@ def do_or_flash(func: Callable, message: str = None, *args, **kwargs) -> Any:
         return output
 
 
-def find_cell_by_name(cells: List[Cell], name: str) -> Cell:
-    """Traverse through given list of cells and return first one with specified name."""
+AnyCell = TypeVar("AnyCell", bound=Cell)
+def find_cell_by_name(cells: Sequence[AnyCell], name: str) -> AnyCell | None:
+    """Traverse through given list of cells and return first one with specified name or None, if no cell with given name found."""
     for cell in cells:
         if cell.name == name:
             return cell
-    raise ValueError(format_message("No cell with name {} in given cells.", name))
+    return None
