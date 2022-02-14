@@ -12,7 +12,7 @@ class Service(metaclass=Singleton):
 
     Layer between Domain Objects (Domains) and UI layer (Controllers and Views).
     Represents service with chained Domain 1:1. Performs various operations to prepare data (like json formatting) coming to Domains and from them."""
-    def __init__(self, service_kwargs: dict, domain_class: Type[Domain], domain_kwargs: dict) -> None:
+    def __init__(self, service_kwargs: dict, domain_class: type[Domain], domain_kwargs: dict) -> None:
         self.params = service_kwargs
         # Create instance of given base model class with given kwargs.
         self.domain = domain_class(**domain_kwargs)  
