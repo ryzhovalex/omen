@@ -1,5 +1,4 @@
 import os
-from typing import Any, List, Dict, Type
 
 from .cells import AppInjectionCell, ConfigCell, DatabaseInjectionCell, InjectionCell, MapperCell, ViewCell, EmitterCell
 
@@ -11,11 +10,11 @@ class Build:
         self,
         app_injection_cell: AppInjectionCell,
         database_injection_cell: DatabaseInjectionCell = None,
-        config_cells: List[ConfigCell] = None,
-        injection_cells: List[InjectionCell] = None, 
-        mapper_cells: List[MapperCell] = None,
-        view_cells: List[ViewCell] = None,
-        emitter_cells: List[EmitterCell] = None
+        config_cells: list[ConfigCell] = None,
+        injection_cells: list[InjectionCell] = None, 
+        mapper_cells: list[MapperCell] = None,
+        view_cells: list[ViewCell] = None,
+        emitter_cells: list[EmitterCell] = None
     ) -> None:
         # Use native root module path.
         # Because this class imported from root directory, root_path below will be assigned from there during class's initialization.

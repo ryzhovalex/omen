@@ -8,7 +8,7 @@ from ...models.services.service import Service
 
 class Controller(metaclass=Singleton):
     """Layer between Views and Services."""
-    def __init__(self, controller_kwargs: Dict[str, Any], service_class: Type[Service]) -> None:
+    def __init__(self, controller_kwargs: dict, service_class: Type[Service]) -> None:
         self.params = controller_kwargs
 
         # Just init service class without kwargs, because it's suppossed to be instantiated before with Domain object injected.
