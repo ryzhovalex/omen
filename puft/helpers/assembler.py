@@ -68,7 +68,7 @@ class Assembler(Helper):
                 Required in cases of calling this function not from actual project root (e.g. from tests) to set root path explicitly.
         """
         # Get Assembler instance without args, because it should be initialized before (in root create_app function).
-        assembler = Assembler()  # type: ignore
+        assembler = Assembler.instance()
 
         if root_path:
             assembler.root_path = root_path
@@ -177,7 +177,7 @@ class Assembler(Helper):
         )
 
         # Finally, assign app to use within assembler, since it was initialized at service initialization.
-        self.app = self.app_injection_cell.domain_class()  # type: ignore
+        self.app = self.app_injection_cell.domain_class.instance()
 
     @logger.catch
     def _run_database_injection_cell(self) -> None:
@@ -199,7 +199,7 @@ class Assembler(Helper):
             )
 
             # Assign database domain if it exists to use within assembler.
-            self.database = self.database_injection_cell.domain_class()  # type: ignore
+            self.database = self.database_injection_cell.domain_class.instance()
 
             # Perform database postponed setup.
             self._perform_database_postponed_setup()

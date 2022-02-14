@@ -7,7 +7,7 @@ from warepy import logger, Singleton, format_message
 from ..domains.domain import Domain
 
 
-class Service(metaclass=Singleton):
+class Service(Singleton):
     """Service superclass inherits Singleton metaclass.
 
     Layer between Domain Objects (Domains) and UI layer (Controllers and Views).

@@ -6,13 +6,13 @@ from warepy import logger, Singleton
 from ...models.services.service import Service
 
 
-class Controller(metaclass=Singleton):
+class Controller(Singleton):
     """Layer between Views and Services."""
     def __init__(self, controller_kwargs: dict, service_class: type[Service]) -> None:
         self.params = controller_kwargs
 
         # Just init service class without kwargs, because it's suppossed to be instantiated before with Domain object injected.
-        self.service = service_class()  # type: ignore
+        self.service = service_class.instance()
 
     @logger.catch
     def get_bound_by_id(self, id: int) -> Any:

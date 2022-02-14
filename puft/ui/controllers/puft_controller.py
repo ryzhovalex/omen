@@ -14,7 +14,7 @@ class PuftController(Controller):
     Should be inherited by project's AppController."""
     def __init__(self, controller_kwargs: Dict[str, Any], service_class: Type[PuftService]) -> None:
         super().__init__(controller_kwargs, service_class)
-        self.service = service_class()  # type: ignore
+        self.service = service_class.instance()
 
     def get_app(self) -> Flask:
         """Return native app."""

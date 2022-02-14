@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from ..domains.database import native_db
 
 
-class Mapper(metaclass=Singleton):
+class Mapper(Singleton):
     """Represents database table data manipulations. Abstracted to only contain classmethods.
 
     Contain class variable `params` which can be assigned during program assembling individually for each children."""
