@@ -3,15 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Dict, Union, Callable, Literal, TYPE_CHECKING, Type
 
-from ..models.domains.puft import Puft
-from ..models.domains.database import Database
-from ..models.services.puft_service import PuftService
-from ..ui.controllers.puft_controller import PuftController
-from ..models.services.database_service import DatabaseService
-from ..ui.controllers.database_controller import DatabaseController
-
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.
+    from ..models.domains.puft import Puft
+    from ..models.domains.database import Database
+    from ..models.services.puft_service import PuftService
+    from ..ui.controllers.puft_controller import PuftController
+    from ..models.services.database_service import DatabaseService
+    from ..ui.controllers.database_controller import DatabaseController
+
     from ..ui.views.view import View
     from ..models.domains.database import native_db
     from ..ui.emitters.emitter import Emitter

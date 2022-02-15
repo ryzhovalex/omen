@@ -1,5 +1,3 @@
-from typing import Any, Dict, Type
-
 from flask import Flask
 
 from .service import Service
@@ -11,7 +9,7 @@ class PuftService(Service):
     """Operates over Puft processes.
     
     Should be inherited by project's AppService."""
-    def __init__(self, service_kwargs: Dict[str, Any], domain_class: Type[Puft], domain_kwargs: Dict[str, Any]) -> None:
+    def __init__(self, service_kwargs: dict, domain_class: type[Puft], domain_kwargs: dict) -> None:
         super().__init__(service_kwargs, domain_class, domain_kwargs)
         self.domain = domain_class(**domain_kwargs)
 
