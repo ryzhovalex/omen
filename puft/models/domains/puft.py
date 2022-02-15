@@ -91,7 +91,7 @@ class Puft(Domain):
 
         # Flush redis session db if mode is not `prod`. 
         if os.environ["PUFT_MODE"] != "prod": 
-            if self.app.config.get["SESSION_TYPE", None]:
+            if self.app.config.get("SESSION_TYPE", None):
                 if self.app.config["SESSION_TYPE"] == "redis":
                     logger.info("Flush redis db because of non-production run.")
                     self.app.session_interface.redis.flushdb()

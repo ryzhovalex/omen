@@ -28,7 +28,6 @@ def main() -> int:
     else:
         # Run Flask by command chain.
         invoke_flask(action, args)
-        
 
     return 0
 
@@ -57,9 +56,15 @@ def invoke_flask(action: str, args: argparse.Namespace) -> None:
         logger.info(f"Apply environs: {subprocess_environs}.")
         logger.info(f"Run command: {cmd}.")
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, text=True, env=subprocess_environs, shell=True) as process:
-        if process.stdout is not None:
-            for line in process.stdout:
-                print(line, end="")
+        try:
+            if process.stdout is not None:
+                for line in process.stdout:
+                    print(line, end="")
+        except KeyboardInterrupt:
+            print("Interrupted by keyboard.")
+            process.kill()
+            raise KeyboardInterrupt()
+        
     if process.returncode != 0:
         raise subprocess.CalledProcessError(process.returncode, process.args)
 
@@ -152,7 +157,7 @@ def parse_input() -> argparse.Namespace:
     """Parse cli input and return argparse.Namespace object."""
     # TODO: Add descriptions to args.
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", default="dev", choices=PUFT_MODES)
+    parser.add_argument("mode", choices=PUFT_MODES)
     parser.add_argument("-a", dest="host", default="127.0.0.1")
     parser.add_argument("-p", dest="port", default="5000")
     parser.add_argument("-src", dest="source_file", default="main")

@@ -86,8 +86,7 @@ class Assembler(Helper):
         # Set root path environ for various usage within project.
         os.environ["PUFT_ROOT_PATH"] = self.root_path
 
-        # Build instances by key groups.
-
+        self._build_logger()
         self._build_injection()
         self._build_views()
         self._build_mappers()
@@ -102,7 +101,6 @@ class Assembler(Helper):
     @logger.catch
     def _build_logger(self) -> None:
         """Call chain to build logger."""
-
         # Try to find logger config cell and build logger class from it.
         if self.config_cells:
             logger_config_cell = find_cell_by_name(self.config_cells, "logger")
