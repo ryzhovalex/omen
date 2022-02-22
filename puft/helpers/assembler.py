@@ -7,8 +7,7 @@ from flask import Flask
 from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
-from ..tools import find_cell_by_name, parse_config_cell
-from .cells import AppInjectionCell, Cell, DatabaseInjectionCell, EmitterCell, MapperCell, InjectionCell, ViewCell, ConfigCell
+from .cells import NamedCell, ConfigCell
 
 if TYPE_CHECKING:
     from .build import Build
@@ -103,13 +102,13 @@ class Assembler(Helper):
         """Call chain to build logger."""
         # Try to find logger config cell and build logger class from it.
         if self.config_cells:
-            logger_config_cell = find_cell_by_name(self.config_cells, "logger")
+            logger_config_cell = NamedCell.find_by_name(self.config_cells, "logger")
             if logger_config_cell is None:
                 # Logger config is not attached.
                 logger_config = None
             else:
                 # Parse config mapping from cell and append extra configs, if they are given.
-                logger_config = parse_config_cell(
+                logger_config = ConfigCell.parse(
                     config_cell=logger_config_cell, 
                     root_path=self.root_path, 
                     update_with=self.extra_configs_by_name.get("logger", None)
@@ -221,9 +220,9 @@ class Assembler(Helper):
 
         If appropriate config hasn't been found, write warning log (or raise ValueError if `is_errors_enabled = True`) and return empty dict."""
         if self.config_cells:
-            config_cell_with_target_name = find_cell_by_name(self.config_cells, name)
+            config_cell_with_target_name = NamedCell.find_by_name(self.config_cells, name)
             if config_cell_with_target_name:
-                config = parse_config_cell(
+                config = ConfigCell.parse(
                     root_path=self.root_path, 
                     config_cell=config_cell_with_target_name,
                     update_with=self.extra_configs_by_name.get(name, None)

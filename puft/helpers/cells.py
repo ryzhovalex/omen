@@ -24,6 +24,11 @@ if TYPE_CHECKING:
     from ..ui.controllers.controller import Controller
 
 
+# Set TypeVar upper bound to class defined afterwards.
+# https://stackoverflow.com/questions/63830289/setting-typevar-upper-bound-to-class-defined-afterwards
+AnyNamedCell = TypeVar("AnyNamedCell", bound="NamedCell")
+
+
 @dataclass
 class Cell:
     pass
@@ -35,7 +40,7 @@ class NamedCell(Cell):
 
     @staticmethod
     @logger.catch
-    def find_by_name(cells: Sequence[NamedCell], name: str) -> NamedCell:
+    def find_by_name(cells: Sequence[AnyNamedCell], name: str) -> AnyNamedCell:
         """Traverse through given list of cells and return first one with specified name.
         
         raise:
@@ -50,7 +55,7 @@ class NamedCell(Cell):
 
     @staticmethod
     @logger.catch
-    def generate_cells_by_name(cells: list[NamedCell]) -> dict[str, NamedCell]:
+    def map_to_name(cells: list[AnyNamedCell]) -> dict[str, AnyNamedCell]:
         """Traverse through given cells names and return dict with these cells as values and their names as keys."""
         cells_by_name = {}
         for cell in cells:
@@ -65,7 +70,7 @@ class ConfigCell(NamedCell):
 
     @staticmethod
     @logger.catch
-    def parse_config_cell(config_cell: ConfigCell, root_path: str, update_with: dict = None) -> dict:
+    def parse(config_cell: ConfigCell, root_path: str, update_with: dict = None) -> dict:
         """Parse given config cell and return configuration dictionary.
         
         NOTE: This function performs automatic path absolutize - all paths starting with "./" within config 
