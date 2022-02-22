@@ -1,6 +1,8 @@
 import os
 
-from .cells import AppInjectionCell, ConfigCell, DatabaseInjectionCell, InjectionCell, MapperCell, ViewCell, EmitterCell
+from .cells import (
+    AppInjectionCell, ConfigCell, DatabaseInjectionCell, InjectionCell, MapperCell, ViewCell, EmitterCell
+)
 
 class Build:
     """Proxy mapping class with collection of initial project instances to be builded by assembler.
