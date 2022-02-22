@@ -19,7 +19,7 @@ class CLIConstructMode(Enum):
     DEPLOY = "deploy"
 
 
-class HTTPMethodName(Enum):
+class HTTPMethodToken(Enum):
     GET = "GET"
     POST = "POST"
     PUT = "PUT"

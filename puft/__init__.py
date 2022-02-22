@@ -15,8 +15,11 @@ from .ui.controllers.puft_controller import PuftController
 from .models.services.database_service import DatabaseService
 from .ui.controllers.database_controller import DatabaseController
 from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell, EmitterCell, AppInjectionCell, DatabaseInjectionCell)
-from .helpers.constants import (
-    HttpMethod, TurboAction, HTTP_METHODS
+from .constants.enums import (
+    HTTPMethodToken, TurboActionToken
+)
+from .constants.lists import (
+    HTTP_METHOD_TOKENS, TURBO_ACTION_TOKENS
 )
 from .tools import (
     make_fail_response,

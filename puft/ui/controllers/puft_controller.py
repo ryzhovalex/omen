@@ -3,7 +3,7 @@ from flask import Flask
 from ...models.services.puft_service import PuftService
 
 from .controller import Controller
-from ...helpers.constants import TurboAction
+from ...constants.enums import TurboActionToken
 
 
 class PuftController(Controller):
@@ -26,6 +26,6 @@ class PuftController(Controller):
         """Return app's instance path."""
         return self.service.get_instance_path()
 
-    def push_turbo(self, action: TurboAction, target: str, template_path: str, ctx_data: dict = {}) -> None:
+    def push_turbo(self, action: TurboActionToken, target: str, template_path: str, ctx_data: dict = {}) -> None:
         """Update turbo element at given name with given data."""
         self.service.push_turbo(action=action, target=target, template_path=template_path, ctx_data=ctx_data)

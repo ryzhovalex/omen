@@ -4,7 +4,7 @@ Invoke cli interface when puft executed as a script:
 python -m puft
 ```
 """
-from .helpers import cli
+from helpers import cli
 
 
 if __name__ == "__main__":
