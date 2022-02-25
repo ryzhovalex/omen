@@ -3,30 +3,30 @@ from typing import Any, List, Dict, Tuple, Union, Callable, Literal, get_args
 from enum import Enum
 
 
-class CLIDatabaseMode(Enum):
+class CLIDatabaseEnum(Enum):
     INIT = "init"
     MIGRATE = "migrate"
     UPGRADE = "upgrade"
 
 
-class CLIRunMode(Enum):
+class CLIRunEnum(Enum):
     DEV = "dev"
     PROD = "prod"
     TEST = "test"
 
 
-class CLIConstructMode(Enum):
+class CLIConstructEnum(Enum):
     DEPLOY = "deploy"
 
 
-class HTTPMethodToken(Enum):
+class HTTPMethodEnum(Enum):
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
     DELETE = "DELETE"
 
 
-class TurboActionToken(Enum):
+class TurboActionEnum(Enum):
     APPEND = "append"
     PREPEND = "prepend"
     REPLACE = "replace"

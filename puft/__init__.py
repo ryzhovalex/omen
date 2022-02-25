@@ -16,10 +16,10 @@ from .models.services.database_service import DatabaseService
 from .ui.controllers.database_controller import DatabaseController
 from .helpers.cells import (Cell, ViewCell, ConfigCell, InjectionCell, MapperCell, EmitterCell, AppInjectionCell, DatabaseInjectionCell)
 from .constants.enums import (
-    HTTPMethodToken, TurboActionToken
+    HTTPMethodEnum, TurboActionEnum
 )
 from .constants.lists import (
-    HTTP_METHOD_TOKENS, TURBO_ACTION_TOKENS
+    HTTP_METHOD_ENUM_VALUES, TURBO_ACTION_ENUM_VALUES
 )
 from .tools import (
     make_fail_response,

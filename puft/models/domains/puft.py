@@ -11,8 +11,8 @@ from flask import Flask, Blueprint, render_template, session, g
 
 from .domain import Domain
 from ...helpers.cells import ViewCell
-from ...constants.enums import TurboActionToken
-from ...constants.lists import HTTP_METHOD_TOKENS
+from ...constants.enums import TurboActionEnum
+from ...constants.lists import HTTP_METHOD_ENUM_VALUES
 
 
 class Puft(Domain):
@@ -124,10 +124,10 @@ class Puft(Domain):
             view = view_cell.view_class.as_view(view_cell.name, **view_cell.view_kwargs)
         else:
             view = view_cell.view_class.as_view(view_cell.name)
-        self.app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHOD_TOKENS)
+        self.app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHOD_ENUM_VALUES)
 
     @logger.catch
-    def push_turbo(self, action: TurboActionToken, target: str, template_path: str, ctx_data: dict = {}) -> None:
+    def push_turbo(self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}) -> None:
         """Push turbo action to target with rendered from path template contextualized with given data.
         
         Args:

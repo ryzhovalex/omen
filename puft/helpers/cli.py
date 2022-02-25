@@ -6,7 +6,7 @@ from typing import get_args
 from warepy import format_message, join_paths, logger, match_enum_containing_value
 
 from puft.constants.hints import CLIModeUnion
-from puft.constants.lists import CLI_MODES, CLI_CONSTRUCT_MODES, CLI_DATABASE_MODES
+from puft.constants.lists import CLI_ENUM_VALUES, CLI_CONSTRUCT_ENUM_VALUES, CLI_DATABASE_ENUM_VALUES
 
 
 def main() -> int:
@@ -18,7 +18,7 @@ def main() -> int:
     mode_enum = match_enum_containing_value(mode, *get_args(CLIModeUnion))
     action = resolve_action(mode_enum)
 
-    if action in CLI_CONSTRUCT_MODES:
+    if action in CLI_CONSTRUCT_ENUM_VALUES:
         # Do project construction related task.
         if action == "deploy":
             # TODO: Create project structure. 
@@ -69,7 +69,7 @@ def invoke_flask(action: str, args: argparse.Namespace) -> None:
 
 def resolve_action(mode: CLIModeUnion) -> str:
     """Resolve appropriate action for Flask or Puft cli depending on given mode and return this action name."""
-    if mode.value in CLI_DATABASE_MODES:
+    if mode.value in CLI_DATABASE_ENUM_VALUES:
         action = f"db {mode}"
     else:
         action = "run"
@@ -155,7 +155,7 @@ def parse_input() -> argparse.Namespace:
     """Parse cli input and return argparse.Namespace object."""
     # TODO: Add descriptions to args.
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=CLI_MODES)
+    parser.add_argument("mode", choices=CLI_ENUM_VALUES)
     parser.add_argument("-a", dest="host", default="127.0.0.1")
     parser.add_argument("-p", dest="port", default="5000")
     parser.add_argument("-src", dest="source_file", default="main")

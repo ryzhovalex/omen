@@ -1,17 +1,17 @@
 from warepy import get_enum_values, get_union_enum_values
 
 from .enums import (
-    CLIDatabaseMode, CLIRunMode, CLIConstructMode, HTTPMethodToken, TurboActionToken
+    CLIDatabaseEnum, CLIRunEnum, CLIConstructEnum, HTTPMethodEnum, TurboActionEnum
 )
 from .hints import (
     CLIModeUnion
 )
 
-CLI_DATABASE_MODES = get_enum_values(CLIDatabaseMode)  # type: list[str]
-CLI_RUN_MODES = get_enum_values(CLIRunMode)  # type: list[str] 
-CLI_CONSTRUCT_MODES = get_enum_values(CLIConstructMode)  # type: list[str]
-CLI_MODES = get_union_enum_values(CLIModeUnion)  # type: list[str]
+CLI_DATABASE_ENUM_VALUES = get_enum_values(CLIDatabaseEnum)  # type: list[str]
+CLI_RUN_ENUM_VALUES = get_enum_values(CLIRunEnum)  # type: list[str] 
+CLI_CONSTRUCT_ENUM_VALUES = get_enum_values(CLIConstructEnum)  # type: list[str]
+CLI_ENUM_VALUES = get_union_enum_values(CLIModeUnion)  # type: list[str]
 
-HTTP_METHOD_TOKENS = get_enum_values(HTTPMethodToken)  # type: list[str]
+HTTP_METHOD_ENUM_VALUES = get_enum_values(HTTPMethodEnum)  # type: list[str]
 
-TURBO_ACTION_TOKENS = get_enum_values(TurboActionToken)  # type: list[str]
+TURBO_ACTION_ENUM_VALUES = get_enum_values(TurboActionEnum)  # type: list[str]
