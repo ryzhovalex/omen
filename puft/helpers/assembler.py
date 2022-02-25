@@ -7,7 +7,13 @@ from flask import Flask
 from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
-from .cells import NamedCell, ConfigCell
+from .cells import NamedCell, ConfigCell, InjectionCell, AppInjectionCell, DatabaseInjectionCell
+from ..models.domains.puft import Puft
+from ..models.domains.database import Database
+from ..models.services.database_service import DatabaseService
+from ..models.services.puft_service import PuftService
+from ..ui.controllers.database_controller import DatabaseController
+from ..ui.controllers.puft_controller import PuftController
 
 if TYPE_CHECKING:
     from .build import Build
@@ -33,17 +39,39 @@ class Assembler(Helper):
         *args, **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
+        self._assign_builtin_injection_cells()
 
         # Define attributes for getter methods to be used at builder.
         self.extra_configs_by_name = {}  # Do not set this to None at initialization, because `get()` method called from this dictionary.
         self.root_path = build.root_path
-        self.app_injection_cell = build.app_injection_cell
-        self.database_injection_cell = build.database_injection_cell
         self.config_cells = build.config_cells
         self.injection_cells = build.injection_cells
         self.mapper_cells = build.mapper_cells
         self.view_cells = build.view_cells
         self.emitter_cells = build.emitter_cells
+
+    @logger.catch
+    def _assign_builtin_injection_cells(self) -> None:
+        """Assign builting injection cells if configuration file for its service exists."""
+        self.builtin_injection_cells = []
+        self.builtin_injection_cells.append(AppInjectionCell(
+            name="app",
+            controller_class=PuftController,
+            service_class=PuftService,
+            service_config=self._assemble_service_config("app", is_errors_enabled=True)
+        ))
+
+        try:
+            self.builtin_injection_cells.append(DatabaseInjectionCell(
+                name="database",
+                controller_class=DatabaseController,
+                service_class=DatabaseService,
+                service_config=self._assemble_service_config("database", is_errors_enabled=True)
+            ))
+        except ValueError:
+            pass
+        else:
+            logger.info("Database layer enabled.")
 
     @staticmethod
     @logger.catch
@@ -75,7 +103,7 @@ class Assembler(Helper):
             assembler.extra_configs_by_name = configs_by_name
 
         assembler._build_all()
-        flask_app = assembler.app.get_app()
+        flask_app = assembler.puft.get_app()
 
         return flask_app
         
@@ -93,7 +121,7 @@ class Assembler(Helper):
 
         # Call postponed build from created App.
         try:
-            self.app.postbuild()
+            self.puft.postbuild()
         except NotImplementedError:
             pass
 
@@ -130,7 +158,6 @@ class Assembler(Helper):
     @logger.catch
     def _build_injection(self) -> None:
         """Setup all injection instances: Controllers, Services and Domain Objects in 1:1:1 relation."""
-        self._apply_project_version()
         self._run_injection_cells()
 
     @logger.catch
@@ -138,87 +165,61 @@ class Assembler(Helper):
         """Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
         so it's possible only after App initialization.
         The setup_db requires native flask app to work with."""
-        self.database.setup_db(flask_app=self.app.get_app())
+        self.database.setup_db(flask_app=self.puft.get_app())
 
     @logger.catch
     def _run_injection_cells(self) -> None:
-        """Unpack injection cells with loop and init Service, by inject Domain, and Controller, by inject Service.
-        
-        Add config to cell's kwargs for domain, if one with the same name specified (e.g. you have config cell with name "app" and 
-        injections cell with name "app" => domain "app" will receive configuration map from config cell."""
-        # TODO: Refactor repeated initialization code for special and other cells.
-        # Run special cells. #
-        self._run_app_injection_cell()
-        self._run_database_injection_cell()
-
-        # Run other cells. #
+        """Unpack builtin and custom injection cells with loop 
+        and init Service and then Controller, by inject Service."""
+        self._run_builtin_injection_cells()
         self._run_custom_injection_cells()
     
     @logger.catch
-    def _run_app_injection_cell(self) -> None:
-        # Look for config.
-        # App config is required, so it's lack raises error, so give `is_errors_enabled` to enable errors raising on config problems.
-        app_config = self._assemble_domain_kwargs_config(name="app", is_errors_enabled=True)
-        if app_config:
-            self.app_injection_cell.domain_kwargs["config"] = app_config
+    def _run_builtin_injection_cells(self) -> None:
+        for cell in self.builtin_injection_cells:
+            service_config = cell.service_config
 
-        # Initialize service and controller.
-        self.app_injection_cell.service_class(
-            service_kwargs=self.app_injection_cell.service_kwargs,
-            domain_class=self.app_injection_cell.domain_class,
-            domain_kwargs=self.app_injection_cell.domain_kwargs
-        )
-        self.app_controller = self.app_injection_cell.controller_class(
-            controller_kwargs=self.app_injection_cell.controller_kwargs, 
-            service_class=self.app_injection_cell.service_class
-        )
+            # Check for domain's config in given cells by comparing names and apply to service config if it exists.
+            config = self._assemble_service_config(name=cell.name) 
+            if config:
+                service_config.update(config)
 
-        # Finally, assign app to use within assembler, since it was initialized at service initialization.
-        self.app = self.app_injection_cell.domain_class.instance()
+            # Initialize cell's service (first) and controller (second) singletons.
+            service = cell.service_class(service_config)
+            controller = cell.controller_class(service_class=cell.service_class)
 
-    @logger.catch
-    def _run_database_injection_cell(self) -> None:
-        if self.database_injection_cell:
-            # Look for config.
-            database_config = self._assemble_domain_kwargs_config(name="database")
-            if database_config:
-                self.database_injection_cell.domain_kwargs["config"] = database_config
-
-            # Initialize service and controller.
-            self.database_injection_cell.service_class(
-                service_kwargs=self.database_injection_cell.service_kwargs,
-                domain_class=self.database_injection_cell.domain_class,
-                domain_kwargs=self.database_injection_cell.domain_kwargs
-            )
-            self.database_injection_cell.controller_class(
-                controller_kwargs=self.database_injection_cell.controller_kwargs, 
-                service_class=self.database_injection_cell.service_class
-            )
-
-            # Assign database domain if it exists to use within assembler.
-            self.database = self.database_injection_cell.domain_class.instance()
-
-            # Perform database postponed setup.
-            self._perform_database_postponed_setup()
+            # Assign builtin cells to according Assembler vars to operate with later.
+            if type(cell) is AppInjectionCell:
+                self.puft_controller = cell.controller_class.instance()
+                self.puft_service = cell.service_class.instance()
+                self.puft = self.puft_service.puft
+            elif type(cell) is DatabaseInjectionCell:
+                self.database_controller = cell.controller_class.instance()
+                self.database_service = cell.service_class.instance()
+                self.database = self.database_service.database
+                # Perform database postponed setup.
+                self._perform_database_postponed_setup()
 
     @logger.catch
     def _run_custom_injection_cells(self) -> None:
         if self.injection_cells:
             for cell in self.injection_cells:
-                domain_kwargs = cell.domain_kwargs
-                # Check for domain's config in given cells by comparing names and apply to domain kwargs if it exists.
-                config = self._assemble_domain_kwargs_config(name=cell.name) 
+                service_config = cell.service_config
+
+                # Check for domain's config in given cells by comparing names and apply to service config if it exists.
+                config = self._assemble_service_config(name=cell.name) 
                 if config:
-                    domain_kwargs["config"] = config
+                    service_config.update(config)
+
                 # Initialize cell's service (first) and controller (second) singletons.
-                cell.service_class(service_kwargs=cell.service_kwargs, domain_class=cell.domain_class, domain_kwargs=domain_kwargs)
-                cell.controller_class(controller_kwargs=cell.controller_kwargs, service_class=cell.service_class)
+                cell.service_class(service_config)
+                cell.controller_class(service_class=cell.service_class)
 
     @logger.catch
-    def _assemble_domain_kwargs_config(self, name: str, is_errors_enabled: bool = False) -> dict:
-        """Check for domain's config in config cells by comparing its given name and return it as dict.
+    def _assemble_service_config(self, name: str, is_errors_enabled: bool = False) -> dict:
+        """Check for service's config in config cells by comparing its given name and return it as dict.
 
-        If appropriate config hasn't been found, write warning log (or raise ValueError if `is_errors_enabled = True`) and return empty dict."""
+        If appropriate config hasn't been found, raise ValueError if `is_errors_enabled = True` or return empty dict otherwise."""
         if self.config_cells:
             config_cell_with_target_name = NamedCell.find_by_name(self.config_cells, name)
             if config_cell_with_target_name:
@@ -228,27 +229,13 @@ class Assembler(Helper):
                     update_with=self.extra_configs_by_name.get(name, None)
                 )
                 return config
+
         message = format_message("Appropriate config for given name {} hasn't been found.", name)
         if not is_errors_enabled:
+            logger.warning(message)
             return {}
         else:
             raise ValueError(message)
-
-    @logger.catch
-    def _apply_project_version(self) -> None:
-        """Try to fetch project version and apply it to app's domain kwargs."""
-        # Try to fetch project version.
-        project_version = None
-        try:
-            project_version = self._fetch_yaml_project_version()
-        except FileNotFoundError:
-            warn_message = format_message("The file `./info.yaml` is not specified under root path.")
-            logger.warning(warn_message)
-        except KeyError:
-            warn_message = format_message("Project version is not specified in `./info.yaml` file.")
-            logger.warning(warn_message)
-        # Apply project version. It could be none, it is already handled within Puft domain.
-        self.app_injection_cell.domain_kwargs["project_version"] = project_version
 
     @logger.catch
     def _fetch_yaml_project_version(self) -> str:
@@ -264,7 +251,7 @@ class Assembler(Helper):
         """Build all views by registering them to app."""
         if self.view_cells:
             for view_cell in self.view_cells:
-                self.app.register_view(view_cell)
+                self.puft.register_view(view_cell)
 
     @logger.catch
     def _build_mappers(self) -> None:
@@ -272,11 +259,10 @@ class Assembler(Helper):
         if self.mapper_cells:
             for cell in self.mapper_cells:
                 cell.mapper_class.set_orm_model(cell.model)
-                cell.mapper_class.set_params(cell.mapper_kwargs)
 
     @logger.catch
     def _build_emitters(self) -> None:
         """Build emitters from given cells and inject Puft application controllers to each."""
         if self.emitter_cells:
             for cell in self.emitter_cells:
-                cell.emitter_class(app_controller=self.app_controller)
+                cell.emitter_class(app_controller=self.puft_controller)

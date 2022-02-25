@@ -10,8 +10,8 @@ class PuftController(Controller):
     """Processes requests to Puft Service.
 
     Should be inherited by project's AppController."""
-    def __init__(self, controller_kwargs: dict, service_class: type[PuftService]) -> None:
-        super().__init__(controller_kwargs, service_class)
+    def __init__(self, service_class: type[PuftService]) -> None:
+        super().__init__(service_class)
         self.service = service_class.instance()
 
     def get_app(self) -> Flask:

@@ -10,19 +10,12 @@ class Mapper(Singleton):
 
     Contain class variable `params` which can be assigned during program assembling individually for each children."""
     model = native_db.Model 
-    params = {}
 
     @classmethod
     @logger.catch
     def set_orm_model(cls, model: native_db.Model) -> None:
         """Set mapper's orm model attribute to work with."""
         cls.model = model
-
-    @classmethod
-    @logger.catch
-    def set_params(cls, params: dict) -> None:
-        """Set mapper's parameters to work with as like with self.arguments."""
-        cls.params = params
 
     @classmethod
     @logger.catch

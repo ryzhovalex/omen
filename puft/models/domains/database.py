@@ -5,15 +5,13 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from warepy import logger, format_message
 
-from .domain import Domain
-
 
 # Here database variable are referenced at top layer to be visible for ORMs.
 # It is kinda messy, and in future it may be refactored (nothing more permanent than temporary).
 native_db = SQLAlchemy()
 
 
-class Database(Domain):
+class Database:
     """Utilizes SQLAlchemy database operations."""
     @logger.catch
     def __init__(self, config: dict):

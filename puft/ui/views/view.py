@@ -7,15 +7,17 @@ from ...tools.noconflict import makecls
 class View(MethodView):
     """Presents API source with HTTP analog methods to be registered in app routing.
     
-    Contains general methods `get`, `post`, `put` and `delete` according to same HTTP methods and should be re-implemented in children classes.
+    Contains general methods `get`, `post`, `put` and `delete` according to same HTTP methods 
+    and should be re-implemented in children classes.
     
     Source: [Flask Pluggable Views for APIs](https://flask.palletsprojects.com/en/2.0.x/views/#method-views-for-apis)."""
     __metaclass__ = makecls()
-    methods = ["GET", "POST"]  # Methods allowed to access this view.
+    methods = ["GET", "POST", "PUT", "DELETE"]  # Methods allowed to access this view.
 
     # List of decorators to apply to all view's methods.
     decorators = [logger.catch]  
-    # To extend decorators in child class, use `decorators = View.decorators + [your_shiny_decorator]` in your class variable definition.
+    # To extend decorators in child class, use `decorators = View.decorators + [your_shiny_decorator]` 
+    # in your class variable definition.
 
     def get(self):
         error_message = format_message("Method GET is not implemented at view: {}", self.__class__.__name__)

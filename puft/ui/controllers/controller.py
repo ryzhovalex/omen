@@ -7,14 +7,8 @@ from ...models.services.service import Service
 
 
 class Controller(Singleton):
-    """Layer between Views and Services."""
-    def __init__(self, controller_kwargs: dict, service_class: type[Service]) -> None:
-        self.params = controller_kwargs
-
-        # Just init service class without kwargs, because it's suppossed to be instantiated before with Domain object injected.
+    """Layer between Views and Services.
+    
+    Chained to Service singleton in 1:1 proportion."""
+    def __init__(self, service_class: type[Service]) -> None:
         self.service = service_class.instance()
-
-    @logger.catch
-    def get_bound_by_id(self, id: int) -> Any:
-        """Call method to get bound key instance to appropriate service by given id of the instance and return it's output."""
-        return self.service.get_bound_by_id(id=id)

@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from ..models.domains.database import native_db
     from ..ui.emitters.emitter import Emitter
     from ..models.mappers.mapper import Mapper
-    from ..models.domains.domain import Domain
     from ..models.services.service import Service
     from ..ui.controllers.controller import Controller
 
@@ -115,13 +114,10 @@ class ConfigCell(NamedCell):
 
 @dataclass
 class InjectionCell(NamedCell):
-    """Crucial core dependency injection cell united Controller, Service and Domain object in one chain."""
+    """Crucial core dependency injection cell united Controller and Service objects in one chain."""
     controller_class: Type[Controller]
-    controller_kwargs: dict[str, Any]
     service_class: Type[Service]
-    service_kwargs: dict[str, Any]
-    domain_class: Type[Domain]
-    domain_kwargs: dict[str, Any]
+    service_config: dict[str, Any]
 
 
 @dataclass
@@ -129,28 +125,24 @@ class AppInjectionCell(InjectionCell):
     """Injection cell with app itself which is required in any build."""
     controller_class: Type[PuftController]
     service_class: Type[PuftService]
-    domain_class: Type[Puft]
 
 @dataclass
 class DatabaseInjectionCell(InjectionCell):
     """Injection cell with database itself which can be applied to created application."""
     controller_class: Type[DatabaseController]
     service_class: Type[DatabaseService]
-    domain_class: Type[Database]
 
 
 @dataclass
 class MapperCell(NamedCell):
     mapper_class: Type[Mapper]
     model: Type[native_db.Model]
-    mapper_kwargs: dict[str, Any]
 
 
 @dataclass
 class ViewCell(NamedCell):
     name: str  # `name` == view's final endpoint, e.g. `objective.basic`.
     view_class: Type[View]
-    view_kwargs: dict[str, Any]
     route: str  # Route will be the same for all methods.
 
 

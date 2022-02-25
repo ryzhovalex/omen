@@ -9,13 +9,12 @@ from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 
 
-from .domain import Domain
 from ...helpers.cells import ViewCell
 from ...constants.enums import TurboActionEnum
 from ...constants.lists import HTTP_METHOD_ENUM_VALUES
 
 
-class Puft(Domain):
+class Puft:
     """Puft class inherits Domain superclass.
     
     Implements Flask App operating layer."""
@@ -120,10 +119,7 @@ class Puft(Domain):
         """Register given view cell for the app."""
         # Check if view has kwargs to avoid sending empty dict.
         # Use cell's name as view's endpoint.
-        if view_cell.view_kwargs:
-            view = view_cell.view_class.as_view(view_cell.name, **view_cell.view_kwargs)
-        else:
-            view = view_cell.view_class.as_view(view_cell.name)
+        view = view_cell.view_class.as_view(view_cell.name)
         self.app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHOD_ENUM_VALUES)
 
     @logger.catch
