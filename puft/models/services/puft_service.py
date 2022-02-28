@@ -9,7 +9,7 @@ class PuftService(Service):
     """Operates over Puft processes.
     
     Should be inherited by project's AppService."""
-    def __init__(self, service_config: dict, domain_class: type[Puft], domain_kwargs: dict) -> None:
+    def __init__(self, service_config: dict) -> None:
         super().__init__(service_config)
         # Service config also Puft's domain config (especially it's Flask related part) so it can be pushed like so.
         self.puft = Puft(config=service_config)

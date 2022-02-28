@@ -117,7 +117,6 @@ class InjectionCell(NamedCell):
     """Crucial core dependency injection cell united Controller and Service objects in one chain."""
     controller_class: Type[Controller]
     service_class: Type[Service]
-    service_config: dict[str, Any]
 
 
 @dataclass

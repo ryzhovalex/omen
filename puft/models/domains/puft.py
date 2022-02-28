@@ -8,7 +8,6 @@ from flask_session import Session
 from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 
-
 from ...helpers.cells import ViewCell
 from ...constants.enums import TurboActionEnum
 from ...constants.lists import HTTP_METHOD_ENUM_VALUES
@@ -32,15 +31,9 @@ class Puft:
         super().__init__(*args, **kwargs)
         self.project_version = project_version
 
-        try:
-            instance_path = config["INSTANCE_PATH"]
-            template_folder = config["TEMPLATE_FOLDER"] 
-            static_folder = config["STATIC_FOLDER"]
-        except KeyError:
-            error_message = format_message(
-                "You must specify all of next parameters for app in config: INSTANCE_PATH, TEMPLATE_FOLDER, STATIC_FOLDER."
-            )
-            raise KeyError(error_message)
+        instance_path = config.get("INSTANCE_PATH", None)
+        template_folder = config.get("TEMPLATE_FOLDER", None) 
+        static_folder = config.get("STATIC_FOLDER", None)
 
         # Initialize app.
         self.app = Flask(

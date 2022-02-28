@@ -15,7 +15,8 @@ def main() -> int:
     mode = args.mode
 
     # Find enum where mode assigned.
-    mode_enum = match_enum_containing_value(mode, *get_args(CLIModeUnion))
+    mode_enum_class = match_enum_containing_value(mode, *get_args(CLIModeUnion))
+    mode_enum = mode_enum_class(mode)
     action = resolve_action(mode_enum)
 
     if action in CLI_CONSTRUCT_ENUM_VALUES:
@@ -124,8 +125,12 @@ def parse_user_environs_from_file(caller_root_dir: str, user_environs_file_path:
         target_path = join_paths(caller_root_dir, "./environs")
     
     # Open target file and read all lines.
-    with open(target_path, "r") as file:
-        lines = file.readlines()
+    try:
+        with open(target_path, "r") as file:
+            lines = file.readlines()
+    except FileNotFoundError:
+        # No file with environs defined, return empty environs.
+        return {}
 
     # Parse received lines.
     values_by_environ = {}

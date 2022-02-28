@@ -5,7 +5,6 @@ from .helpers.build import Build
 from .models.domains.puft import Puft
 from .ui.emitters.emitter import Emitter
 from .helpers.assembler import Assembler
-from .models.domains.domain import Domain
 from .models.mappers.mapper import Mapper
 from .models.services.service import Service
 from .ui.controllers.controller import Controller

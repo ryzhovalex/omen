@@ -39,8 +39,6 @@ class Assembler(Helper):
         *args, **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
-        self._assign_builtin_injection_cells()
-
         # Define attributes for getter methods to be used at builder.
         self.extra_configs_by_name = {}  # Do not set this to None at initialization, because `get()` method called from this dictionary.
         self.root_path = build.root_path
@@ -50,6 +48,9 @@ class Assembler(Helper):
         self.view_cells = build.view_cells
         self.emitter_cells = build.emitter_cells
 
+        # Traverse given configs and assign enabled builtin cells.
+        self._assign_builtin_injection_cells()
+
     @logger.catch
     def _assign_builtin_injection_cells(self) -> None:
         """Assign builting injection cells if configuration file for its service exists."""
@@ -57,21 +58,17 @@ class Assembler(Helper):
         self.builtin_injection_cells.append(AppInjectionCell(
             name="app",
             controller_class=PuftController,
-            service_class=PuftService,
-            service_config=self._assemble_service_config("app", is_errors_enabled=True)
+            service_class=PuftService
         ))
 
-        try:
-            self.builtin_injection_cells.append(DatabaseInjectionCell(
-                name="database",
-                controller_class=DatabaseController,
-                service_class=DatabaseService,
-                service_config=self._assemble_service_config("database", is_errors_enabled=True)
-            ))
-        except ValueError:
-            pass
-        else:
-            logger.info("Database layer enabled.")
+        if self.config_cells:
+            if NamedCell.find_by_name(self.config_cells, "database"):
+                self.builtin_injection_cells.append(DatabaseInjectionCell(
+                    name="database",
+                    controller_class=DatabaseController,
+                    service_class=DatabaseService
+                ))
+                logger.info("Database layer enabled.")
 
     @staticmethod
     @logger.catch
@@ -177,12 +174,8 @@ class Assembler(Helper):
     @logger.catch
     def _run_builtin_injection_cells(self) -> None:
         for cell in self.builtin_injection_cells:
-            service_config = cell.service_config
-
             # Check for domain's config in given cells by comparing names and apply to service config if it exists.
-            config = self._assemble_service_config(name=cell.name) 
-            if config:
-                service_config.update(config)
+            service_config = self._assemble_service_config(name=cell.name) 
 
             # Initialize cell's service (first) and controller (second) singletons.
             service = cell.service_class(service_config)
@@ -204,12 +197,8 @@ class Assembler(Helper):
     def _run_custom_injection_cells(self) -> None:
         if self.injection_cells:
             for cell in self.injection_cells:
-                service_config = cell.service_config
-
                 # Check for domain's config in given cells by comparing names and apply to service config if it exists.
-                config = self._assemble_service_config(name=cell.name) 
-                if config:
-                    service_config.update(config)
+                service_config = self._assemble_service_config(name=cell.name) 
 
                 # Initialize cell's service (first) and controller (second) singletons.
                 cell.service_class(service_config)
@@ -232,7 +221,6 @@ class Assembler(Helper):
 
         message = format_message("Appropriate config for given name {} hasn't been found.", name)
         if not is_errors_enabled:
-            logger.warning(message)
             return {}
         else:
             raise ValueError(message)
