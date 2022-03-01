@@ -82,7 +82,7 @@ class Puft:
         self.flask_session = Session(self.app)
 
         # Flush redis session db if mode is not `prod`. 
-        if os.environ["PUFT_MODE"] != "prod": 
+        if self.mode_enum is not CLIRunEnum.PROD: 
             if self.app.config.get("SESSION_TYPE", None):
                 if self.app.config["SESSION_TYPE"] == "redis":
                     logger.info("Flush redis db because of non-production run.")

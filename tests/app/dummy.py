@@ -1,4 +1,4 @@
-from puft import Controller, Service, PuftService
+from puft import Controller, Service, PuftService, View
 
 
 class DummyController(Controller):
@@ -12,3 +12,7 @@ class DummyService(Service):
         self.app = PuftService.instance()
         print(self.app)
 
+
+class DummyView(View):
+    def get(self):
+        return "hello, world!"

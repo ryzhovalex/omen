@@ -52,6 +52,9 @@ class Assembler(Helper):
         self.emitter_cells = build.emitter_cells
         self.mode_enum = mode_enum
 
+        # Set environ for given mode.
+        os.environ["PUFT_MODE"] = self.mode_enum.value
+
         # Traverse given configs and assign enabled builtin cells.
         self._assign_builtin_injection_cells(mode_enum, host, port)
 

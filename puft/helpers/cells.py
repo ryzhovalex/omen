@@ -145,7 +145,7 @@ class MapperCell(NamedCell):
 
 @dataclass
 class ViewCell(NamedCell):
-    name: str  # `name` == view's final endpoint, e.g. `objective.basic`.
+    # `name` == view's final endpoint, e.g. `objective.basic`.
     view_class: Type[View]
     route: str  # Route will be the same for all methods.
 

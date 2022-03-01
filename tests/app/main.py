@@ -1,7 +1,6 @@
-from flask import Flask
-from puft import Assembler, Build, InjectionCell
+from puft import Build, InjectionCell, ViewCell
 
-from dummy import DummyController, DummyService
+from dummy import DummyController, DummyService, DummyView
 
 
 build = Build(
@@ -11,15 +10,13 @@ build = Build(
             controller_class=DummyController,
             service_class=DummyService
         )
+    ],
+    view_cells=[
+        ViewCell(
+            name="dummy",
+            view_class=DummyView,
+            route="/"  
+        )
     ]
 )
-
-
-def create_app(*args, **kwargs) -> Flask:
-    Assembler(build)
-    return Assembler.create_app(*args, **kwargs)
-
-
-if __name__ == "__main__":
-    create_app().run()
     

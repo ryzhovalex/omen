@@ -43,7 +43,7 @@ def invoke_run(
 ) -> None:
     """Run puft with given mode and run parameters."""
     # Load target module spec from location, where cli were called.
-    module_spec = importlib.util.spec_from_file_location(source_file, os.path.join(root_dir, source_file))
+    module_spec = importlib.util.spec_from_file_location(source_file, os.path.join(root_dir, source_file + ".py"))
     if module_spec and module_spec.loader:
         main_module = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(main_module)
