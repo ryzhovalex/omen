@@ -4,6 +4,7 @@ import os
 from typing import Dict, Any, List, Literal, Tuple, Callable, Union, TYPE_CHECKING, Type
 
 from flask import Flask
+from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
@@ -14,6 +15,7 @@ from ..models.services.database_service import DatabaseService
 from ..models.services.puft_service import PuftService
 from ..ui.controllers.database_controller import DatabaseController
 from ..ui.controllers.puft_controller import PuftController
+from ..constants.hints import CLIModeEnumUnion
 
 if TYPE_CHECKING:
     from .build import Build
@@ -35,6 +37,7 @@ class Assembler(Helper):
 
     def __init__(
         self, 
+        mode_enum: CLIModeEnumUnion, host: str, port: int,
         build: Build,
         *args, **kwargs
     ) -> None:
@@ -47,18 +50,30 @@ class Assembler(Helper):
         self.mapper_cells = build.mapper_cells
         self.view_cells = build.view_cells
         self.emitter_cells = build.emitter_cells
+        self.mode_enum = mode_enum
 
         # Traverse given configs and assign enabled builtin cells.
-        self._assign_builtin_injection_cells()
+        self._assign_builtin_injection_cells(mode_enum, host, port)
 
     @logger.catch
-    def _assign_builtin_injection_cells(self) -> None:
+    def get_puft(self) -> Puft:
+        return self.puft
+
+    @logger.catch
+    def get_puft_service(self) -> PuftService:
+        return self.puft_service
+
+    @logger.catch
+    def _assign_builtin_injection_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting injection cells if configuration file for its service exists."""
         self.builtin_injection_cells = []
         self.builtin_injection_cells.append(AppInjectionCell(
             name="app",
             controller_class=PuftController,
-            service_class=PuftService
+            service_class=PuftService,
+            mode_enum=mode_enum,
+            host=host,
+            port=port
         ))
 
         if self.config_cells:
@@ -72,8 +87,10 @@ class Assembler(Helper):
 
     @staticmethod
     @logger.catch
-    def create_app(configs_by_name: Dict[str, dict] = None, root_path: str = None) -> Flask:
-        """Initialize Flask app with assembler build context and return this app.
+    def run(
+        configs_by_name: Dict[str, dict] = None, root_path: str = None
+    ) -> None:
+        """Initialize Puft app with assembler build context.
         
         Reassign assembler's attributes to given ones and run it's setup operations to assemble app and other project's instances.
 
@@ -99,13 +116,12 @@ class Assembler(Helper):
         if configs_by_name:
             assembler.extra_configs_by_name = configs_by_name
 
-        assembler._build_all()
-        flask_app = assembler.puft.get_app()
-
-        return flask_app
+        assembler.build_all()
+        puft_service = assembler.get_puft_service()
+        puft_service.run()
         
     @logger.catch
-    def _build_all(self) -> None:
+    def build_all(self) -> None:
         """Send commands to build all given instances."""
         # Set root path environ for various usage within project.
         os.environ["PUFT_ROOT_PATH"] = self.root_path
@@ -162,7 +178,7 @@ class Assembler(Helper):
         """Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
         so it's possible only after App initialization.
         The setup_db requires native flask app to work with."""
-        self.database.setup_db(flask_app=self.puft.get_app())
+        self.database.setup_db(flask_app=self.puft.get_native_app())
 
     @logger.catch
     def _run_injection_cells(self) -> None:
@@ -177,8 +193,17 @@ class Assembler(Helper):
             # Check for domain's config in given cells by comparing names and apply to service config if it exists.
             service_config = self._assemble_service_config(name=cell.name) 
 
-            # Initialize cell's service (first) and controller (second) singletons.
-            service = cell.service_class(service_config)
+            # Initialize service.
+            if type(cell) is AppInjectionCell:
+                # Run special initialization with mode, host and port for Puft service.
+                service = cell.service_class(
+                    mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
+                    service_config=service_config
+                )
+            else:
+                service = cell.service_class(service_config=service_config)
+
+            # Initialize controller.
             controller = cell.controller_class(service_class=cell.service_class)
 
             # Assign builtin cells to according Assembler vars to operate with later.
@@ -201,7 +226,7 @@ class Assembler(Helper):
                 service_config = self._assemble_service_config(name=cell.name) 
 
                 # Initialize cell's service (first) and controller (second) singletons.
-                cell.service_class(service_config)
+                cell.service_class(service_config=service_config)
                 cell.controller_class(service_class=cell.service_class)
 
     @logger.catch

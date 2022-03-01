@@ -5,11 +5,12 @@ from typing import Any, List, Dict, Tuple, Callable, Union
 from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
+from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 
 from ...helpers.cells import ViewCell
-from ...constants.enums import TurboActionEnum
+from ...constants.enums import CLIRunEnum, TurboActionEnum
 from ...constants.lists import HTTP_METHOD_ENUM_VALUES
 
 
@@ -20,8 +21,8 @@ class Puft:
     @logger.catch
     def __init__(
         self, 
+        mode_enum: CLIModeEnumUnion,
         config: dict,
-        project_version: str = None,
         cli_cmds: List[Callable] = None,
         shell_processors: List[Callable] = None,
         is_ctx_processor_enabled: bool = False,
@@ -29,11 +30,10 @@ class Puft:
         **kwargs
     ):
         super().__init__(*args, **kwargs)
-        self.project_version = project_version
-
         instance_path = config.get("INSTANCE_PATH", None)
         template_folder = config.get("TEMPLATE_FOLDER", None) 
         static_folder = config.get("STATIC_FOLDER", None)
+        self.mode_enum = mode_enum
 
         # Initialize app.
         self.app = Flask(
@@ -45,16 +45,15 @@ class Puft:
 
         # Enable CORS for the app's resources.
         is_cors_enabled = config.get("IS_CORS_ENABLED", None)
-        if is_cors_enabled is not None:
-            if is_cors_enabled:
-                CORS(self.app)
+        if is_cors_enabled:
+            CORS(self.app)
 
         if config is not None:
             self.app.config.from_mapping(config)
 
             # Enable testing if appropriate mode has been set. Do not rely on environ if given config explicitly sets TESTING.
             if config.get("TESTING", None) is None:
-                if os.environ["PUFT_MODE"] == "test":
+                if self.mode_enum is CLIRunEnum.TEST:
                     self.app.config["TESTING"] = True
                 else:
                     self.app.config["TESTING"] = False
@@ -93,19 +92,26 @@ class Puft:
                 pass
 
     @logger.catch
-    def get_app(self) -> Flask:
+    def get_native_app(self) -> Flask:
         """Return native app."""
         return self.app
-
-    @logger.catch
-    def get_version(self) -> str:
-        """Return project's version."""
-        return get_or_error(self.project_version)
 
     @logger.catch
     def get_instance_path(self) -> str:
         """Return app's instance path."""
         return self.app.instance_path
+
+    @logger.catch
+    def run(
+        self,
+        host: str,
+        port: int,
+        is_debug: bool
+    ) -> None:
+        """Run Flask app."""
+        self.app.run(
+            host=host, port=port, debug=is_debug
+        )
 
     @logger.catch
     def register_view(self, view_cell: ViewCell) -> None:
@@ -158,7 +164,7 @@ class Puft:
     @logger.catch
     def _init_app_daemons(self) -> None:
         """Binds various background processes to the app."""
-        flask_app = self.get_app()
+        flask_app = self.get_native_app()
 
         if self.is_ctx_processor_enabled:
             @logger.catch

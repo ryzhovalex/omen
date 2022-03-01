@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from ..models.mappers.mapper import Mapper
     from ..models.services.service import Service
     from ..ui.controllers.controller import Controller
+    from ..constants.hints import CLIModeEnumUnion
 
 
 # Set TypeVar upper bound to class defined afterwards.
@@ -124,6 +125,10 @@ class AppInjectionCell(InjectionCell):
     """Injection cell with app itself which is required in any build."""
     controller_class: Type[PuftController]
     service_class: Type[PuftService]
+    mode_enum: CLIModeEnumUnion
+    host: str
+    port: int
+
 
 @dataclass
 class DatabaseInjectionCell(InjectionCell):
