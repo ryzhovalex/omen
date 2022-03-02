@@ -8,7 +8,7 @@ from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
-from .cells import NamedCell, ConfigCell, InjectionCell, AppInjectionCell, DatabaseInjectionCell
+from ..models.domains.cells import NamedCell, ConfigCell, InjectionCell, PuftInjectionCell, DatabaseInjectionCell
 from ..models.domains.puft import Puft
 from ..models.domains.database import Database
 from ..models.services.database_service import DatabaseService
@@ -70,8 +70,8 @@ class Assembler(Helper):
     def _assign_builtin_injection_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting injection cells if configuration file for its service exists."""
         self.builtin_injection_cells = []
-        self.builtin_injection_cells.append(AppInjectionCell(
-            name="app",
+        self.builtin_injection_cells.append(PuftInjectionCell(
+            name="puft",
             controller_class=PuftController,
             service_class=PuftService,
             mode_enum=mode_enum,
@@ -79,8 +79,13 @@ class Assembler(Helper):
             port=port
         ))
 
+        # Enable only modules with specified configs.
         if self.config_cells:
-            if NamedCell.find_by_name(self.config_cells, "database"):
+            try:
+                NamedCell.find_by_name(self.config_cells, "database")
+            except ValueError:
+                pass
+            else:
                 self.builtin_injection_cells.append(DatabaseInjectionCell(
                     name="database",
                     controller_class=DatabaseController,
@@ -146,8 +151,9 @@ class Assembler(Helper):
         """Call chain to build logger."""
         # Try to find logger config cell and build logger class from it.
         if self.config_cells:
-            logger_config_cell = NamedCell.find_by_name(self.config_cells, "logger")
-            if logger_config_cell is None:
+            try:
+                logger_config_cell = NamedCell.find_by_name(self.config_cells, "logger")
+            except ValueError:
                 # Logger config is not attached.
                 logger_config = None
             else:
@@ -197,7 +203,7 @@ class Assembler(Helper):
             service_config = self._assemble_service_config(name=cell.name) 
 
             # Initialize service.
-            if type(cell) is AppInjectionCell:
+            if type(cell) is PuftInjectionCell:
                 # Run special initialization with mode, host and port for Puft service.
                 service = cell.service_class(
                     mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
@@ -210,7 +216,7 @@ class Assembler(Helper):
             controller = cell.controller_class(service_class=cell.service_class)
 
             # Assign builtin cells to according Assembler vars to operate with later.
-            if type(cell) is AppInjectionCell:
+            if type(cell) is PuftInjectionCell:
                 self.puft_controller = cell.controller_class.instance()
                 self.puft_service = cell.service_class.instance()
                 self.puft = self.puft_service.puft

@@ -1,4 +1,4 @@
-from puft import Controller, Service, PuftService, View
+from puft import Controller, Service, Puft, View
 
 
 class DummyController(Controller):
@@ -9,9 +9,8 @@ class DummyService(Service):
     def __init__(self, service_config: dict) -> None:
         super().__init__(service_config)
 
-        self.app = PuftService.instance()
-        print(self.app)
-
+        self.app = Puft.instance()
+        assert service_config.get("TEST_VAR", 0) == 12502
 
 class DummyView(View):
     def get(self):

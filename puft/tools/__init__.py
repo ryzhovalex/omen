@@ -5,10 +5,7 @@ from typing import Any, List, Dict, Literal, Callable, Union, Tuple, Type, Seque
 
 from werkzeug.wrappers.response import Response
 from flask import make_response, redirect, flash, render_template
-
 from warepy import logger, join_paths, format_message, load_yaml
-
-from ..helpers.cells import Cell, ConfigCell
 
 
 @logger.catch

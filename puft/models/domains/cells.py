@@ -8,20 +8,18 @@ from warepy import logger, format_message, join_paths, load_yaml
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.
-    from ..models.domains.puft import Puft
-    from ..models.domains.database import Database
-    from ..models.services.puft_service import PuftService
-    from ..ui.controllers.puft_controller import PuftController
-    from ..models.services.database_service import DatabaseService
-    from ..ui.controllers.database_controller import DatabaseController
-
-    from ..ui.views.view import View
-    from ..models.domains.database import native_db
-    from ..ui.emitters.emitter import Emitter
-    from ..models.mappers.mapper import Mapper
-    from ..models.services.service import Service
-    from ..ui.controllers.controller import Controller
-    from ..constants.hints import CLIModeEnumUnion
+    from .puft import Puft
+    from .database import Database, native_db
+    from ..services.puft_service import PuftService
+    from ...ui.controllers.puft_controller import PuftController
+    from ..services.database_service import DatabaseService
+    from ...ui.controllers.database_controller import DatabaseController
+    from ...ui.views.view import View
+    from ...ui.emitters.emitter import Emitter
+    from ..mappers.mapper import Mapper
+    from ..services.service import Service
+    from ...ui.controllers.controller import Controller
+    from ...constants.hints import CLIModeEnumUnion
 
 
 # Set TypeVar upper bound to class defined afterwards.
@@ -39,7 +37,6 @@ class NamedCell(Cell):
     name: str
 
     @staticmethod
-    @logger.catch
     def find_by_name(cells: Sequence[AnyNamedCell], name: str) -> AnyNamedCell:
         """Traverse through given list of cells and return first one with specified name.
         
@@ -47,14 +44,12 @@ class NamedCell(Cell):
             ValueError: 
                 No cell with given name found.
         """
-
         for cell in cells:
             if cell.name == name:
                 return cell
-        raise ValueError(format_message("No cell with given name {} found."))
+        raise ValueError(format_message("No cell with given name {} found.", name))
 
     @staticmethod
-    @logger.catch
     def map_to_name(cells: list[AnyNamedCell]) -> dict[str, AnyNamedCell]:
         """Traverse through given cells names and return dict with these cells as values and their names as keys."""
         cells_by_name = {}
@@ -69,7 +64,6 @@ class ConfigCell(NamedCell):
     source: str
 
     @staticmethod
-    @logger.catch
     def parse(config_cell: ConfigCell, root_path: str, update_with: dict = None) -> dict:
         """Parse given config cell and return configuration dictionary.
         
@@ -121,7 +115,7 @@ class InjectionCell(NamedCell):
 
 
 @dataclass
-class AppInjectionCell(InjectionCell):
+class PuftInjectionCell(InjectionCell):
     """Injection cell with app itself which is required in any build."""
     controller_class: Type[PuftController]
     service_class: Type[PuftService]

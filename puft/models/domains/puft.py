@@ -9,7 +9,7 @@ from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 
-from ...helpers.cells import ViewCell
+from .cells import ViewCell
 from ...constants.enums import CLIRunEnum, TurboActionEnum
 from ...constants.lists import HTTP_METHOD_ENUM_VALUES
 

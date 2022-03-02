@@ -1,6 +1,6 @@
 import os
 
-from .cells import (
+from ..models.domains.cells import (
     ConfigCell, InjectionCell, MapperCell, ViewCell, EmitterCell
 )
 
