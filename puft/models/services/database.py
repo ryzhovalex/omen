@@ -42,8 +42,7 @@ class Database(Service):
         raw_uri = config.get("URI", None)  # type: str
 
         if not raw_uri:
-            error_message = format_message("You must specify URI for database in config.")
-            raise ValueError(error_message)
+            logger.info("URI for database not specified, using default sqlite3.")
         
         # Since URI from config is a raw path, need to calculate protocol.
         # Case 1: SQLite database.
@@ -109,7 +108,7 @@ class Database(Service):
         self.migration = flask_migrate.Migrate(flask_app, self.native_db)
 
     @logger.catch
-    def get_db(self) -> SQLAlchemy:
+    def get_native_db(self) -> SQLAlchemy:
         return self.native_db
 
     @logger.catch
@@ -123,33 +122,33 @@ class Database(Service):
 
     @logger.catch
     @migration_implemented
-    def create_all(self) -> None:
+    def create_all_tables(self) -> None:
         self.native_db.create_all()
 
     @logger.catch
     @migration_implemented
-    def drop_all(self):
+    def drop_all_tables(self):
         "Drop all tables."
         self.native_db.drop_all()
 
     @logger.catch
     @migration_implemented
-    def add(self, entity):
+    def add_to_session(self, entity):
         """Place an object in the session."""
         self.native_db.session.add(entity)
 
     @logger.catch
     @migration_implemented
-    def commit(self):
+    def commit_session(self):
         """Commit current transaction."""
         self.native_db.session.commit()
 
     @logger.catch
     @migration_implemented
-    def rollback(self):
+    def rollback_session(self):
         self.native_db.session.rollback()
 
     @logger.catch
     @migration_implemented
-    def remove(self):
+    def remove_session(self):
         self.native_db.session.remove()

@@ -39,7 +39,8 @@ def main() -> int:
     if mode_enum_class is CLIRunEnum:
         invoke_run(assembler)
     elif mode_enum_class is CLIDatabaseEnum:
-        invoke_database_change(assembler, mode_enum)
+        with assembler.get_puft().get_native_app().app_context():
+            invoke_database_change(assembler, mode_enum)
     elif mode_enum_class is CLIConstructEnum:
         # TODO: Invoke construct action.
         pass

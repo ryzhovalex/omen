@@ -99,14 +99,14 @@ class Puft(Service):
             return False
 
     def _spawn_native_app(self, config: dict) -> Flask:
-        instance_path = self.config.get("INSTANCE_PATH", None)
-        template_folder = self.config.get("TEMPLATE_FOLDER", None) 
-        static_folder = self.config.get("STATIC_FOLDER", None)
+        self.instance_path = self.config.get("INSTANCE_PATH", None)
+        self.template_folder = self.config.get("TEMPLATE_FOLDER", None) 
+        self.static_folder = self.config.get("STATIC_FOLDER", None)
         return Flask(
             __name__, 
-            instance_path=instance_path, 
-            template_folder=template_folder, 
-            static_folder=static_folder
+            instance_path=self.instance_path, 
+            template_folder=self.template_folder, 
+            static_folder=self.static_folder
         )
 
     @logger.catch

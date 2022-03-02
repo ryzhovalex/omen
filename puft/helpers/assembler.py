@@ -25,7 +25,7 @@ class Assembler(Helper):
     
     Acts automatically and shouldn't be inherited directly by project in any form."""
     DEFAULT_LOGGER_PARAMS = {
-        "path": "./instance/logs/system/debug.log",
+        "path": "./instance/logs/system.log",
         "level": "DEBUG",
         "format": "{time:%Y.%m.%d at %H:%M:%S:%f%z} | {level} | {extra} >> {message}",
         "rotation": "10 MB",
