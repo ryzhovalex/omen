@@ -120,9 +120,7 @@ class Puft(Service):
         return self.native_app.instance_path
 
     @logger.catch
-    def run(
-        self,
-    ) -> None:
+    def run(self) -> None:
         """Run Flask app."""
         self.native_app.run(
             host=self.host, port=self.port, debug=self.flask_in_debug

@@ -1,6 +1,6 @@
 from flask import Flask
 
-from ...models.services.puft_service import PuftService
+from ...models.services.puft import Puft
 
 from .controller import Controller
 from ...constants.enums import TurboActionEnum
@@ -10,17 +10,13 @@ class PuftController(Controller):
     """Processes requests to Puft Service.
 
     Should be inherited by project's AppController."""
-    def __init__(self, service_class: type[PuftService]) -> None:
+    def __init__(self, service_class: type[Puft]) -> None:
         super().__init__(service_class)
         self.service = service_class.instance()
 
-    def get_app(self) -> Flask:
+    def get_native_app(self) -> Flask:
         """Return native app."""
-        return self.service.get_app()
-
-    def get_version(self) -> str:
-        """Return project's version."""
-        return self.service.get_version()
+        return self.service.get_native_app()
 
     def get_instance_path(self) -> str:
         """Return app's instance path."""

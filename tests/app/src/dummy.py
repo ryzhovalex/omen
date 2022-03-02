@@ -6,11 +6,11 @@ class DummyController(Controller):
 
 
 class DummyService(Service):
-    def __init__(self, service_config: dict) -> None:
-        super().__init__(service_config)
+    def __init__(self, config: dict) -> None:
+        super().__init__(config)
 
         self.app = Puft.instance()
-        assert service_config.get("TEST_VAR", 0) == 12502
+        assert config.get("TEST_VAR", 0) == 12502
 
 class DummyView(View):
     def get(self):

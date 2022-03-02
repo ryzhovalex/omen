@@ -98,7 +98,7 @@ def parse_input() -> argparse.Namespace:
     parser.add_argument("-a", dest="host", default="127.0.0.1")
     parser.add_argument("-p", dest="port", default="5000")  # TODO: Add check if given port is integer.
     parser.add_argument("-dir", dest="root_dir", default=os.getcwd())
-    parser.add_argument("-src", dest="source_file", default="main")
+    parser.add_argument("-src", dest="source_file", default="build")
     return parser.parse_args()
 
 

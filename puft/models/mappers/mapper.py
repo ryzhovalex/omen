@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from warepy import logger, Singleton, format_message
-from ..domains.database import native_db
+
+from ..services.database import native_db
 
 
 class Mapper(Singleton):

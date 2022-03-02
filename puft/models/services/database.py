@@ -4,13 +4,14 @@ from typing import Callable
 from warepy import logger, format_message
 from flask import Flask
 import flask_migrate
+from flask_sqlalchemy import SQLAlchemy
 
 from .service import Service
 
 
 # Here database variable are referenced at top layer to be visible for ORMs.
 # It is kinda messy, and in future it may be refactored (nothing more permanent than temporary).
-native_db = flask_migrate.SQLAlchemy()
+native_db = SQLAlchemy()
 
 
 def migration_implemented(func: Callable):
@@ -108,7 +109,7 @@ class Database(Service):
         self.migration = flask_migrate.Migrate(flask_app, self.native_db)
 
     @logger.catch
-    def get_db(self) -> flask_migrate.SQLAlchemy:
+    def get_db(self) -> SQLAlchemy:
         return self.native_db
 
     @logger.catch
