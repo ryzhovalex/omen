@@ -10,5 +10,5 @@ class Service(Singleton):
 
     Layer between Domain Objects (Domains) and UI layer (Controllers and Views).
     Performs various operations e.g. to prepare data (like json formatting) coming to Domains and from them."""
-    def __init__(self, service_config: dict) -> None:
-        self.config = service_config
+    def __init__(self, config: dict) -> None:
+        self.config = config

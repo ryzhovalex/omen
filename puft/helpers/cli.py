@@ -25,25 +25,35 @@ def main() -> int:
     # Create according enum with mode value.
     mode_enum = mode_enum_class(mode)
 
-    # Invoke Puft according to chosen mode.
+    # Create and build assembler.
+    assembler = spawn_assembler(
+        mode_enum=mode_enum,
+        host=args.host,
+        port=int(args.port),
+        root_dir=args.root_dir,
+        source_file=args.source_file,
+    )
+    assembler.build()
+
+    # Call appropriate actions depend on chosen mode.
     if mode_enum_class is CLIRunEnum:
-        invoke_run(
-            mode_enum=mode_enum,
-            host=args.host,
-            port=int(args.port),
-            root_dir=args.root_dir,
-            source_file=args.source_file,
-        )
+        invoke_run(assembler)
+    elif mode_enum_class is CLIDatabaseEnum:
+        invoke_database_change(assembler, mode_enum)
+    elif mode_enum_class is CLIConstructEnum:
+        # TODO: Invoke construct action.
+        pass
 
     return 0
 
 
-def invoke_run(
+def spawn_assembler(
     mode_enum: CLIModeEnumUnion, host: str, port: int, root_dir: str, source_file: str
-) -> None:
-    """Run puft with given mode and run parameters."""
+) -> Assembler:
+    """Create assembler with required parameters and return it."""
     # Load target module spec from location, where cli were called.
-    module_spec = importlib.util.spec_from_file_location(source_file, os.path.join(root_dir, source_file + ".py"))
+    module_location = os.path.join(root_dir, source_file + ".py")
+    module_spec = importlib.util.spec_from_file_location(source_file, module_location)
     if module_spec and module_spec.loader:
         main_module = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(main_module)
@@ -54,7 +64,30 @@ def invoke_run(
             host=host,
             port=port
         )
-        assembler.run()
+        return assembler
+    else:
+        raise NameError(format_message("Could not resolve module spec for location: {}.", module_location))
+
+
+def invoke_run(
+    assembler: Assembler
+) -> None:
+    """"""
+    assembler.get_puft().run()
+
+
+def invoke_database_change(
+    assembler: Assembler,
+    mode_enum: CLIDatabaseEnum
+) -> None:
+    db = assembler.get_database()
+
+    if mode_enum is CLIDatabaseEnum.INIT:
+        db.init_migration()
+    elif mode_enum is CLIDatabaseEnum.MIGRATE:
+        db.migrate_migration()
+    elif mode_enum is CLIDatabaseEnum.UPGRADE:
+        db.upgrade_migration()
 
 
 def parse_input() -> argparse.Namespace:

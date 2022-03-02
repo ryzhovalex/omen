@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Any, List, Literal, Tuple, Callable, Union, TYPE_CHECKING, Type
+from typing import Dict, TYPE_CHECKING
 
 from flask import Flask
 from puft.constants.hints import CLIModeEnumUnion
@@ -9,17 +9,14 @@ from warepy import logger, join_paths, format_message, load_yaml
 
 from .helper import Helper
 from ..models.domains.cells import NamedCell, ConfigCell, InjectionCell, PuftInjectionCell, DatabaseInjectionCell
-from ..models.domains.puft import Puft
-from ..models.domains.database import Database
-from ..models.services.database_service import DatabaseService
-from ..models.services.puft_service import PuftService
+from ..models.services.database import Database
+from ..models.services.puft import Puft
 from ..ui.controllers.database_controller import DatabaseController
 from ..ui.controllers.puft_controller import PuftController
 from ..constants.hints import CLIModeEnumUnion
 
 if TYPE_CHECKING:
     from .build import Build
-    from ..models.domains.puft import Puft
     from ..ui.controllers.puft_controller import PuftController
 
 
@@ -63,8 +60,8 @@ class Assembler(Helper):
         return self.puft
 
     @logger.catch
-    def get_puft_service(self) -> PuftService:
-        return self.puft_service
+    def get_database(self) -> Database:
+        return self.database
 
     @logger.catch
     def _assign_builtin_injection_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
@@ -73,7 +70,7 @@ class Assembler(Helper):
         self.builtin_injection_cells.append(PuftInjectionCell(
             name="puft",
             controller_class=PuftController,
-            service_class=PuftService,
+            service_class=Puft,
             mode_enum=mode_enum,
             host=host,
             port=port
@@ -89,16 +86,16 @@ class Assembler(Helper):
                 self.builtin_injection_cells.append(DatabaseInjectionCell(
                     name="database",
                     controller_class=DatabaseController,
-                    service_class=DatabaseService
+                    service_class=Database
                 ))
                 logger.info("Database layer enabled.")
 
     @staticmethod
     @logger.catch
-    def run(
+    def build(
         configs_by_name: Dict[str, dict] = None, root_path: str = None
     ) -> None:
-        """Initialize Puft app with assembler build context.
+        """Initialize all given to Assembler instances in their dependencies.
         
         Reassign assembler's attributes to given ones and run it's setup operations to assemble app and other project's instances.
 
@@ -125,8 +122,6 @@ class Assembler(Helper):
             assembler.extra_configs_by_name = configs_by_name
 
         assembler.build_all()
-        puft_service = assembler.get_puft_service()
-        puft_service.run()
         
     @logger.catch
     def build_all(self) -> None:
@@ -187,7 +182,7 @@ class Assembler(Helper):
         """Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
         so it's possible only after App initialization.
         The setup_db requires native flask app to work with."""
-        self.database.setup_db(flask_app=self.puft.get_native_app())
+        self.database.setup(flask_app=self.puft.get_native_app())
 
     @logger.catch
     def _run_injection_cells(self) -> None:
@@ -207,7 +202,7 @@ class Assembler(Helper):
                 # Run special initialization with mode, host and port for Puft service.
                 service = cell.service_class(
                     mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
-                    service_config=service_config
+                    config=service_config
                 )
             else:
                 service = cell.service_class(service_config=service_config)
@@ -218,12 +213,10 @@ class Assembler(Helper):
             # Assign builtin cells to according Assembler vars to operate with later.
             if type(cell) is PuftInjectionCell:
                 self.puft_controller = cell.controller_class.instance()
-                self.puft_service = cell.service_class.instance()
-                self.puft = self.puft_service.puft
+                self.puft = cell.service_class.instance()
             elif type(cell) is DatabaseInjectionCell:
                 self.database_controller = cell.controller_class.instance()
-                self.database_service = cell.service_class.instance()
-                self.database = self.database_service.database
+                self.database = cell.service_class.instance()
                 # Perform database postponed setup.
                 self._perform_database_postponed_setup()
 
@@ -235,7 +228,7 @@ class Assembler(Helper):
                 service_config = self._assemble_service_config(name=cell.name) 
 
                 # Initialize cell's service (first) and controller (second) singletons.
-                cell.service_class(service_config=service_config)
+                cell.service_class(config=service_config)
                 cell.controller_class(service_class=cell.service_class)
 
     @logger.catch

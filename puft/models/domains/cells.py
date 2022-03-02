@@ -8,11 +8,9 @@ from warepy import logger, format_message, join_paths, load_yaml
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.
-    from .puft import Puft
-    from .database import Database, native_db
-    from ..services.puft_service import PuftService
+    from ..services.puft import Puft
     from ...ui.controllers.puft_controller import PuftController
-    from ..services.database_service import DatabaseService
+    from ..services.database import Database, native_db
     from ...ui.controllers.database_controller import DatabaseController
     from ...ui.views.view import View
     from ...ui.emitters.emitter import Emitter
@@ -118,7 +116,7 @@ class InjectionCell(NamedCell):
 class PuftInjectionCell(InjectionCell):
     """Injection cell with app itself which is required in any build."""
     controller_class: Type[PuftController]
-    service_class: Type[PuftService]
+    service_class: Type[Puft]
     mode_enum: CLIModeEnumUnion
     host: str
     port: int
@@ -128,7 +126,7 @@ class PuftInjectionCell(InjectionCell):
 class DatabaseInjectionCell(InjectionCell):
     """Injection cell with database itself which can be applied to created application."""
     controller_class: Type[DatabaseController]
-    service_class: Type[DatabaseService]
+    service_class: Type[Database]
 
 
 @dataclass
