@@ -8,22 +8,28 @@ from warepy import format_message, join_paths, logger, match_enum_containing_val
 from .assembler import Assembler
 from ..constants.hints import CLIModeEnumUnion
 from ..constants.lists import (
-    CLI_MODE_ENUM_VALUES, CLI_CONSTRUCT_ENUM_VALUES, CLI_DATABASE_ENUM_VALUES, CLI_RUN_ENUM_VALUES
+    CLI_MODE_ENUM_VALUES, CLI_HELPER_ENUM_VALUES, CLI_DATABASE_ENUM_VALUES, CLI_RUN_ENUM_VALUES
 )
 from ..constants.enums import (
-    CLIRunEnum, CLIDatabaseEnum, CLIConstructEnum
+    CLIRunEnum, CLIDatabaseEnum, CLIHelperEnum
 )
 
 
-def main() -> int:
+def main() -> None:
     args = parse_input()
-    mode = args.mode
 
-    # Find enum where mode assigned.
-    mode_enum_class = match_enum_containing_value(mode, *get_args(CLIModeEnumUnion))
+    if args.mode[0] in CLI_MODE_ENUM_VALUES:
+        mode = args.mode[0] 
 
-    # Create according enum with mode value.
-    mode_enum = mode_enum_class(mode)
+        # Find enum where mode assigned.
+        mode_enum_class = match_enum_containing_value(mode, *get_args(CLIModeEnumUnion))
+
+        # Create according enum with mode value.
+        mode_enum = mode_enum_class(mode)
+    else:
+        # Mode is probably targeted to custom command.
+        mode_enum = CLIHelperEnum.CUSTOM_CMD
+        #!! custom_cmd = 
 
     # Create and build assembler.
     assembler = spawn_assembler(
@@ -35,18 +41,26 @@ def main() -> int:
     )
     assembler.build()
 
-    # Call appropriate actions depend on chosen mode.
-    if mode_enum_class is CLIRunEnum:
-        invoke_run(assembler)
-    elif mode_enum_class is CLIDatabaseEnum:
-        with assembler.get_puft().get_native_app().app_context():
-            invoke_database_change(assembler, mode_enum)
-    elif mode_enum_class is CLIConstructEnum:
-        # TODO: Invoke construct action.
-        pass
+    if type(mode_enum) in get_args(CLIModeEnumUnion):
+        # Call appropriate actions depend on chosen mode.
+        if type(mode_enum) is CLIRunEnum:
+            invoke_run(assembler)
+        elif type(mode_enum) is CLIDatabaseEnum:
+            with assembler.get_puft().get_native_app().app_context():
+                invoke_database_change(assembler, mode_enum)
+        elif type(mode_enum) is CLIHelperEnum:
+            if mode_enum is CLIHelperEnum.SHELL:
+                invoke_shell(assembler)
+            elif mode_enum is CLIHelperEnum.CUSTOM_CMD: 
+                # TODO: Custom cmds after assembler build operations.
+                pass
+            elif mode_enum is CLIHelperEnum.DEPLOY:
+                # TODO: Implement deploy operation.
+                pass
 
-    return 0
-
+def invoke_shell(assembler: Assembler):
+    """Invoke Puft interactive shell."""
+    assembler.get_puft().run_shell()
 
 def spawn_assembler(
     mode_enum: CLIModeEnumUnion, host: str, port: int, root_dir: str, source_file: str
@@ -95,7 +109,7 @@ def parse_input() -> argparse.Namespace:
     """Parse cli input and return argparse.Namespace object."""
     # TODO: Add help descriptions to args.
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=CLI_MODE_ENUM_VALUES)
+    parser.add_argument("mode", nargs="*")
     parser.add_argument("-a", dest="host", default="127.0.0.1")
     parser.add_argument("-p", dest="port", default="5000")  # TODO: Add check if given port is integer.
     parser.add_argument("-dir", dest="root_dir", default=os.getcwd())

@@ -15,8 +15,10 @@ class CLIRunEnum(Enum):
     TEST = "test"
 
 
-class CLIConstructEnum(Enum):
+class CLIHelperEnum(Enum):
+    SHELL = "shell"
     DEPLOY = "deploy"
+    CUSTOM_CMD = "custom_cmd"
 
 
 class HTTPMethodEnum(Enum):

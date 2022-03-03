@@ -1,5 +1,5 @@
 from .enums import (
-    CLIDatabaseEnum, CLIRunEnum, CLIConstructEnum, HTTPMethodEnum, TurboActionEnum
+    CLIDatabaseEnum, CLIRunEnum, CLIHelperEnum, HTTPMethodEnum, TurboActionEnum
 )
 
-CLIModeEnumUnion = CLIDatabaseEnum | CLIRunEnum | CLIConstructEnum
+CLIModeEnumUnion = CLIDatabaseEnum | CLIRunEnum | CLIHelperEnum

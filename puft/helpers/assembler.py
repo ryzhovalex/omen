@@ -48,6 +48,8 @@ class Assembler(Helper):
         self.view_cells = build.view_cells
         self.emitter_cells = build.emitter_cells
         self.mode_enum = mode_enum
+        self.shell_processors = build.shell_processors
+        self.cli_cmds = build.cli_cmds
 
         # Set environ for given mode.
         os.environ["PUFT_MODE"] = self.mode_enum.value
@@ -134,6 +136,8 @@ class Assembler(Helper):
         self._build_views()
         self._build_mappers()
         self._build_emitters()
+        self._build_shell_processors()
+        self._build_cli_cmds()
 
         # Call postponed build from created App.
         try:
@@ -174,8 +178,8 @@ class Assembler(Helper):
 
     @logger.catch
     def _build_injection(self) -> None:
-        """Setup all injection instances: Controllers, Services and Domain Objects in 1:1:1 relation."""
-        self._run_injection_cells()
+        self._run_builtin_injection_cells()
+        self._run_custom_injection_cells()
 
     @logger.catch
     def _perform_database_postponed_setup(self) -> None:
@@ -183,13 +187,6 @@ class Assembler(Helper):
         so it's possible only after App initialization.
         The setup_db requires native flask app to work with."""
         self.database.setup(flask_app=self.puft.get_native_app())
-
-    @logger.catch
-    def _run_injection_cells(self) -> None:
-        """Unpack builtin and custom injection cells with loop 
-        and init Service and then Controller, by inject Service."""
-        self._run_builtin_injection_cells()
-        self._run_custom_injection_cells()
     
     @logger.catch
     def _run_builtin_injection_cells(self) -> None:
@@ -281,3 +278,13 @@ class Assembler(Helper):
         if self.emitter_cells:
             for cell in self.emitter_cells:
                 cell.emitter_class(app_controller=self.puft_controller)
+
+    @logger.catch
+    def _build_shell_processors(self) -> None:
+        if self.shell_processors:
+            self.puft.register_shell_processor(*self.shell_processors)
+
+    @logger.catch
+    def _build_cli_cmds(self) -> None:
+        if self.cli_cmds:
+            self.puft.register_cli_cmd(*self.cli_cmds)

@@ -1,4 +1,6 @@
 import os
+import sys
+import code
 import secrets
 from typing import Callable
 
@@ -8,6 +10,7 @@ from flask_session import Session
 from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
+from flask import cli as flask_cli
 from warepy import logger
 
 from .service import Service
@@ -28,15 +31,12 @@ class Puft(Service):
         mode_enum: CLIModeEnumUnion,
         host: str,
         port: int,
-        cli_cmds: list[Callable] = None,
-        shell_processors: list[Callable] = None,
         ctx_processor_enabled: bool = False,
     ) -> None:
         super().__init__(config)
         self.mode_enum = mode_enum
         self.host = host
         self.port = port
-        self.flask_in_debug = self._choose_debug_flag(mode_enum)
         self.native_app = self._spawn_native_app(config)
         self.native_app.config.from_mapping(config)
         self._enable_cors(config)
@@ -46,10 +46,6 @@ class Puft(Service):
         # Initialize turbo.js.
         # src: https://blog.miguelgrinberg.com/post/dynamically-update-your-flask-web-pages-using-turbo-flask
         self.turbo = Turbo(self.native_app)
-        if cli_cmds:
-            self._register_cli_cmds(cli_cmds)
-        if shell_processors:
-            self._register_shell_processors(shell_processors)
         self._init_app_daemons()
         # Initialize flask-session after all settings are applied.
         self.flask_session = Session(self.native_app)
@@ -92,16 +88,19 @@ class Puft(Service):
         if is_cors_enabled:
             CORS(self.native_app)
 
-    def _choose_debug_flag(self, mode_enum: CLIModeEnumUnion) -> bool:
-        if mode_enum.value in ("dev", "test"): 
-            return True
-        else:
-            return False
-
     def _spawn_native_app(self, config: dict) -> Flask:
         self.instance_path = self.config.get("INSTANCE_PATH", None)
         self.template_folder = self.config.get("TEMPLATE_FOLDER", None) 
         self.static_folder = self.config.get("STATIC_FOLDER", None)
+
+        # Set Flask environs according to given mode.
+        # Setting exactly through environs instead of config recommended by Flask creators.
+        # https://flask.palletsprojects.com/en/2.0.x/config/#:~:text=Using%20the%20environment,a%20previous%20value.
+        if self.mode_enum not in [CLIRunEnum.DEV, CLIRunEnum.TEST]:
+            os.environ["FLASK_ENV"] = "production"
+        else:
+            os.environ["FLASK_ENV"] = "development"
+
         return Flask(
             __name__, 
             instance_path=self.instance_path, 
@@ -123,7 +122,7 @@ class Puft(Service):
     def run(self) -> None:
         """Run Flask app."""
         self.native_app.run(
-            host=self.host, port=self.port, debug=self.flask_in_debug
+            host=self.host, port=self.port
         )
 
     @logger.catch
@@ -163,16 +162,63 @@ class Puft(Service):
         raise NotImplementedError("Method `postbuild` hasn't been reimplemented.")
 
     @logger.catch
-    def _register_cli_cmds(self, cmds: list[Callable]) -> None:
+    def register_cli_cmd(self, *cmds: Callable) -> None:
         """Register cli cmds for the app."""
         for cmd in cmds:
             self.native_app.cli.add_command(cmd)
 
     @logger.catch
-    def _register_shell_processors(self, shell_processors: list[Callable]) -> None:
+    def register_shell_processor(self, *shell_processors: Callable) -> None:
         """Register shell processors for the app."""
         for processor in shell_processors:
             self.native_app.shell_context_processor(processor)
+
+    @logger.catch
+    def run_shell(self) -> None:
+        """Adapted version of ``Flask.cli.shell_command`` by Pallets.
+
+        Run an interactive Python shell in the context of a given
+        Flask application.  The application will populate the default
+        namespace of this shell according to its configuration.
+
+        This is useful for executing small snippets of management code
+        without having to manually configure the application.
+        """
+        banner = (
+            f"Python {sys.version} on {sys.platform}\n"
+            f"App: {self.native_app.import_name} [{self.native_app.env}]\n"
+            f"Instance: {self.native_app.instance_path}"
+        )
+        ctx: dict = {}
+
+        # Support the regular Python interpreter startup script if someone
+        # is using it.
+        startup = os.environ.get("PYTHONSTARTUP")
+        if startup and os.path.isfile(startup):
+            with open(startup) as f:
+                eval(compile(f.read(), startup, "exec"), ctx)
+
+        ctx.update(self.native_app.make_shell_context())
+
+        # Site, customize, or startup script can set a hook to call when
+        # entering interactive mode. The default one sets up readline with
+        # tab and history completion.
+        interactive_hook = getattr(sys, "__interactivehook__", None)
+
+        if interactive_hook is not None:
+            try:
+                import readline
+                from rlcompleter import Completer
+            except ImportError:
+                pass
+            else:
+                # rlcompleter uses __main__.__dict__ by default, which is
+                # flask.__main__. Use the shell context instead.
+                readline.set_completer(Completer(ctx).complete)
+
+            interactive_hook()
+
+        code.interact(banner=banner, local=ctx)
 
     @logger.catch
     def _init_app_daemons(self) -> None:

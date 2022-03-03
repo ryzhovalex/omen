@@ -1,4 +1,5 @@
 import os
+from typing import Callable
 
 from ..models.domains.cells import (
     ConfigCell, InjectionCell, MapperCell, ViewCell, EmitterCell
@@ -14,7 +15,10 @@ class Build:
         injection_cells: list[InjectionCell] = None, 
         mapper_cells: list[MapperCell] = None,
         view_cells: list[ViewCell] = None,
-        emitter_cells: list[EmitterCell] = None
+        emitter_cells: list[EmitterCell] = None,
+        shell_processors: list[Callable] = None,
+        cli_cmds: list[Callable] = None
+        
     ) -> None:
         # Use native root module path.
         # Because this class imported from root directory, root_path below will be assigned from there during class's initialization.
@@ -26,3 +30,5 @@ class Build:
         self.mapper_cells = mapper_cells
         self.view_cells = view_cells
         self.emitter_cells = emitter_cells
+        self.shell_processors = shell_processors
+        self.cli_cmds = cli_cmds
