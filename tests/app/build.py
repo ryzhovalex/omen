@@ -1,6 +1,6 @@
 from puft import Build, InjectionCell, ViewCell, ConfigCell, MapperCell
 
-from src.dummy import DummyController, DummyService, DummyView, DummyMapper
+from src.dummy import DummyController, DummyService, DummyView, DummyMapper, dummy_cli, dummy_processor
 from src.orm import User
 
 
@@ -39,6 +39,8 @@ build = Build(
             mapper_class=DummyMapper,
             model=User
         )
-    ]
+    ],
+    shell_processors=[dummy_processor],
+    cli_cmds=[dummy_cli]
 )
     
