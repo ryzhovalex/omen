@@ -277,7 +277,7 @@ class Assembler(Helper):
         """Build emitters from given cells and inject Puft application controllers to each."""
         if self.emitter_cells:
             for cell in self.emitter_cells:
-                cell.emitter_class(app_controller=self.puft_controller)
+                cell.emitter_class(puft_controller=self.puft_controller)
 
     @logger.catch
     def _build_shell_processors(self) -> None:
