@@ -11,6 +11,7 @@ class Build:
     Should be inherited by build class in root folder."""
     def __init__(
         self,
+        version: str = None,
         config_cells: list[ConfigCell] = None,
         injection_cells: list[InjectionCell] = None, 
         mapper_cells: list[MapperCell] = None,
@@ -25,6 +26,7 @@ class Build:
         # NOTE: This path can be overrided by assembler in order of getting arguments on it's own initialization.
         self.root_path = os.getcwd()
 
+        self.version = version
         self.config_cells = config_cells
         self.injection_cells = injection_cells
         self.mapper_cells = mapper_cells
