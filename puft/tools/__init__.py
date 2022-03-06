@@ -70,7 +70,7 @@ def make_fail_response(
 
 
 @logger.catch
-def do_or_flash(func: Callable, message: str = None, *args, **kwargs) -> Any:
+def do_or_flash(func: Callable, message: str | None = None, *args, **kwargs) -> Any:
     """Call given function with given args and kwargs and flask.flash message if the function raised an error. Return function output if there was no exception.
     
     Args:

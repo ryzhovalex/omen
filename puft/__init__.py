@@ -15,9 +15,6 @@ from .models.domains.cells import (Cell, ViewCell, ConfigCell, InjectionCell, Ma
 from .constants.enums import (
     HTTPMethodEnum, TurboActionEnum
 )
-from .constants.lists import (
-    HTTP_METHOD_ENUM_VALUES, TURBO_ACTION_ENUM_VALUES
-)
 from .tools import (
     make_fail_response,
 )

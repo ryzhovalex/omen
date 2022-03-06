@@ -11,14 +11,14 @@ class Build:
     Should be inherited by build class in root folder."""
     def __init__(
         self,
-        version: str = None,
-        config_cells: list[ConfigCell] = None,
-        injection_cells: list[InjectionCell] = None, 
-        mapper_cells: list[MapperCell] = None,
-        view_cells: list[ViewCell] = None,
-        emitter_cells: list[EmitterCell] = None,
-        shell_processors: list[Callable] = None,
-        cli_cmds: list[Callable] = None
+        version: str = "",
+        config_cells: list[ConfigCell] = [],
+        injection_cells: list[InjectionCell] = [], 
+        mapper_cells: list[MapperCell] = [],
+        view_cells: list[ViewCell] = [],
+        emitter_cells: list[EmitterCell] = [],
+        shell_processors: list[Callable] = [],
+        cli_cmds: list[Callable] = []
         
     ) -> None:
         # Use native root module path.

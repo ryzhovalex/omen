@@ -11,14 +11,13 @@ from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 from flask import cli as flask_cli
-from warepy import logger
+from warepy import logger, get_enum_values
 
 from .service import Service
-from ...constants.enums import TurboActionEnum
+from ...constants.enums import HTTPMethodEnum, TurboActionEnum
 from ...constants.hints import CLIModeEnumUnion
 from ..domains.cells import ViewCell
 from ...constants.enums import CLIRunEnum, TurboActionEnum
-from ...constants.lists import HTTP_METHOD_ENUM_VALUES
 
 
 class Puft(Service):
@@ -134,7 +133,7 @@ class Puft(Service):
         # Check if view has kwargs to avoid sending empty dict.
         # Use cell's name as view's endpoint.
         view = view_cell.view_class.as_view(view_cell.name)
-        self.native_app.add_url_rule(view_cell.route, view_func=view, methods=HTTP_METHOD_ENUM_VALUES)
+        self.native_app.add_url_rule(view_cell.route, view_func=view, methods=get_enum_values(HTTPMethodEnum))
 
     @logger.catch
     def push_turbo(self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}) -> None:

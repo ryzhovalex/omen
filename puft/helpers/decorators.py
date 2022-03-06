@@ -5,7 +5,7 @@ if you want to save your wrapped function's docstring (occurred in VsCode's Pyla
 """
 from os import error
 from functools import wraps
-from typing import Any, List, Dict, Union, Callable
+from typing import Callable
 
 from warepy import logger, format_message
 from flask import session, redirect, url_for
@@ -13,8 +13,8 @@ from flask import session, redirect, url_for
 
 def login_required(
     endpoint_if_not_logged: str, 
-    allowed_types: List[str] = None, 
-    endpoint_if_not_allowed: str = None
+    allowed_types: list[str] | None = None, 
+    endpoint_if_not_allowed: str | None = None
 ):
     """Check if user logged in before giving access to wrapped view.
     

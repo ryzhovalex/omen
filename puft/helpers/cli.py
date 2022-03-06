@@ -3,13 +3,12 @@ import argparse
 import importlib.util
 from typing import get_args
 
-from warepy import format_message, join_paths, logger, match_enum_containing_value
+from warepy import (
+    format_message, join_paths, logger, match_enum_containing_value, get_enum_values, get_union_enum_values
+)
 
 from .assembler import Assembler
 from ..constants.hints import CLIModeEnumUnion
-from ..constants.lists import (
-    CLI_MODE_ENUM_VALUES, CLI_HELPER_ENUM_VALUES, CLI_DATABASE_ENUM_VALUES, CLI_RUN_ENUM_VALUES
-)
 from ..constants.enums import (
     CLIRunEnum, CLIDatabaseEnum, CLIHelperEnum
 )
@@ -18,7 +17,7 @@ from ..constants.enums import (
 def main() -> None:
     args = parse_input()
 
-    if args.mode[0] in CLI_MODE_ENUM_VALUES:
+    if args.mode[0] in get_union_enum_values(CLIModeEnumUnion):
         mode = args.mode[0] 
 
         # Find enum where mode assigned.

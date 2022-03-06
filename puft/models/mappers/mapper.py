@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from warepy import logger, Singleton, format_message
+from flask_sqlalchemy import SQLAlchemy
 
 from ..services.database import native_db
 
@@ -14,13 +15,13 @@ class Mapper(Singleton):
 
     @classmethod
     @logger.catch
-    def set_orm_model(cls, model: native_db.Model) -> None:
+    def set_orm_model(cls, model: SQLAlchemy.Model) -> None:
         """Set mapper's orm model attribute to work with."""
         cls.model = model
 
     @classmethod
     @logger.catch
-    def filter_first(cls, **kwargs) -> native_db.Model:
+    def filter_first(cls, **kwargs) -> SQLAlchemy.Model:
         """Filter first ORM mapped model by given kwargs and return it.
         
         Raise:
@@ -34,7 +35,7 @@ class Mapper(Singleton):
 
     @classmethod
     @logger.catch
-    def filter_all(cls, order_by: str = None, descending_order: bool = False, **kwargs) -> native_db.Model:
+    def filter_all(cls, order_by: str | None = None, descending_order: bool = False, **kwargs) -> SQLAlchemy.Model:
         """Filter all ORM mapped models by given kwargs and return them.
 
         It's possible to send argument `order_by` to order resulting instance. It should be string referencing to target object attribute.

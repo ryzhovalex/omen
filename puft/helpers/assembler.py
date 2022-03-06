@@ -95,7 +95,7 @@ class Assembler(Helper):
     @staticmethod
     @logger.catch
     def build(
-        configs_by_name: Dict[str, dict] = None, root_path: str = None
+        configs_by_name: Dict[str, dict] | None = None, root_path: str | None = None
     ) -> None:
         """Initialize all given to Assembler instances in their dependencies.
         
@@ -165,7 +165,7 @@ class Assembler(Helper):
             self._init_logger_class(config=logger_config)
 
     @logger.catch
-    def _init_logger_class(self, config: dict = None) -> None:
+    def _init_logger_class(self, config: dict | None = None) -> None:
         """Build logger with given config.
         
         If config is None, build with default parameters."""

@@ -41,6 +41,5 @@ build = Build(
         )
     ],
     shell_processors=[dummy_processor],
-    cli_cmds=[dummy_cli]
 )
     
