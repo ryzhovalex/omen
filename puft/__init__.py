@@ -23,4 +23,4 @@ from .helpers.decorators import (
 )
 
 
-__version__ = "0.3.0dev10"
+__version__ = "0.3.1"
