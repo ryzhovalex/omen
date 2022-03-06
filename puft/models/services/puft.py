@@ -57,7 +57,10 @@ class Puft(Service):
             if self.native_app.config.get("SESSION_TYPE", None):
                 if self.native_app.config["SESSION_TYPE"] == "redis":
                     logger.info("Flush redis db because of non-production run.")
-                    self.native_app.session_interface.redis.flushdb()
+                    # TODO: Find way why PyRight gives an error that session_interface.redis didn't found, 
+                    # but actually redis dependencies are OK. Right now i prefer to ignore this problem 
+                    # instead of inspect session interface sources.
+                    self.native_app.session_interface.redis.flushdb()  # type: ignore
             else:
                 # Apply default null interface, basically do nothing.
                 pass
@@ -164,8 +167,10 @@ class Puft(Service):
     @logger.catch
     def register_cli_cmd(self, *cmds: Callable) -> None:
         """Register cli cmds for the app."""
-        for cmd in cmds:
-            self.native_app.cli.add_command(cmd)
+        # TODO: Implement.
+        raise NotImplementedError("CLI cmds support in development.")
+        # for cmd in cmds:
+        #     self.native_app.cli.add_command(cmd)
 
     @logger.catch
     def register_shell_processor(self, *shell_processors: Callable) -> None:
