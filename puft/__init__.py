@@ -21,3 +21,6 @@ from .tools import (
 from .helpers.decorators import (
     login_required,
 )
+
+
+__version__ = "0.3.0dev10"

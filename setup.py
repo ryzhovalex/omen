@@ -1,6 +1,7 @@
 import pathlib
 from setuptools import setup, find_packages
 
+from .puft import __version__ as version
 
 here = pathlib.Path(__file__).parent.resolve()
 
@@ -9,7 +10,7 @@ with open("requirements.txt", "r") as file:
 
 setup(
     name="puft",
-    version="0.3.0.dev10",
+    version=version,
     packages=find_packages(),
     include_package_data=True,
     license="MIT",
