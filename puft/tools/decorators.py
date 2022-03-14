@@ -1,9 +1,7 @@
-"""Module with various decorators.
-
-NOTE: It's extremely important to not set return typehint in decorators with wraps,
-if you want to save your wrapped function's docstring (occurred in VsCode's Pylance Python Language Server).
-"""
-from os import error
+# NOTE: It's extremely important to not set return typehint in decorators with wraps,
+# if you want to save your wrapped function's docstring (occurred in VsCode's Pylance Python Language Server).
+# BUT, you should set return type Callable in decorators with arguments, or interpreters like PyRights will bind
+# decorated functions to Unknown return type.
 from functools import wraps
 from typing import Callable
 
@@ -15,7 +13,7 @@ def login_required(
     endpoint_if_not_logged: str, 
     allowed_types: list[str] | None = None, 
     endpoint_if_not_allowed: str | None = None
-):
+) -> Callable:
     """Check if user logged in before giving access to wrapped view.
     
     If user is not logged in, redirect him to the login page.

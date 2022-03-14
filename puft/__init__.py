@@ -18,7 +18,7 @@ from .constants.enums import (
 from .tools import (
     make_fail_response,
 )
-from .helpers.decorators import (
+from .tools.decorators import (
     login_required,
 )
 
