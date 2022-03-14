@@ -23,5 +23,12 @@ class PuftController(Controller):
         return self.service.get_instance_path()
 
     def push_turbo(self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}) -> None:
-        """Update turbo element at given name with given data."""
+        """Push turbo action to target with rendered from path template contextualized with given data.
+        
+        Args:
+            action: Turbo-Flask action to perform.
+            target: Id of HTML element to push action to.
+            template_path: Path to template to render.
+            ctx_data (optional): Context data to push to rendered template. Defaults to empty dict.
+        """
         self.service.push_turbo(action=action, target=target, template_path=template_path, ctx_data=ctx_data)
