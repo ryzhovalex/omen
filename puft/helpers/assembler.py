@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 from typing import Dict, TYPE_CHECKING
 
-from flask import Flask
 from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, join_paths, format_message, load_yaml
 
@@ -18,6 +17,11 @@ from ..constants.hints import CLIModeEnumUnion
 if TYPE_CHECKING:
     from .build import Build
     from ..ui.controllers.puft_controller import PuftController
+
+
+def get_root_path() -> str:
+    """Return app project root path."""
+    return Assembler.instance().get_root_path()
 
 
 class Assembler(Helper):
@@ -64,6 +68,10 @@ class Assembler(Helper):
     @logger.catch
     def get_database(self) -> Database:
         return self.database
+
+    @logger.catch
+    def get_root_path(self) -> str:
+        return self.root_path
 
     @logger.catch
     def _assign_builtin_injection_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
@@ -128,9 +136,6 @@ class Assembler(Helper):
     @logger.catch
     def build_all(self) -> None:
         """Send commands to build all given instances."""
-        # Set root path environ for various usage within project.
-        os.environ["PUFT_ROOT_PATH"] = self.root_path
-
         self._build_logger()
         self._build_injection()
         self._build_views()

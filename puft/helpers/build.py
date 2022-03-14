@@ -22,7 +22,8 @@ class Build:
         
     ) -> None:
         # Use native root module path.
-        # Because this class imported from root directory, root_path below will be assigned from there during class's initialization.
+        # Because this class imported from root directory, root_path below will be assigned from there during class's
+        # initialization.
         # NOTE: This path can be overrided by assembler in order of getting arguments on it's own initialization.
         self.root_path = os.getcwd()
 

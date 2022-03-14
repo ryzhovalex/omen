@@ -14,6 +14,7 @@ def generate_redirect_response(url: Any, status_code: int = 302) -> Response:
     response = redirect(url, code=status_code)
     return response
 
+
 @logger.catch
 def generate_success_response(data: Any, is_json_enabled: bool, ok_status_code: int = 200, no_content_status_code: int = 204) -> Response:
     """Generate success response with given data and return this response.
