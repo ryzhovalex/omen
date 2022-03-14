@@ -3,7 +3,7 @@ from .ui.views.view import View
 from .helpers.helper import Helper
 from .helpers.build import Build
 from .ui.emitters.emitter import Emitter
-from .helpers.assembler import Assembler, get_root_path
+from .helpers.assembler import Assembler, get_root_path, get_mode
 from .models.mappers.mapper import Mapper
 from .models.services.service import Service
 from .ui.controllers.controller import Controller

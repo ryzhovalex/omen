@@ -19,6 +19,10 @@ if TYPE_CHECKING:
     from ..ui.controllers.puft_controller import PuftController
 
 
+def get_mode() -> str:
+    """Return app mode string representation."""
+    return Assembler.instance().get_mode_enum().value
+
 def get_root_path() -> str:
     """Return app project root path."""
     return Assembler.instance().get_root_path()
@@ -72,6 +76,10 @@ class Assembler(Helper):
     @logger.catch
     def get_root_path(self) -> str:
         return self.root_path
+
+    @logger.catch
+    def get_mode_enum(self) -> CLIModeEnumUnion:
+        return self.mode_enum
 
     @logger.catch
     def _assign_builtin_injection_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
