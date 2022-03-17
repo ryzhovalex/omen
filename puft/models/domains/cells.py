@@ -35,7 +35,7 @@ class NamedCell(Cell):
     name: str
 
     @staticmethod
-    def find_by_name(cells: Sequence[AnyNamedCell], name: str) -> AnyNamedCell:
+    def find_by_name(name: str, cells: Sequence[AnyNamedCell]) -> AnyNamedCell:
         """Traverse through given list of cells and return first one with specified name.
         
         raise:

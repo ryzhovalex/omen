@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING, Any
 
 from puft.constants.hints import CLIModeEnumUnion
 from warepy import logger, join_paths, format_message, load_yaml
@@ -84,20 +84,19 @@ class Assembler(Helper):
     @logger.catch
     def _assign_builtin_injection_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting injection cells if configuration file for its service exists."""
-        self.builtin_injection_cells = []
-        self.builtin_injection_cells.append(PuftInjectionCell(
+        self.builtin_injection_cells = [PuftInjectionCell(
             name="puft",
             controller_class=PuftController,
             service_class=Puft,
             mode_enum=mode_enum,
             host=host,
             port=port
-        ))
+        )]  # type: list[Any]
 
         # Enable only modules with specified configs.
         if self.config_cells:
             try:
-                NamedCell.find_by_name(self.config_cells, "database")
+                NamedCell.find_by_name("database", self.config_cells)
             except ValueError:
                 pass
             else:
@@ -164,7 +163,7 @@ class Assembler(Helper):
         # Try to find logger config cell and build logger class from it.
         if self.config_cells:
             try:
-                logger_config_cell = NamedCell.find_by_name(self.config_cells, "logger")
+                logger_config_cell = NamedCell.find_by_name("logger", self.config_cells)
             except ValueError:
                 # Logger config is not attached.
                 logger_config = None
@@ -234,8 +233,12 @@ class Assembler(Helper):
     def _run_custom_injection_cells(self) -> None:
         if self.injection_cells:
             for cell in self.injection_cells:
-                # Check for domain's config in given cells by comparing names and apply to service config if it exists.
-                service_config = self._assemble_service_config(name=cell.name) 
+                if self.config_cells:
+                    # Check for domain's config in given cells by comparing names and apply to service config if it 
+                    # exists.
+                    service_config = self._assemble_service_config(name=cell.name) 
+                else:
+                    service_config = {}
 
                 # Initialize cell's service (first) and controller (second) singletons.
                 cell.service_class(config=service_config)
@@ -245,22 +248,26 @@ class Assembler(Helper):
     def _assemble_service_config(self, name: str, is_errors_enabled: bool = False) -> dict:
         """Check for service's config in config cells by comparing its given name and return it as dict.
 
-        If appropriate config hasn't been found, raise ValueError if `is_errors_enabled = True` or return empty dict otherwise."""
-        if self.config_cells:
-            config_cell_with_target_name = NamedCell.find_by_name(self.config_cells, name)
-            if config_cell_with_target_name:
-                config = ConfigCell.parse(
-                    root_path=self.root_path, 
-                    config_cell=config_cell_with_target_name,
-                    update_with=self.extra_configs_by_name.get(name, None)
-                )
-                return config
-
-        message = format_message("Appropriate config for given name {} hasn't been found.", name)
-        if not is_errors_enabled:
-            return {}
+        If appropriate config hasn't been found, raise ValueError if `is_errors_enabled = True` or return empty dict
+        otherwise.
+        """
+        try:
+            config_cell_with_target_name = NamedCell.find_by_name(name, self.config_cells)
+        except ValueError:  # i.e config not found.
+            # If config not found and errors enabled, raise error.
+            if is_errors_enabled:
+                message = format_message("Appropriate config for given name {} hasn't been found.", name)
+                raise ValueError(message)
+            else:
+                config = {}
         else:
-            raise ValueError(message)
+            config = ConfigCell.parse(
+                root_path=self.root_path, 
+                config_cell=config_cell_with_target_name,
+                update_with=self.extra_configs_by_name.get(name, None)
+            )
+
+        return config
 
     @logger.catch
     def _fetch_yaml_project_version(self) -> str:
