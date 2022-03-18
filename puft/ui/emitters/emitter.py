@@ -1,5 +1,5 @@
 from ...constants.enums import TurboActionEnum
-from warepy import logger, Singleton
+from warepy import log, Singleton
 
 from ..controllers.puft_controller import PuftController
 

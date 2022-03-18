@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, Type, Sequence, TypeVar
 
-from warepy import logger, format_message, join_paths, load_yaml
+from warepy import log, format_message, join_paths, load_yaml
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.

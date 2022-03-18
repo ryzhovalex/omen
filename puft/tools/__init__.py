@@ -5,17 +5,17 @@ from typing import Any, List, Dict, Literal, Callable, Union, Tuple, Type, Seque
 
 from werkzeug.wrappers.response import Response
 from flask import make_response, redirect, flash, render_template
-from warepy import logger, join_paths, format_message, load_yaml
+from warepy import log, join_paths, format_message, load_yaml
 
 
-@logger.catch
+@log.catch
 def generate_redirect_response(url: Any, status_code: int = 302) -> Response:
     """Generate redirect response with given url and return this response."""
     response = redirect(url, code=status_code)
     return response
 
 
-@logger.catch
+@log.catch
 def generate_success_response(data: Any, is_json_enabled: bool, ok_status_code: int = 200, no_content_status_code: int = 204) -> Response:
     """Generate success response with given data and return this response.
     
@@ -37,7 +37,7 @@ def generate_success_response(data: Any, is_json_enabled: bool, ok_status_code: 
     return response
 
 
-@logger.catch
+@log.catch
 def generate_error_response(error: Exception, status_code: int = 400) -> Response:
     """Generate error response with given error and return this response."""
     data = {"error": repr(error)}
@@ -47,7 +47,7 @@ def generate_error_response(error: Exception, status_code: int = 400) -> Respons
     return response
 
 
-@logger.catch
+@log.catch
 def make_fail_response(
     template_path: str, template_ctx: dict = {}, flash_message: str = "Error", flash_category: Literal["message", "error", "info", "warning"] = "error"
 ) -> Response:
@@ -70,7 +70,7 @@ def make_fail_response(
     return response
 
 
-@logger.catch
+@log.catch
 def do_or_flash(func: Callable, message: str | None = None, *args, **kwargs) -> Any:
     """Call given function with given args and kwargs and flask.flash message if the function raised an error. Return function output if there was no exception.
     

@@ -8,10 +8,10 @@ from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
 from puft.constants.hints import CLIModeEnumUnion
-from warepy import logger, format_message, get_or_error
+from warepy import log, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 from flask import cli as flask_cli
-from warepy import logger, get_enum_values
+from warepy import log, get_enum_values
 
 from .service import Service
 from ...constants.enums import HTTPMethodEnum, TurboActionEnum
@@ -55,7 +55,7 @@ class Puft(Service):
         if self.mode_enum is not CLIRunEnum.PROD: 
             if self.native_app.config.get("SESSION_TYPE", None):
                 if self.native_app.config["SESSION_TYPE"] == "redis":
-                    logger.info("Flush redis db because of non-production run.")
+                    log.info("Flush redis db because of non-production run.")
                     # TODO: Find way why PyRight gives an error that session_interface.redis didn't found, 
                     # but actually redis dependencies are OK. Right now i prefer to ignore this problem 
                     # instead of inspect session interface sources.
@@ -110,24 +110,24 @@ class Puft(Service):
             static_folder=self.static_folder
         )
 
-    @logger.catch
+    @log.catch
     def get_native_app(self) -> Flask:
         """Return native app."""
         return self.native_app
 
-    @logger.catch
+    @log.catch
     def get_instance_path(self) -> str:
         """Return app's instance path."""
         return self.native_app.instance_path
 
-    @logger.catch
+    @log.catch
     def run(self) -> None:
         """Run Flask app."""
         self.native_app.run(
             host=self.host, port=self.port
         )
 
-    @logger.catch
+    @log.catch
     def register_view(self, view_cell: ViewCell) -> None:
         """Register given view cell for the app."""
         # Check if view has kwargs to avoid sending empty dict.
@@ -135,7 +135,7 @@ class Puft(Service):
         view = view_cell.view_class.as_view(view_cell.name)
         self.native_app.add_url_rule(view_cell.route, view_func=view, methods=get_enum_values(HTTPMethodEnum))
 
-    @logger.catch
+    @log.catch
     def push_turbo(self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}) -> None:
         """Push turbo action to target with rendered from path template contextualized with given data.
         
@@ -163,7 +163,7 @@ class Puft(Service):
             NotImplementedError: If not re-implemented in children."""
         raise NotImplementedError("Method `postbuild` hasn't been reimplemented.")
 
-    @logger.catch
+    @log.catch
     def register_cli_cmd(self, *cmds: Callable) -> None:
         """Register cli cmds for the app."""
         # TODO: Implement.
@@ -171,13 +171,13 @@ class Puft(Service):
         # for cmd in cmds:
         #     self.native_app.cli.add_command(cmd)
 
-    @logger.catch
+    @log.catch
     def register_shell_processor(self, *shell_processors: Callable) -> None:
         """Register shell processors for the app."""
         for processor in shell_processors:
             self.native_app.shell_context_processor(processor)
 
-    @logger.catch
+    @log.catch
     def run_shell(self) -> None:
         """Adapted version of ``Flask.cli.shell_command`` by Pallets.
 
@@ -224,13 +224,13 @@ class Puft(Service):
 
         code.interact(banner=banner, local=ctx)
 
-    @logger.catch
+    @log.catch
     def _init_app_daemons(self) -> None:
         """Binds various background processes to the app."""
         flask_app = self.get_native_app()
 
         if self.ctx_processor_enabled:
-            @logger.catch
+            @log.catch
             @flask_app.context_processor
             def invoke_ctx_processor_operations():
                 """Return continiously self live context data to app template processor.
@@ -239,12 +239,12 @@ class Puft(Service):
                 and thus call flask context processor which in turn calls this return to template context."""
                 return self.ctx_data
 
-        @logger.catch
+        @log.catch
         @flask_app.before_request
         def invoke_each_request_operations():
             self._invoke_each_request_operations()
 
-        @logger.catch
+        @log.catch
         @flask_app.before_first_request
         def invoke_first_request_operations():
             self._invoke_first_request_operations()

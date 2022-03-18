@@ -4,7 +4,7 @@ import os
 from typing import Dict, TYPE_CHECKING, Any
 
 from puft.constants.hints import CLIModeEnumUnion
-from warepy import logger, join_paths, format_message, load_yaml
+from warepy import log, join_paths, format_message, load_yaml
 
 from .helper import Helper
 from ..models.domains.cells import NamedCell, ConfigCell, InjectionCell, PuftInjectionCell, DatabaseInjectionCell
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 def get_mode() -> str:
     """Return app mode string representation."""
     return Assembler.instance().get_mode_enum().value
+    
 
 def get_root_path() -> str:
     """Return app project root path."""
@@ -32,7 +33,7 @@ class Assembler(Helper):
     """Assembles all project instances from given `Builder` type's class and initializes it.
     
     Acts automatically and shouldn't be inherited directly by project in any form."""
-    DEFAULT_LOGGER_PARAMS = {
+    DEFAULT_log_PARAMS = {
         "path": "./instance/logs/system.log",
         "level": "DEBUG",
         "format": "{time:%Y.%m.%d at %H:%M:%S:%f%z} | {level} | {extra} >> {message}",
@@ -65,23 +66,23 @@ class Assembler(Helper):
         # Traverse given configs and assign enabled builtin cells.
         self._assign_builtin_injection_cells(mode_enum, host, port)
 
-    @logger.catch
+    @log.catch
     def get_puft(self) -> Puft:
         return self.puft
 
-    @logger.catch
+    @log.catch
     def get_database(self) -> Database:
         return self.database
 
-    @logger.catch
+    @log.catch
     def get_root_path(self) -> str:
         return self.root_path
 
-    @logger.catch
+    @log.catch
     def get_mode_enum(self) -> CLIModeEnumUnion:
         return self.mode_enum
 
-    @logger.catch
+    @log.catch
     def _assign_builtin_injection_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting injection cells if configuration file for its service exists."""
         self.builtin_injection_cells = [PuftInjectionCell(
@@ -105,10 +106,10 @@ class Assembler(Helper):
                     controller_class=DatabaseController,
                     service_class=Database
                 ))
-                logger.info("Database layer enabled.")
+                log.info("Database layer enabled.")
 
     @staticmethod
-    @logger.catch
+    @log.catch
     def build(
         configs_by_name: Dict[str, dict] | None = None, root_path: str | None = None
     ) -> None:
@@ -140,10 +141,10 @@ class Assembler(Helper):
 
         assembler.build_all()
         
-    @logger.catch
+    @log.catch
     def build_all(self) -> None:
         """Send commands to build all given instances."""
-        self._build_logger()
+        self._build_log()
         self._build_injection()
         self._build_views()
         self._build_mappers()
@@ -157,50 +158,50 @@ class Assembler(Helper):
         except NotImplementedError:
             pass
 
-    @logger.catch
-    def _build_logger(self) -> None:
-        """Call chain to build logger."""
-        # Try to find logger config cell and build logger class from it.
+    @log.catch
+    def _build_log(self) -> None:
+        """Call chain to build log."""
+        # Try to find log config cell and build log class from it.
         if self.config_cells:
             try:
-                logger_config_cell = NamedCell.find_by_name("logger", self.config_cells)
+                log_config_cell = NamedCell.find_by_name("log", self.config_cells)
             except ValueError:
-                # Logger config is not attached.
-                logger_config = None
+                # log config is not attached.
+                log_config = None
             else:
                 # Parse config mapping from cell and append extra configs, if they are given.
-                logger_config = ConfigCell.parse(
-                    config_cell=logger_config_cell, 
+                log_config = ConfigCell.parse(
+                    config_cell=log_config_cell, 
                     root_path=self.root_path, 
-                    update_with=self.extra_configs_by_name.get("logger", None)
+                    update_with=self.extra_configs_by_name.get("log", None)
                 )
-            self._init_logger_class(config=logger_config)
+            self._init_log_class(config=log_config)
 
-    @logger.catch
-    def _init_logger_class(self, config: dict | None = None) -> None:
-        """Build logger with given config.
+    @log.catch
+    def _init_log_class(self, config: dict | None = None) -> None:
+        """Build log with given config.
         
         If config is None, build with default parameters."""
         # Use full or partially (with replacing missing keys from default) given config.
-        logger_kwargs = self.DEFAULT_LOGGER_PARAMS
+        log_kwargs = self.DEFAULT_log_PARAMS
         if config:
             for k, v in config.items():
-                logger_kwargs[k] = v
-        logger.init_logger(**logger_kwargs)
+                log_kwargs[k] = v
+        log.configure(**log_kwargs)
 
-    @logger.catch
+    @log.catch
     def _build_injection(self) -> None:
         self._run_builtin_injection_cells()
         self._run_custom_injection_cells()
 
-    @logger.catch
+    @log.catch
     def _perform_database_postponed_setup(self) -> None:
         """Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
         so it's possible only after App initialization.
         The setup_db requires native flask app to work with."""
         self.database.setup(flask_app=self.puft.get_native_app())
     
-    @logger.catch
+    @log.catch
     def _run_builtin_injection_cells(self) -> None:
         for cell in self.builtin_injection_cells:
             # Check for domain's config in given cells by comparing names and apply to service config if it exists.
@@ -229,7 +230,7 @@ class Assembler(Helper):
                 # Perform database postponed setup.
                 self._perform_database_postponed_setup()
 
-    @logger.catch
+    @log.catch
     def _run_custom_injection_cells(self) -> None:
         if self.injection_cells:
             for cell in self.injection_cells:
@@ -244,7 +245,7 @@ class Assembler(Helper):
                 cell.service_class(config=service_config)
                 cell.controller_class(service_class=cell.service_class)
 
-    @logger.catch
+    @log.catch
     def _assemble_service_config(self, name: str, is_errors_enabled: bool = False) -> dict:
         """Check for service's config in config cells by comparing its given name and return it as dict.
 
@@ -269,7 +270,7 @@ class Assembler(Helper):
 
         return config
 
-    @logger.catch
+    @log.catch
     def _fetch_yaml_project_version(self) -> str:
         """Fetch project version from info.yaml from the root path and return it. 
 
@@ -278,33 +279,33 @@ class Assembler(Helper):
         project_version = info_data["version"]
         return project_version
 
-    @logger.catch
+    @log.catch
     def _build_views(self) -> None:
         """Build all views by registering them to app."""
         if self.view_cells:
             for view_cell in self.view_cells:
                 self.puft.register_view(view_cell)
 
-    @logger.catch
+    @log.catch
     def _build_mappers(self) -> None:
         """Assign models parameters to mapper classes."""
         if self.mapper_cells:
             for cell in self.mapper_cells:
                 cell.mapper_class.set_orm_model(cell.model)
 
-    @logger.catch
+    @log.catch
     def _build_emitters(self) -> None:
         """Build emitters from given cells and inject Puft application controllers to each."""
         if self.emitter_cells:
             for cell in self.emitter_cells:
                 cell.emitter_class(puft_controller=self.puft_controller)
 
-    @logger.catch
+    @log.catch
     def _build_shell_processors(self) -> None:
         if self.shell_processors:
             self.puft.register_shell_processor(*self.shell_processors)
 
-    @logger.catch
+    @log.catch
     def _build_cli_cmds(self) -> None:
         if self.cli_cmds:
             self.puft.register_cli_cmd(*self.cli_cmds)

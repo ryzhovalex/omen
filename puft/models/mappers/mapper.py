@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from warepy import logger, Singleton, format_message
+from warepy import log, Singleton, format_message
 from flask_sqlalchemy import SQLAlchemy
 
 from ..services.database import native_db
@@ -14,13 +14,13 @@ class Mapper(Singleton):
     model = native_db.Model 
 
     @classmethod
-    @logger.catch
+    @log.catch
     def set_orm_model(cls, model: SQLAlchemy.Model) -> None:
         """Set mapper's orm model attribute to work with."""
         cls.model = model
 
     @classmethod
-    @logger.catch
+    @log.catch
     def filter_first(cls, **kwargs) -> SQLAlchemy.Model:
         """Filter first ORM mapped model by given kwargs and return it.
         
@@ -34,7 +34,7 @@ class Mapper(Singleton):
             return model
 
     @classmethod
-    @logger.catch
+    @log.catch
     def filter_all(cls, order_by: str | None = None, descending_order: bool = False, **kwargs) -> SQLAlchemy.Model:
         """Filter all ORM mapped models by given kwargs and return them.
 

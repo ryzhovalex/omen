@@ -2,7 +2,7 @@ import json
 from abc import abstractmethod
 from typing import Any, List, Dict, Literal, Union, Callable, Type
 
-from warepy import logger, Singleton, format_message
+from warepy import log, Singleton, format_message
 
 
 class Service(Singleton):

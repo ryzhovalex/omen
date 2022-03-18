@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import Callable
 
-from warepy import logger, format_message
+from warepy import log, format_message
 from flask import Flask
 import flask_migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -37,12 +37,12 @@ class Database(Service):
         # For now service config propagated to Database domain.
         self._assign_uri_from_config(service_config)
 
-    @logger.catch
+    @log.catch
     def _assign_uri_from_config(self, config: dict) -> None:
         raw_uri = config.get("URI", None)  # type: str
 
         if not raw_uri:
-            logger.info("URI for database not specified, using default sqlite3.")
+            log.info("URI for database not specified, using default sqlite3.")
         
         # Since URI from config is a raw path, need to calculate protocol.
         # Case 1: SQLite database.
@@ -52,13 +52,13 @@ class Database(Service):
             # Source: https://stackoverflow.com/a/44687471/14748231.
             self.uri = "sqlite:///" + raw_uri
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def init_migration(self, directory: str = "migrations", multidb: bool = False) -> None:
         """Initializes migration support for the application."""
         flask_migrate.init(directory=directory, multidb=multidb)
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def migrate_migration(
         self,
@@ -82,7 +82,7 @@ class Database(Service):
             rev_id=rev_id
         )
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def upgrade_migration(
         self,
@@ -98,20 +98,20 @@ class Database(Service):
             tag=tag
         )
 
-    @logger.catch
+    @log.catch
     def setup(self, flask_app: Flask) -> None:
         """Setup database and migration object with given Flask app."""
-        logger.info(f"Set database path: {self.uri}")
+        log.info(f"Set database path: {self.uri}")
         flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
         flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
         self.native_db.init_app(flask_app)
         self.migration = flask_migrate.Migrate(flask_app, self.native_db)
 
-    @logger.catch
+    @log.catch
     def get_native_db(self) -> SQLAlchemy:
         return self.native_db
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def get_migration(self) -> flask_migrate.Migrate:
         """Return migration object.
@@ -120,35 +120,35 @@ class Database(Service):
             AttributeError: If Migrate object hasn't implemented yet."""
         return self.migration
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def create_all_tables(self) -> None:
         self.native_db.create_all()
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def drop_all_tables(self):
         "Drop all tables."
         self.native_db.drop_all()
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def add_to_session(self, entity):
         """Place an object in the session."""
         self.native_db.session.add(entity)
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def commit_session(self):
         """Commit current transaction."""
         self.native_db.session.commit()
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def rollback_session(self):
         self.native_db.session.rollback()
 
-    @logger.catch
+    @log.catch
     @migration_implemented
     def remove_session(self):
         self.native_db.session.remove()

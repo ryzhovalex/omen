@@ -1,7 +1,7 @@
 import click
 
 from puft import Controller, Service, Puft, View, Mapper, Database
-from warepy import logger
+from warepy import log
 from flask.cli import with_appcontext
 
 from .orm import User
@@ -20,7 +20,7 @@ def dummy_processor():
 @click.argument("surname")
 @with_appcontext
 def dummy_cli(firstname, surname):
-    logger.info(f"Add user {firstname} {surname}.")
+    log.info(f"Add user {firstname} {surname}.")
     db = Database.instance()
     user = User(firstname=firstname, surname=surname)
     db.add_to_session(user)

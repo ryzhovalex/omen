@@ -1,5 +1,5 @@
 from flask.views import MethodView
-from warepy import logger, Singleton, format_message
+from warepy import log, Singleton, format_message
 
 from ...tools.noconflict import makecls
 
@@ -15,7 +15,7 @@ class View(MethodView):
     methods = ["GET", "POST", "PUT", "DELETE"]  # Methods allowed to access this view.
 
     # List of decorators to apply to all view's methods.
-    decorators = [logger.catch]  
+    decorators = [log.catch]  
     # To extend decorators in child class, use `decorators = View.decorators + [your_shiny_decorator]` 
     # in your class variable definition.
 

@@ -5,7 +5,7 @@
 from functools import wraps
 from typing import Callable
 
-from warepy import logger, format_message
+from warepy import log, format_message
 from flask import session, redirect, url_for
 
 
@@ -64,7 +64,7 @@ def login_required(
             
             # Check if error occured, else normally call view. Finally return result with error or view output.
             if error_message is not None:
-                logger.warning(error_message)
+                log.warning(error_message)
             else:
                 result = view(**kwargs)
             return result
