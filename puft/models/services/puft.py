@@ -55,11 +55,8 @@ class Puft(Service):
         if self.mode_enum is not CLIRunEnum.PROD: 
             if self.native_app.config.get("SESSION_TYPE", None):
                 if self.native_app.config["SESSION_TYPE"] == "redis":
-                    log.info("Flush redis db because of non-production run.")
-                    # TODO: Find way why PyRight gives an error that session_interface.redis didn't found, 
-                    # but actually redis dependencies are OK. Right now i prefer to ignore this problem 
-                    # instead of inspect session interface sources.
-                    self.native_app.session_interface.redis.flushdb()  # type: ignore
+                    log.info("Flush session redis database because of non-production run.")
+                    self.native_app.session_interface.redis.flushdb()
             else:
                 # Apply default null interface, basically do nothing.
                 pass
