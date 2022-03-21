@@ -9,7 +9,7 @@ Layer over Flask upgraded by MVC, SQLAlchemy, Migrations and other cool guys.
 
 Instructions: soon.
 
-If you set session to redis, you need to install redis-server (example below for Ubuntu)
+If you set session to redis, you will need to install redis-server (example below for Ubuntu)
 ```sh
 sudo apt install redis-server
 ```
