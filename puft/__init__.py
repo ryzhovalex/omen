@@ -3,7 +3,7 @@ from .views.view import View
 from .helpers.helper import Helper
 from .helpers.build import Build
 from .emitters.emitter import Emitter
-from .helpers.assembler import Assembler, get_root_path, get_mode
+from .helpers.assembler import get_root_path, get_mode
 from .models.mappers.mapper import Mapper
 from .models.services.service import Service
 from .models.services.puft import Puft
