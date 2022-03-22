@@ -9,14 +9,11 @@ from warepy import log, format_message, join_paths, load_yaml
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports and use just for typehints.
     from ..services.puft import Puft
-    from ...ui.controllers.puft_controller import PuftController
     from ..services.database import Database, native_db
-    from ...ui.controllers.database_controller import DatabaseController
-    from ...ui.views.view import View
-    from ...ui.emitters.emitter import Emitter
+    from ...views.view import View
+    from ...emitters.emitter import Emitter
     from ..mappers.mapper import Mapper
     from ..services.service import Service
-    from ...ui.controllers.controller import Controller
     from ...constants.hints import CLIModeEnumUnion
 
 
@@ -61,12 +58,8 @@ class ConfigCell(NamedCell):
     """Config cell which can be used to load configs to appropriate instance's configuration by name."""
     source: str
 
-    @staticmethod
-    def parse(config_cell: ConfigCell, root_path: str, update_with: dict = None) -> dict:
-        """Parse given config cell and return configuration dictionary.
-        
-        NOTE: This function performs automatic path absolutize - all paths starting with "./" within config 
-        will be joined to given root path.
+    def parse(self, root_path: str, update_with: dict = None) -> dict:
+        """Parse config cell and return configuration dictionary.
 
         Args:
             config_cell: Configuration cell to parse from.
@@ -74,21 +67,16 @@ class ConfigCell(NamedCell):
             update_with (optional): dictionary to update config cell mapping with. Defaults to None.
         
         Raise:
-            ValueError: If given config cell has non-relative source path.
-            ValueError: If given config cell's source has unrecognized extension."""
+            ValueError: If given config cell's source has unrecognized extension.
+        """
         config = {}
-        config_path = join_paths(root_path, config_cell.source)
-
-        if config_cell.source[0] != "." and config_cell.source[1] != "/":
-            error_message = format_message("Given config cell has non-relative source path {}", config_cell.source)
-            raise ValueError(error_message)
 
         # Fetch config's extension.
-        if "json" in config_path[-5:len(config_path)]:
-            with open(config_path, "r") as config_file:
+        if "json" in self.source[-5:len(self.source)]:
+            with open(self.source, "r") as config_file:
                 config = json.load(config_file)
-        elif "yaml" in config_path[-5:len(config_path)]:
-            config = load_yaml(config_path)
+        elif "yaml" in self.source[-5:len(self.source)]:
+            config = load_yaml(self.source)
         else:
             error_message = format_message("Unrecognized config cell source's extension.")
             raise ValueError(error_message)
@@ -102,20 +90,18 @@ class ConfigCell(NamedCell):
         # Update given config with extra dictionary if this dictionary given and not empty.
         if update_with:
             config.update(update_with)
+
         return config
 
 
 @dataclass
-class InjectionCell(NamedCell):
-    """Crucial core dependency injection cell united Controller and Service objects in one chain."""
-    controller_class: Type[Controller]
+class ServiceCell(NamedCell):
     service_class: Type[Service]
 
 
 @dataclass
-class PuftInjectionCell(InjectionCell):
+class PuftServiceCell(ServiceCell):
     """Injection cell with app itself which is required in any build."""
-    controller_class: Type[PuftController]
     service_class: Type[Puft]
     mode_enum: CLIModeEnumUnion
     host: str
@@ -123,9 +109,8 @@ class PuftInjectionCell(InjectionCell):
 
 
 @dataclass
-class DatabaseInjectionCell(InjectionCell):
+class DatabaseServiceCell(ServiceCell):
     """Injection cell with database itself which can be applied to created application."""
-    controller_class: Type[DatabaseController]
     service_class: Type[Database]
 
 

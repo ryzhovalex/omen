@@ -1,6 +1,6 @@
 import click
 
-from puft import Controller, Service, Puft, View, Mapper, Database
+from puft import Service, Puft, View, Mapper, Database
 from warepy import log
 from flask.cli import with_appcontext
 
@@ -27,11 +27,7 @@ def dummy_cli(firstname, surname):
     db.commit_session()
 
 
-class DummyController(Controller):
-    pass
-
-
-class DummyService(Service):
+class Dummy(Service):
     def __init__(self, config: dict) -> None:
         super().__init__(config)
 

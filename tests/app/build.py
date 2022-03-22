@@ -1,29 +1,14 @@
-from puft import Build, InjectionCell, ViewCell, ConfigCell, MapperCell
+from puft import Build, ServiceCell, ViewCell, ConfigCell, MapperCell
 
-from src.dummy import DummyController, DummyService, DummyView, DummyMapper, dummy_cli, dummy_processor
+from src.dummy import Dummy, DummyView, DummyMapper, dummy_cli, dummy_processor
 from src.orm import User
 
 
 build = Build(
-    config_cells=[
-        ConfigCell(
-            name="puft",
-            source="./configs/puft.yaml"
-        ),
-        ConfigCell(
+    service_cells=[
+        ServiceCell(
             name="dummy",
-            source="./configs/dummy.yaml"
-        ),
-        ConfigCell(
-            name="database",
-            source="./configs/database.yaml"
-        )
-    ],
-    injection_cells=[
-        InjectionCell(
-            name="dummy",
-            controller_class=DummyController,
-            service_class=DummyService
+            service_class=Dummy
         )
     ],
     view_cells=[

@@ -2,7 +2,7 @@ import os
 from typing import Callable
 
 from ..models.domains.cells import (
-    ConfigCell, InjectionCell, MapperCell, ViewCell, EmitterCell
+    ConfigCell, ServiceCell, MapperCell, ViewCell, EmitterCell
 )
 
 class Build:
@@ -12,8 +12,8 @@ class Build:
     def __init__(
         self,
         version: str = "",
-        config_cells: list[ConfigCell] = [],
-        injection_cells: list[InjectionCell] = [], 
+        config_dir: str = "./configs",
+        service_cells: list[ServiceCell] = [],
         mapper_cells: list[MapperCell] = [],
         view_cells: list[ViewCell] = [],
         emitter_cells: list[EmitterCell] = [],
@@ -28,8 +28,8 @@ class Build:
         self.root_path = os.getcwd()
 
         self.version = version
-        self.config_cells = config_cells
-        self.injection_cells = injection_cells
+        self.config_dir = config_dir
+        self.service_cells = service_cells
         self.mapper_cells = mapper_cells
         self.view_cells = view_cells
         self.emitter_cells = emitter_cells

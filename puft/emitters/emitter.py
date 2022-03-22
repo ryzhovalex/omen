@@ -1,16 +1,16 @@
-from ...constants.enums import TurboActionEnum
+from ..constants.enums import TurboActionEnum
 from warepy import log, Singleton
 
-from ..controllers.puft_controller import PuftController
+from ..models.services.puft import Puft
 
 
 class Emitter(Singleton):
     """Emitter is a special class performing various tasks related to turbo.js actions, such as updating.
     
-    It acts with Views, which calls methods from Emitters.
+    It acts with Views, which call methods from Emitters.
     """
-    def __init__(self, puft_controller: PuftController) -> None:
-        self.puft_controller = puft_controller
+    def __init__(self, puft: Puft) -> None:
+        self.puft = puft
 
     def push(
         self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}  
@@ -23,7 +23,7 @@ class Emitter(Singleton):
             template_path: Path to template to render.
             ctx_data (optional): Context data to push to rendered template. Defaults to empty dict.
         """
-        self.puft_controller.push_turbo(
+        self.puft.push_turbo(
             action=action,
             target=target,
             template_path=template_path,
