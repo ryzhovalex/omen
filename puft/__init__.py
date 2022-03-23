@@ -7,7 +7,7 @@ from .helpers.assembler import get_root_path, get_mode
 from .models.mappers.mapper import Mapper
 from .models.services.service import Service
 from .models.services.puft import Puft
-from .models.services.database import Database
+from .models.services.database import Database, native_db
 from .models.domains.cells import (Cell, ViewCell, ConfigCell, ServiceCell, MapperCell, EmitterCell)
 from .constants.enums import (
     HTTPMethodEnum, TurboActionEnum
