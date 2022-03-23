@@ -50,7 +50,6 @@ class Puft(Service):
         # Initialize flask-session after all settings are applied.
         self.flask_session = Session(self.native_app)
         self._flush_redis_session_db()
-        self.hostname = self.config.get("HOSTNAME", None)
 
     def _flush_redis_session_db(self) -> None:
         # Flush redis session db if mode is not `prod`. 
@@ -111,18 +110,11 @@ class Puft(Service):
 
     @log.catch
     def get_hostname(self) -> str:
-        """Return app's hostname set in config.
+        """Return app's hostname.
 
         Hostname may be e.g. `http://127.0.0.1:5000/`.
-
-        Raise:
-            ValueError:
-                Hostname not set or empty.
         """
-        if self.hostname:
-            return self.hostname
-        else:
-            raise ValueError(format_message("Hostname not set or empty"))
+        return "http://" + self.host + ":" + str(self.port) + "/"
 
     @log.catch
     def get_native_app(self) -> Flask:
