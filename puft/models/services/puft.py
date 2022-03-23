@@ -11,7 +11,7 @@ from puft.constants.hints import CLIModeEnumUnion
 from warepy import log, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 from flask import cli as flask_cli
-from flask.ctx import AppContext
+from flask.ctx import AppContext, RequestContext
 from warepy import log, get_enum_values
 
 from .service import Service
@@ -126,8 +126,12 @@ class Puft(Service):
         )
 
     @log.catch
-    def context(self) -> AppContext:
+    def app_context(self) -> AppContext:
         return self.native_app.app_context()
+
+    @log.catch
+    def test_request_context(self) -> RequestContext:
+        return self.native_app.test_request_context()
 
     @log.catch
     def register_view(self, view_cell: ViewCell) -> None:
