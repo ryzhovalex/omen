@@ -109,8 +109,8 @@ class Puft(Service):
         )
 
     @log.catch
-    def get_hostname(self) -> str:
-        """Return app's hostname.
+    def get_url(self) -> str:
+        """Return app's url.
 
         Hostname may be e.g. `http://127.0.0.1:5000/`.
         """
