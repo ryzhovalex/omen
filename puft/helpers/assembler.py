@@ -216,7 +216,6 @@ class Assembler(Helper):
         for cell in self.builtin_service_cells:
             # Check for domain's config in given cells by comparing names and apply to service config if it exists.
             config = self._assemble_service_config(name=cell.name) 
-            log.debug(config)
 
             # Initialize service.
             if type(cell) is PuftServiceCell:
