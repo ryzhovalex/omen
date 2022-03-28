@@ -215,17 +215,18 @@ class Assembler(Helper):
     def _run_builtin_service_cells(self) -> None:
         for cell in self.builtin_service_cells:
             # Check for domain's config in given cells by comparing names and apply to service config if it exists.
-            service_config = self._assemble_service_config(name=cell.name) 
+            config = self._assemble_service_config(name=cell.name) 
+            log.debug(config)
 
             # Initialize service.
             if type(cell) is PuftServiceCell:
                 # Run special initialization with mode, host and port for Puft service.
-                service = cell.service_class(
+                cell.service_class(
                     mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
-                    config=service_config
+                    config=config
                 )
             else:
-                service = cell.service_class(service_config=service_config)
+                cell.service_class(config=config)
 
             # Assign builtin cells to according Assembler vars to operate with later.
             if type(cell) is PuftServiceCell:

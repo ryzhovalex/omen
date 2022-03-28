@@ -31,11 +31,11 @@ def migration_implemented(func: Callable):
 
 class Database(Service):
     """Operates over Database processes."""
-    def __init__(self, service_config: dict) -> None:
-        super().__init__(service_config)
+    def __init__(self, config: dict) -> None:
+        super().__init__(config)
         self.native_db = native_db
         # For now service config propagated to Database domain.
-        self._assign_uri_from_config(service_config)
+        self._assign_uri_from_config(config)
 
     @log.catch
     def _assign_uri_from_config(self, config: dict) -> None:
