@@ -35,7 +35,7 @@ class Mapper(Singleton):
 
     @classmethod
     @log.catch
-    def filter_all(cls, order_by: str | None = None, descending_order: bool = False, **kwargs) -> SQLAlchemy.Model:
+    def filter_all(cls, order_by: str | None = None, descending_order: bool = False, **kwargs) -> list[SQLAlchemy.Model]:
         """Filter all ORM mapped models by given kwargs and return them.
 
         It's possible to send argument `order_by` to order resulting instance. It should be string referencing to target object attribute.
