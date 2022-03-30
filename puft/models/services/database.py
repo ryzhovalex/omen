@@ -14,6 +14,7 @@ from .service import Service
 native_db = SQLAlchemy()
 
 
+# TODO: Fix type hinting for decorated functions under this decorator.
 def migration_implemented(func: Callable):
     @wraps(func)
     def inner(self_instance, *args, **kwargs):
