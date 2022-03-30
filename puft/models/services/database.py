@@ -136,6 +136,7 @@ class Database(Service):
     @migration_implemented
     def add_to_session(self, entity):
         """Place an object in the session."""
+        # TODO: Add functionality to accept multiple entities as *args.
         self.native_db.session.add(entity)
 
     @log.catch
