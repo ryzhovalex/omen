@@ -7,6 +7,7 @@ import flask_migrate
 from flask_sqlalchemy import SQLAlchemy
 
 from .service import Service
+from ...constants.enums import DatabaseTypeEnum
 
 
 # Here database variable are referenced at top layer to be visible for ORMs.
@@ -52,6 +53,16 @@ class Database(Service):
             # Set absolute path to db.
             # Source: https://stackoverflow.com/a/44687471/14748231.
             self.uri = "sqlite:///" + raw_uri
+            self._assign_type_enum(self.uri)
+
+    @log.catch    
+    def _assign_type_enum(self, uri: str) -> None:
+        if "sqlite://" in uri:
+            self.type_enum = DatabaseTypeEnum.SQLITE
+        elif "postgresql://" in uri:
+            self.type_enum = DatabaseTypeEnum.PSQL
+        else:
+            raise ValueError(format_message("Unrecognized or yet unsupported type of database uri: {}", uri))
 
     @log.catch
     @migration_implemented
@@ -106,7 +117,14 @@ class Database(Service):
         flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
         flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
         self.native_db.init_app(flask_app)
-        self.migration = flask_migrate.Migrate(flask_app, self.native_db)
+
+        # render_as_batch kwarg required only for sqlite3 databases to avoid ALTER TABLE issue on migrations
+        # https://blog.miguelgrinberg.com/post/fixing-alter-table-errors-with-flask-migrate-and-sqlite
+        if self.type_enum is DatabaseTypeEnum.SQLITE:
+            is_sqlite_db = True
+        else:
+            is_sqlite_db = False
+        self.migration = flask_migrate.Migrate(flask_app, self.native_db, render_as_batch=is_sqlite_db)
 
     @log.catch
     def get_native_db(self) -> SQLAlchemy:

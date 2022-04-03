@@ -35,3 +35,7 @@ class TurboActionEnum(Enum):
     UPDATE = "update"
     REMOVE = "remove"
 
+
+class DatabaseTypeEnum(Enum):
+    SQLITE = "sqlite"
+    PSQL = "psql"

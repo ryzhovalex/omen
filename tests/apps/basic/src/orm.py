@@ -9,4 +9,4 @@ class User(Model):
     username = column(string(50), nullable=False, unique=True)
     password = column(string(50), nullable=False)
     firstname = column(string(80), default="Michael")
-    surname = column(string(80), default="Jackson")
+    # surname = column(string(80), default="Jackson")
