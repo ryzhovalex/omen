@@ -18,7 +18,6 @@ from .tools import (
 from .tools.decorators import (
     login_required,
 )
-from .constants import orm_types
 
 
 __version__ = "0.4.0.dev0"
