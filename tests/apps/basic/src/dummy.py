@@ -11,20 +11,9 @@ def dummy_processor():
     return {
         "puft": Puft.instance(),
         "db": Database.instance(),
-        "ctx": Puft.instance().get_native_app().test_request_context()
+        "ctx": Puft.instance().get_native_app().test_request_context(),
+        "User": User
     }
-
-
-@click.command("add_user")
-@click.argument("firstname")
-@click.argument("surname")
-@with_appcontext
-def dummy_cli(firstname, surname):
-    log.info(f"Add user {firstname} {surname}.")
-    db = Database.instance()
-    user = User(firstname=firstname, surname=surname)
-    db.add_to_session(user)
-    db.commit_session()
 
 
 class Dummy(Service):
@@ -40,13 +29,9 @@ class DummyView(View):
         db = Database.instance()
         db.create_all_tables()
 
-        # user = User(firstname="Max", surname="Kudr", username="Americanec", password="1337")
-        # db.add_to_session(user)
-        # db.commit_session()
-
         mapper = DummyMapper.instance()
-        massimo = mapper.filter_first(id=1)
-        return f"{massimo.username}: {massimo.firstname} {massimo.surname}"
+        user = mapper.filter_first(id=1)
+        return f"{user.username}: {user.firstname}"
 
 
 class DummyMapper(Mapper):

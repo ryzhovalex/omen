@@ -1,6 +1,6 @@
 from puft import Build, ServiceCell, ViewCell, ConfigCell, MapperCell
 
-from src.dummy import Dummy, DummyView, DummyMapper, dummy_cli, dummy_processor
+from src.dummy import Dummy, DummyView, DummyMapper, dummy_processor
 from src.orm import User
 
 
