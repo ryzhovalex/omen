@@ -57,6 +57,9 @@ class Assembler(Helper):
         self.mode_enum = mode_enum
         self.shell_processors = build.shell_processors
         self.cli_cmds = build.cli_cmds
+        self.ctx_processor_func = build.ctx_processor_func
+        self.each_request_func = build.each_request_func
+        self.first_request_func = build.first_request_func
 
         self._assign_config_cells(build.config_dir)
 
@@ -226,7 +229,10 @@ class Assembler(Helper):
                 # Run special initialization with mode, host and port for Puft service.
                 cell.service_class(
                     mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
-                    config=config
+                    config=config,
+                    ctx_processor_func=self.ctx_processor_func,
+                    each_request_func=self.each_request_func,
+                    first_request_func=self.first_request_func,
                 )
             else:
                 cell.service_class(config=config)

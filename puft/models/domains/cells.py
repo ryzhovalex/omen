@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING, Type, Sequence, TypeVar
+from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
 
 from warepy import log, format_message, join_paths, load_yaml
 
@@ -121,6 +121,9 @@ class PuftServiceCell(ServiceCell):
     mode_enum: CLIModeEnumUnion
     host: str
     port: int
+    ctx_processor_func: Callable | None = None
+    each_request_func: Callable | None = None
+    first_request_func: Callable | None = None
 
 
 @dataclass

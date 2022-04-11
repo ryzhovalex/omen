@@ -18,8 +18,10 @@ class Build:
         view_cells: list[ViewCell] = [],
         emitter_cells: list[EmitterCell] = [],
         shell_processors: list[Callable] = [],
-        cli_cmds: list[Callable] = []
-        
+        cli_cmds: list[Callable] = [],
+        ctx_processor_func: Callable = None,
+        each_request_func: Callable = None,
+        first_request_func: Callable = None 
     ) -> None:
         # Use native root module path.
         # Because this class imported from root directory, root_path below will be assigned from there during class's
@@ -35,3 +37,6 @@ class Build:
         self.emitter_cells = emitter_cells
         self.shell_processors = shell_processors
         self.cli_cmds = cli_cmds
+        self.ctx_processor_func = ctx_processor_func
+        self.each_request_func = each_request_func
+        self.first_request_func = first_request_func

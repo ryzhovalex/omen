@@ -31,7 +31,9 @@ class Puft(Service):
         mode_enum: CLIModeEnumUnion,
         host: str,
         port: int,
-        ctx_processor_enabled: bool = False,
+        ctx_processor_func: Callable = None,
+        each_request_func: Callable = None,
+        first_request_func: Callable = None
     ) -> None:
         # Convert all keys from given config to upper case.
         self.config = self._make_upper_keys(config)
@@ -45,14 +47,18 @@ class Puft(Service):
         self._enable_cors(self.config)
         self._enable_testing_config(self.config)
         self._add_random_hex_token_to_config()
-        self._resolve_ctx_processor_actions(ctx_processor_enabled)
         # Initialize turbo.js.
         # src: https://blog.miguelgrinberg.com/post/dynamically-update-your-flask-web-pages-using-turbo-flask
         self.turbo = Turbo(self.native_app)
-        self._init_app_daemons()
         # Initialize flask-session after all settings are applied.
         self.flask_session = Session(self.native_app)
         self._flush_redis_session_db()
+
+        self._init_app_daemons(
+            ctx_processor_func=ctx_processor_func,
+            each_request_func=each_request_func,
+            first_request_func=first_request_func
+        )
 
     def _make_upper_keys(self, mapping: dict) -> dict:
         rmap = {}
@@ -70,11 +76,6 @@ class Puft(Service):
             else:
                 # Apply default null interface, basically do nothing.
                 pass
-            
-    def _resolve_ctx_processor_actions(self, ctx_processor_enabled: bool) -> None:
-        self.ctx_processor_enabled = ctx_processor_enabled
-        if self.ctx_processor_enabled:
-            self.ctx_data = {}  # Live context data continiously pushed to app template context.
     
     def _add_random_hex_token_to_config(self) -> None:
         # Generate random hex token for App's secret key, if not given in config.
@@ -247,39 +248,24 @@ class Puft(Service):
 
         code.interact(banner=banner, local=ctx)
 
-    @log.catch
-    def _init_app_daemons(self) -> None:
+    def _init_app_daemons(
+        self, ctx_processor_func: Callable | None, each_request_func: Callable | None,
+        first_request_func: Callable | None
+    ) -> None:
         """Binds various background processes to the app."""
         flask_app = self.get_native_app()
 
-        if self.ctx_processor_enabled:
-            @log.catch
+        if ctx_processor_func:
             @flask_app.context_processor
-            def invoke_ctx_processor_operations():
-                """Return continiously self live context data to app template processor.
-                
-                It might be useful in chain with turbo.js, when you push template changes
-                and thus call flask context processor which in turn calls this return to template context."""
-                return self.ctx_data
+            def invoke_ctx_processor_func():
+                return ctx_processor_func()
 
-        @log.catch
-        @flask_app.before_request
-        def invoke_each_request_operations():
-            self._invoke_each_request_operations()
+        if each_request_func:
+            @flask_app.before_request
+            def invoke_each_request_func():
+                return each_request_func()
 
-        @log.catch
-        @flask_app.before_first_request
-        def invoke_first_request_operations():
-            self._invoke_first_request_operations()
-
-    def _invoke_each_request_operations(self) -> None:
-        """Invoke before each request operations.
-        
-        Proxy function, can be extended in children with functions to call without changing `_init_app_daemons` function."""
-        pass
-
-    def _invoke_first_request_operations(self) -> None:
-        """Invoke before first request operations.
-        
-        Proxy function, can be extended in children with functions to call without changing `_init_app_daemons` function."""
-        pass
+        if first_request_func:
+            @flask_app.before_first_request
+            def invoke_first_request_func():
+                return first_request_func()

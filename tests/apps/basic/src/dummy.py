@@ -1,10 +1,16 @@
-import click
-
 from puft import Service, Puft, View, Mapper, Database
 from warepy import log
-from flask.cli import with_appcontext
+from flask import render_template, request
 
 from .orm import User
+
+
+def ctx_processor():
+    return {"safe_days": 665}
+
+
+def each_request_processor():
+    log.info(f"User connected {request.remote_addr}")
 
 
 def dummy_processor():
@@ -31,7 +37,7 @@ class DummyView(View):
 
         mapper = DummyMapper.instance()
         user = mapper.filter_first(id=1)
-        return f"{user.username}: {user.firstname}"
+        return render_template("dummy.html", user=user)
 
 
 class DummyMapper(Mapper):
