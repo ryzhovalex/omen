@@ -21,7 +21,7 @@ class Dummy(Service):
         super().__init__(config)
 
         self.app = Puft.instance()
-        assert config.get("TEST_VAR", 0) == 12502
+        assert config.get("test_var", 0) == 12502
 
 
 class DummyView(View):

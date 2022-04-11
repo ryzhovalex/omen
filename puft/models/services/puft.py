@@ -33,14 +33,17 @@ class Puft(Service):
         port: int,
         ctx_processor_enabled: bool = False,
     ) -> None:
-        super().__init__(config)
+        # Convert all keys from given config to upper case.
+        self.config = self._make_upper_keys(config)
+
+        super().__init__(self.config)
         self.mode_enum = mode_enum
         self.host = host
         self.port = port
-        self.native_app = self._spawn_native_app(config)
-        self.native_app.config.from_mapping(config)
-        self._enable_cors(config)
-        self._enable_testing_config(config)
+        self.native_app = self._spawn_native_app(self.config)
+        self.native_app.config.from_mapping(self.config)
+        self._enable_cors(self.config)
+        self._enable_testing_config(self.config)
         self._add_random_hex_token_to_config()
         self._resolve_ctx_processor_actions(ctx_processor_enabled)
         # Initialize turbo.js.
@@ -50,6 +53,12 @@ class Puft(Service):
         # Initialize flask-session after all settings are applied.
         self.flask_session = Session(self.native_app)
         self._flush_redis_session_db()
+
+    def _make_upper_keys(self, mapping: dict) -> dict:
+        rmap = {}
+        for k, v in mapping.items():
+            rmap[k.upper()] = v
+        return rmap
 
     def _flush_redis_session_db(self) -> None:
         # Flush redis session db if mode is not `prod`. 

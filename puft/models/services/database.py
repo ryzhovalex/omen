@@ -35,16 +35,19 @@ class Database(Service):
     """Operates over Database processes."""
     def __init__(self, config: dict) -> None:
         super().__init__(config)
+        self.DEFAULT_URI = f"{self.config['root_path']}/sqlite3.db"
+
         self.native_db = native_db
         # For now service config propagated to Database domain.
         self._assign_uri_from_config(config)
 
     @log.catch
     def _assign_uri_from_config(self, config: dict) -> None:
-        raw_uri = config.get("URI", None)  # type: str
+        raw_uri = config.get("uri", None)  # type: str
 
         if not raw_uri:
-            log.info("URI for database not specified, using default sqlite3.")
+            raw_uri = self.DEFAULT_URI
+            log.info(f"URI for database not specified, using default {raw_uri}")
         
         # Since URI from config is a raw path, need to calculate protocol.
         # Case 1: SQLite database.

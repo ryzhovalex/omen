@@ -58,16 +58,22 @@ class ConfigCell(NamedCell):
     """Config cell which can be used to load configs to appropriate instance's configuration by name."""
     source: str
 
-    def parse(self, root_path: str, update_with: dict = None) -> dict:
+    def parse(self, root_path: str, update_with: dict = None, convert_keys_to_lower: bool = True) -> dict:
         """Parse config cell and return configuration dictionary.
 
         Args:
-            config_cell: Configuration cell to parse from.
-            root_path: Path to join config cell source with.
-            update_with (optional): dictionary to update config cell mapping with. Defaults to None.
+            config_cell:
+                Configuration cell to parse from.
+            root_path:
+                Path to join config cell source with.
+            update_with (optional):
+                Dictionary to update config cell mapping with. Defaults to None.
+            convert_keys_to_lower (optional):
+                If true, all keys from origin mapping and mapping from `update_with` will be converted to upper case.
         
         Raise:
-            ValueError: If given config cell's source has unrecognized extension.
+            ValueError:
+                If given config cell's source has unrecognized extension.
         """
         config = {}
 
@@ -82,14 +88,23 @@ class ConfigCell(NamedCell):
             raise ValueError(error_message)
 
         # Traverse all values and find paths required to be joined to the root path.
-        for k, v in config.items():
-            if type(v) == str:
-                if v[0] == "." and v[1] == "/":
-                    config[k] = join_paths(root_path, v)
+        if config:
+            for k, v in config.items():
+                if type(v) == str:
+                    if v[0] == "." and v[1] == "/":
+                        config[k] = join_paths(root_path, v)
+        else:
+            config = {}
 
         # Update given config with extra dictionary if this dictionary given and not empty.
         if update_with:
             config.update(update_with)
+
+        if convert_keys_to_lower:
+            rconfig = {}
+            for k, v in config.items():
+                rconfig[k.lower()] = v
+            config = rconfig
 
         return config
 

@@ -150,10 +150,10 @@ class Assembler(Helper):
         if configs_by_name:
             assembler.extra_configs_by_name = configs_by_name
 
-        assembler.build_all()
+        assembler._build_all()
         
     @log.catch
-    def build_all(self) -> None:
+    def _build_all(self) -> None:
         """Send commands to build all given instances."""
         self._build_log()
         self._build_service()
@@ -216,6 +216,10 @@ class Assembler(Helper):
         for cell in self.builtin_service_cells:
             # Check for domain's config in given cells by comparing names and apply to service config if it exists.
             config = self._assemble_service_config(name=cell.name) 
+
+            # Each builtin service should receive essential fields for their configs, such as root_path, because
+            # they cannot import Assembler due to circular import issue and get this fields by themselves.
+            config["root_path"] = self.root_path
 
             # Initialize service.
             if type(cell) is PuftServiceCell:
