@@ -7,6 +7,7 @@ from warepy import (
     format_message, join_paths, log, match_enum_containing_value, get_enum_values, get_union_enum_values
 )
 
+from .. import __version__ as puft_version
 from .assembler import Assembler
 from ..constants.hints import CLIModeEnumUnion
 from ..constants.enums import (
@@ -17,7 +18,10 @@ from ..constants.enums import (
 def main() -> None:
     args = parse_input()
 
-    if args.mode[0] in get_union_enum_values(CLIModeEnumUnion):
+    if args.check_version:
+        print(f"Puft {puft_version}")
+        return
+    elif args.mode[0] in get_union_enum_values(CLIModeEnumUnion):
         mode = args.mode[0] 
 
         # Find enum where mode assigned.
@@ -114,6 +118,7 @@ def parse_input() -> argparse.Namespace:
     parser.add_argument("-p", dest="port", default="5000")  # TODO: Add check if given port is integer.
     parser.add_argument("-dir", dest="root_dir", default=os.getcwd())
     parser.add_argument("-src", dest="source_file", default="build")
+    parser.add_argument("-v", "--version", action="store_true", dest="check_version")
     return parser.parse_args()
 
 
