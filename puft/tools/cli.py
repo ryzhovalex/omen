@@ -26,6 +26,7 @@ def main() -> None:
         # Create according enum with mode value.
         mode_enum = mode_enum_class(mode)
     else:
+        raise NotImplementedError(f"Command {args.mode[0]} is not supported")
         # Mode is probably targeted to custom command.
         mode_enum = CLIHelperEnum.CUSTOM_CMD
         #!! custom_cmd = 
