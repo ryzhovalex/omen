@@ -8,4 +8,3 @@ flask-cors
 flask-session
 redis
 click
-

@@ -35,7 +35,7 @@ class Database(Service):
     """Operates over Database processes."""
     def __init__(self, config: dict) -> None:
         super().__init__(config)
-        self.DEFAULT_URI = f"{self.config['root_path']}/sqlite3.db"
+        self.DEFAULT_URI = f"sqlite:///{self.config['root_path']}/sqlite3.db"
 
         self.native_db = native_db
         # For now service config propagated to Database domain.
@@ -48,24 +48,24 @@ class Database(Service):
         if not raw_uri:
             raw_uri = self.DEFAULT_URI
             log.info(f"URI for database not specified, using default {raw_uri}")
-        
-        # Since URI from config is a raw path, need to calculate protocol.
-        # Case 1: SQLite database.
-        # TODO: Maybe instead of direct checking, create DatabaseTypeEnum?
-        if "sqlite" in raw_uri or ".db" in raw_uri:
-            # Set absolute path to db.
-            # Source: https://stackoverflow.com/a/44687471/14748231.
-            self.uri = "sqlite:///" + raw_uri
-            self._assign_type_enum(self.uri)
-
-    @log.catch    
-    def _assign_type_enum(self, uri: str) -> None:
-        if "sqlite://" in uri:
-            self.type_enum = DatabaseTypeEnum.SQLITE
-        elif "postgresql://" in uri:
-            self.type_enum = DatabaseTypeEnum.PSQL
         else:
-            raise ValueError(format_message("Unrecognized or yet unsupported type of database uri: {}", uri))
+            # Case 1: SQLite database.
+            # Developer can give relative path to the database (it will be absolutized at ConfigCell.parse()),
+            # by setting sqlite database extension to `.db`, e.g. `./instance/sqlite3.db`,
+            # or by setting full absolute path with protocol, e.g. `sqlite:////home/user/project/instance/sqlite3.db`.
+            if raw_uri.rfind(".db") != -1 or "sqlite:///" in raw_uri:
+                if "sqlite:///" not in raw_uri: 
+                    # Set absolute path to db.
+                    # Ref: https://stackoverflow.com/a/44687471/14748231
+                    self.uri = "sqlite:///" + raw_uri
+                self.type_enum = DatabaseTypeEnum.SQLITE
+            # Case 2: PostgreSQL database.
+            elif "postgresql+psycopg2://" in raw_uri:
+                # No need to calculate path since psql uri should be given in full form.
+                self.uri = raw_uri
+                self.type_enum = DatabaseTypeEnum.PSQL
+            else:
+                raise ValueError(format_message("Unrecognized or yet unsupported type of database uri: {}", raw_uri))
 
     @log.catch
     @migration_implemented

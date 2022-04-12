@@ -7,7 +7,9 @@ def reload_package(root_module):
     
     Useful during development packages and simultaneous testing them at projects.
     
-    Code source: [prevent python from caching, python2](https://stackoverflow.com/a/2918951/14748231), refactored to python3."""
+    Refs: 
+        https://stackoverflow.com/a/2918951/14748231
+    """
     package_name = root_module.__name__
 
     # get a reference to each loaded module

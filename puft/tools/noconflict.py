@@ -1,6 +1,8 @@
 """Module for resolving metaclasses conflicts.
 
-Code source: [Solving the metaclass conflict](http://www.phyast.pitt.edu/~micheles/python/metatype.html)."""
+Refs:
+    http://www.phyast.pitt.edu/~micheles/python/metatype.html
+"""
 
 metadic={}
 

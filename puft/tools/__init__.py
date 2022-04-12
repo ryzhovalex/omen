@@ -65,7 +65,7 @@ def make_fail_response(
     flash(flash_message, category=flash_category)
     response = make_response(render_template(template_path, **template_ctx))
     # Always set status code of failed to form posts responses to 422 or turbo.js will raise an error.
-    # Source: https://github.com/miguelgrinberg/turbo-flask/issues/11#issuecomment-883248949
+    # Ref: https://github.com/miguelgrinberg/turbo-flask/issues/11#issuecomment-883248949
     response.status_code = 422
     return response
 

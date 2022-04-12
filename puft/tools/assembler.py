@@ -159,7 +159,7 @@ class Assembler(Helper):
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
         self._build_log()
-        self._build_service()
+        self._build_services()
         self._build_views()
         self._build_mappers()
         self._build_emitters()
@@ -203,7 +203,7 @@ class Assembler(Helper):
         log.configure(**log_kwargs)
 
     @log.catch
-    def _build_service(self) -> None:
+    def _build_services(self) -> None:
         self._run_builtin_service_cells()
         self._run_custom_service_cells()
 
