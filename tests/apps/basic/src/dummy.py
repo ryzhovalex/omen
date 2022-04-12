@@ -28,6 +28,7 @@ class Dummy(Service):
 
         self.app = Puft.instance()
         assert config.get("test_var", 0) == 12502
+        # assert config.get("environs", None) == "Do i love environs? Answer is true"
 
 
 class DummyView(View):
