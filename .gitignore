@@ -1,3 +1,6 @@
+# ignore environment variable files
+envs
+
 # ignore vscode files
 .vscode/
 
