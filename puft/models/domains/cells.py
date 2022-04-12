@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import os
 import json
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
@@ -87,12 +89,24 @@ class ConfigCell(NamedCell):
             error_message = format_message("Unrecognized config cell source's extension.")
             raise ValueError(error_message)
 
-        # Traverse all values and find paths required to be joined to the root path.
         if config:
             for k, v in config.items():
                 if type(v) == str:
+                    # Find environs to be requested.
+                    envs = re.findall(r"\{\w+\}", v)  # type: list[str]
+                    if envs:
+                        for env in [x.replace("{", "").replace("}", "") for x in envs]:
+                            real_env_value = os.getenv(env)
+                            if real_env_value is None:
+                                raise ValueError(f"Environ {env} specified in field {self.name}.{k} was not found")
+                            else:
+                                v = v.replace("{" + f"{env}" + "}", real_env_value)
+
+                    # Find paths required to be joined to the root path.
                     if v[0] == "." and v[1] == "/":
                         config[k] = join_paths(root_path, v)
+                    else:
+                        config[k] = v
         else:
             config = {}
 

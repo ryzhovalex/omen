@@ -1,1 +1,2 @@
-uri: ./instance/sqlite3.db
+# uri: ./instance/sqlite3.db
+uri: postgresql://alex:{PSQL_PW}@localhost:5432/puft-test-basic

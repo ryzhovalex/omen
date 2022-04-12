@@ -1,3 +1,4 @@
+import re
 from functools import wraps
 from typing import Callable
 
@@ -47,7 +48,7 @@ class Database(Service):
 
         if not raw_uri:
             raw_uri = self.DEFAULT_URI
-            log.info(f"URI for database not specified, using default {raw_uri}")
+            log.info(f"URI for database not specified, using default")
         else:
             # Case 1: SQLite database.
             # Developer can give relative path to the database (it will be absolutized at ConfigCell.parse()),
@@ -60,12 +61,16 @@ class Database(Service):
                     self.uri = "sqlite:///" + raw_uri
                 self.type_enum = DatabaseTypeEnum.SQLITE
             # Case 2: PostgreSQL database.
-            elif "postgresql+psycopg2://" in raw_uri:
+            elif re.match(r"postgresql(\+\w+)?://", raw_uri):
                 # No need to calculate path since psql uri should be given in full form.
                 self.uri = raw_uri
                 self.type_enum = DatabaseTypeEnum.PSQL
             else:
                 raise ValueError(format_message("Unrecognized or yet unsupported type of database uri: {}", raw_uri))
+            
+            # WARNING: Never print full database uri to config, since it may contain user's password (as in case of
+            # psql)
+            log.info(f"Set database type: {self.type_enum.value}")
 
     @log.catch
     @migration_implemented
@@ -116,7 +121,6 @@ class Database(Service):
     @log.catch
     def setup(self, flask_app: Flask) -> None:
         """Setup database and migration object with given Flask app."""
-        log.info(f"Set database path: {self.uri}")
         flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
         flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
         self.native_db.init_app(flask_app)
