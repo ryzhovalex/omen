@@ -70,6 +70,10 @@ def spawn_assembler(
     mode_enum: CLIModeEnumUnion, host: str, port: int, root_dir: str, source_file: str
 ) -> Assembler:
     """Create assembler with required parameters and return it."""
+    # Add root_dir to pythonpath to avoid ModuleNotFoundError during lib importing.
+    pythonpath = os.environ.get("PYTHONPATH", "")
+    os.environ["PYTHONPATH"] = f"{pythonpath}:{root_dir}"
+
     # Load target module spec from location, where cli were called.
     module_location = os.path.join(root_dir, source_file + ".py")
     module_spec = importlib.util.spec_from_file_location(source_file, module_location)
