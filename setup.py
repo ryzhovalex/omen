@@ -21,7 +21,7 @@ setup(
     keywords=["flask+", "web-framework", "flask", "flask-template"],
     entry_points={
         "console_scripts": [
-            "puft = puft.helpers.cli:main",
+            "puft = puft.tools.cli:main",
         ],
     },
     install_requires=install_requires,
