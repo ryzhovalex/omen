@@ -59,6 +59,8 @@ class Database(Service):
                     # Set absolute path to db.
                     # Ref: https://stackoverflow.com/a/44687471/14748231
                     self.uri = "sqlite:///" + raw_uri
+                else:
+                    self.uri = raw_uri
                 self.type_enum = DatabaseTypeEnum.SQLITE
             # Case 2: PostgreSQL database.
             elif re.match(r"postgresql(\+\w+)?://", raw_uri):

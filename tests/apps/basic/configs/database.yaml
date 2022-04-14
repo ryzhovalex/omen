@@ -1,3 +1,0 @@
-# uri: ./instance/sqlite3.db
-# uri: postgresql://alex:{PSQL_PW}@localhost:5432/puft-test-basic
-uri: postgresql+psycopg2://alex:{PSQL_PW}@localhost:5432/puft-test-basic

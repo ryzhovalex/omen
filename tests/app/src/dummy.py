@@ -2,7 +2,7 @@ from puft import Service, Puft, View, Mapper, Database
 from warepy import log
 from flask import render_template, request
 
-from .orm import User
+from .orm import User, Message, Base, Admin
 
 
 def ctx_processor():
@@ -18,7 +18,10 @@ def dummy_processor():
         "puft": Puft.instance(),
         "db": Database.instance(),
         "ctx": Puft.instance().get_native_app().test_request_context(),
-        "User": User
+        "User": User,
+        "Message": Message,
+        "Base": Base,
+        "Admin": Admin
     }
 
 
