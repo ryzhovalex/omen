@@ -1,3 +1,5 @@
+__version__ = "0.4.0a2"
+
 from .errors.error import Error
 from .views.view import View
 from .tools.helper import Helper
@@ -18,6 +20,3 @@ from .tools import (
 from .tools.decorators import (
     login_required,
 )
-
-
-__version__ = "0.4.0a2"

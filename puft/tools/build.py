@@ -12,16 +12,16 @@ class Build:
     def __init__(
         self,
         version: str = "",
-        config_dir: str = "./configs",
+        config_dir: str = "./src/configs",
         service_cells: list[ServiceCell] = [],
         mapper_cells: list[MapperCell] = [],
         view_cells: list[ViewCell] = [],
         emitter_cells: list[EmitterCell] = [],
         shell_processors: list[Callable] = [],
         cli_cmds: list[Callable] = [],
-        ctx_processor_func: Callable = None,
-        each_request_func: Callable = None,
-        first_request_func: Callable = None 
+        ctx_processor_func: Callable | None = None,
+        each_request_func: Callable | None = None,
+        first_request_func: Callable | None = None 
     ) -> None:
         # Use native root module path.
         # Because this class imported from root directory, root_path below will be assigned from there during class's

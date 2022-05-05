@@ -29,13 +29,17 @@ def get_root_path() -> str:
 
 
 class Assembler(Helper):
-    """Assembles all project instances from given `Builder` type's class and initializes it.
+    """Assembles all project instances from given `Builder` type's class and
+    initializes it.
     
-    Acts automatically and shouldn't be inherited directly by project in any form."""
+    Acts automatically and shouldn't be inherited directly by project in any
+    form.
+    """
     DEFAULT_LOG_PARAMS = {
         "path": "./instance/logs/system.log",
         "level": "DEBUG",
-        "format": "{time:%Y.%m.%d at %H:%M:%S:%f%z} | {level} | {extra} >> {message}",
+        "format":
+            "{time:%Y.%m.%d at %H:%M:%S:%f%z} | {level} | {extra} >> {message}",
         "rotation": "10 MB",
         "serialize": False
     }
@@ -48,7 +52,9 @@ class Assembler(Helper):
     ) -> None:
         super().__init__(*args, **kwargs)
         # Define attributes for getter methods to be used at builder.
-        self.extra_configs_by_name = {}  # Do not set this to None at initialization, because `get()` method called from this dictionary.
+        # Do not set extra_configs_by_name to None at initialization, because
+        # `get()` method called from this dictionary.
+        self.extra_configs_by_name = {}
         self.root_path = build.root_path
         self.service_cells = build.service_cells
         self.mapper_cells = build.mapper_cells
@@ -220,20 +226,23 @@ class Assembler(Helper):
             # Check for domain's config in given cells by comparing names and apply to service config if it exists.
             config = self._assemble_service_config(name=cell.name) 
 
-            # Each builtin service should receive essential fields for their configs, such as root_path, because
-            # they cannot import Assembler due to circular import issue and get this fields by themselves.
+            # Each builtin service should receive essential fields for their
+            # configs, such as root_path, because they cannot import Assembler
+            # due to circular import issue and get this fields by themselves.
             config["root_path"] = self.root_path
 
             # Initialize service.
             if type(cell) is PuftServiceCell:
-                # Run special initialization with mode, host and port for Puft service.
+                # Run special initialization with mode, host and port for Puft
+                # service.
                 cell.service_class(
                     mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
                     config=config,
-                    ctx_processor_func=self.ctx_processor_func,
-                    each_request_func=self.each_request_func,
-                    first_request_func=self.first_request_func,
-                )
+                    # Lines below are ignored since Pyright gives strange error
+                    # on service_class() and funcs below types incopatibility.
+                    ctx_processor_func=self.ctx_processor_func,  # type: ignore
+                    each_request_func=self.each_request_func,  # type: ignore
+                    first_request_func=self.first_request_func)  # type: ignore
             else:
                 cell.service_class(config=config)
 

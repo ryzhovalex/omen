@@ -6,12 +6,15 @@ import json
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
 
+from flask_sqlalchemy import SQLAlchemy
+
 from warepy import log, format_message, join_paths, load_yaml
 
 if TYPE_CHECKING:
-    # Import at type checking with future.annotations to avoid circular imports and use just for typehints.
+    # Import at type checking with future.annotations to avoid circular imports
+    # and use just for typehints.
     from ..services.puft import Puft
-    from ..services.database import Database, native_db
+    from ..services.database import Database
     from ...views.view import View
     from ...emitters.emitter import Emitter
     from ..mappers.mapper import Mapper
@@ -60,7 +63,9 @@ class ConfigCell(NamedCell):
     """Config cell which can be used to load configs to appropriate instance's configuration by name."""
     source: str
 
-    def parse(self, root_path: str, update_with: dict = None, convert_keys_to_lower: bool = True) -> dict:
+    def parse(
+            self, root_path: str, update_with: dict | None = None,
+            convert_keys_to_lower: bool = True) -> dict:
         """Parse config cell and return configuration dictionary.
 
         Args:
@@ -149,7 +154,7 @@ class DatabaseServiceCell(ServiceCell):
 @dataclass
 class MapperCell(NamedCell):
     mapper_class: Type[Mapper]
-    model: Type[native_db.Model]
+    model: Type[SQLAlchemy.Model]
 
 
 @dataclass
