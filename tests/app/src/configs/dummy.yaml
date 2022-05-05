@@ -1,0 +1,3 @@
+var: 12502
+path_environ: Here's your {PATH}
+non_environ: Here's your non-environ \{configuration\}

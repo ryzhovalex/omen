@@ -40,7 +40,7 @@ class NamedCell(Cell):
     def find_by_name(name: str, cells: Sequence[AnyNamedCell]) -> AnyNamedCell:
         """Traverse through given list of cells and return first one with specified name.
         
-        raise:
+        Raise:
             ValueError: 
                 No cell with given name found.
         """
@@ -51,7 +51,8 @@ class NamedCell(Cell):
 
     @staticmethod
     def map_to_name(cells: list[AnyNamedCell]) -> dict[str, AnyNamedCell]:
-        """Traverse through given cells names and return dict with these cells as values and their names as keys."""
+        """Traverse through given cells names and return dict with these cells
+        as values and their names as keys."""
         cells_by_name = {}
         for cell in cells:
             cells_by_name[cell.name] = cell
@@ -60,7 +61,8 @@ class NamedCell(Cell):
 
 @dataclass
 class ConfigCell(NamedCell):
-    """Config cell which can be used to load configs to appropriate instance's configuration by name."""
+    """Config cell which can be used to load configs to appropriate instance's
+    configuration by name."""
     source: str
 
     def parse(
@@ -91,31 +93,17 @@ class ConfigCell(NamedCell):
         elif "yaml" in self.source[-5:len(self.source)]:
             config = load_yaml(self.source)
         else:
-            error_message = format_message("Unrecognized config cell source's extension.")
+            error_message = format_message(
+                "Unrecognized config cell source's extension.")
             raise ValueError(error_message)
 
         if config:
-            for k, v in config.items():
-                if type(v) == str:
-                    # Find environs to be requested.
-                    envs = re.findall(r"\{\w+\}", v)  # type: list[str]
-                    if envs:
-                        for env in [x.replace("{", "").replace("}", "") for x in envs]:
-                            real_env_value = os.getenv(env)
-                            if real_env_value is None:
-                                raise ValueError(f"Environ {env} specified in field {self.name}.{k} was not found")
-                            else:
-                                v = v.replace("{" + f"{env}" + "}", real_env_value)
-
-                    # Find paths required to be joined to the root path.
-                    if v[0] == "." and v[1] == "/":
-                        config[k] = join_paths(root_path, v)
-                    else:
-                        config[k] = v
+            self._parse_string_config_values(config, root_path)
         else:
             config = {}
 
-        # Update given config with extra dictionary if this dictionary given and not empty.
+        # Update given config with extra dictionary if this dictionary given
+        # and not empty.
         if update_with:
             config.update(update_with)
 
@@ -126,6 +114,37 @@ class ConfigCell(NamedCell):
             config = rconfig
 
         return config
+    
+    def _parse_string_config_values(
+            self, config: dict, root_path: str) -> None:
+        for k, v in config.items():
+            if type(v) == str:
+                # Find environs to be requested.
+                # Exclude escaped curly braces like `\{not_environ\}`.
+                envs: list[str] = re.findall(r"[^\\]\{\w+\}", v)
+                if envs:
+                    for env in [
+                                x.replace("{", "").replace("}", "")
+                                for x in envs
+                            ]:
+                        env = env.strip()
+                        real_env_value = os.getenv(env.strip())
+                        if real_env_value is None:
+                            log.debug(env == "PATH")
+                            raise ValueError(
+                                f"Environ {env} specified in field"
+                                f" {self.name}.{k} was not found")
+                        else:
+                            v = v.replace("{" + f"{env}" + "}", real_env_value)
+
+                # Look for escaped curly braces and normalize them.
+                v = v.replace(r"\{", "{").replace(r"\}", "}")
+
+                # Find paths required to be joined to the root path.
+                if v[0] == "." and v[1] == "/":
+                    config[k] = join_paths(root_path, v)
+                else:
+                    config[k] = v
 
 
 @dataclass

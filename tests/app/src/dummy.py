@@ -1,3 +1,4 @@
+import os
 from puft import Service, Puft, View, Mapper, Database
 from warepy import log
 from flask import render_template, request
@@ -28,10 +29,18 @@ def dummy_processor():
 class Dummy(Service):
     def __init__(self, config: dict) -> None:
         super().__init__(config)
-
         self.app = Puft.instance()
-        assert config.get("test_var", 0) == 12502
-        # assert config.get("environs", None) == "Do i love environs? Answer is true"
+
+        var = self.config.get("var")
+        assert type(int(var)) is int
+        assert var == 12502
+        path_environ = self.config.get("path_environ")
+        assert type(path_environ) is str
+        assert \
+            os.environ["PATH"] in path_environ 
+        non_environ = self.config.get("non_environ")
+        assert type(non_environ) is str
+        assert r"{configuration}" in non_environ
 
 
 class DummyView(View):
