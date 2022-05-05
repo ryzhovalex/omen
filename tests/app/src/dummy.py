@@ -1,6 +1,6 @@
 import os
-from puft import Service, Puft, View, Mapper, Database
-from warepy import log
+from puft import Service, Puft, View, Mapper, Database, get_mode
+from warepy import log, format_message
 from flask import render_template, request
 
 from .orm import User, Message, Base, Admin
@@ -31,9 +31,18 @@ class Dummy(Service):
         super().__init__(config)
         self.app = Puft.instance()
 
+        app_mode = get_mode()
         var = self.config.get("var")
         assert type(int(var)) is int
-        assert var == 12502
+        if app_mode == "prod":
+            assert var == 1
+        elif app_mode == "dev":
+            assert var == 2
+        elif app_mode == "test":
+            assert var == 3
+        else:
+            raise ValueError(
+                format_message("Unrecognized app mode: {}", app_mode))
         path_environ = self.config.get("path_environ")
         assert type(path_environ) is str
         assert \

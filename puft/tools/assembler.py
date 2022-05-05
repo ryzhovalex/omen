@@ -90,9 +90,15 @@ class Assembler(Helper):
 
     @log.catch
     def _assign_config_cells(self, config_dir: str) -> None:
-        """Traverse through config files under given config_dir and create ConfigCells from them.
+        """Traverse through config files under given config_dir and create 
+        ConfigCells from them.
 
-        Name taken from filename of config and should be the same as specified at config's target service_cell.name.
+        Name taken from filename of config and should be the same as specified 
+        at config's target service_cell.name.
+
+        Names can contain additional extension like `name.prod.yaml` according
+        to appropriate Puft modes. These configs launched per each mode. Config
+        without this extra extension, considered `prod` moded.
         """
         self.config_cells = []
 
@@ -102,18 +108,19 @@ class Assembler(Helper):
             if os.path.isfile(join_paths(config_path, filename)):
                 name = filename[:filename.rfind(".")]  # Truncate extension.
                 file_path = join_paths(config_path, filename)
-                self.config_cells.append(ConfigCell(name=name, source=file_path))
+                self.config_cells.append(ConfigCell(
+                    name=name, source=file_path))
 
     @log.catch
     def _assign_builtin_service_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting service cells if configuration file for its service exists."""
-        self.builtin_service_cells = [PuftServiceCell(
+        self.builtin_service_cells: list[Any] = [PuftServiceCell(
             name="puft",
             service_class=Puft,
             mode_enum=mode_enum,
             host=host,
             port=port
-        )]  # type: list[Any]
+        )]
 
         # Enable only modules with specified configs.
         if self.config_cells:
@@ -139,8 +146,10 @@ class Assembler(Helper):
 
         Args:
             configs_by_name (optional):
-                Configs to be appended to appropriate ones described in Build class. Defaults to None.
-                Contain config name as key (which is compared to ConfigCell name field) and configuration mapping as value, e.g.:
+                Configs to be appended to appropriate ones described in Build
+                class. Defaults to None.
+                Contain config name as key (which is compared to ConfigCell
+                name field) and configuration mapping as value, e.g.:
         ```python
         configs_by_name = {
             "app": {"TESTING": True},
@@ -269,18 +278,23 @@ class Assembler(Helper):
                 cell.service_class(config=service_config)
 
     @log.catch
-    def _assemble_service_config(self, name: str, is_errors_enabled: bool = False) -> dict:
-        """Check for service's config in config cells by comparing its given name and return it as dict.
+    def _assemble_service_config(
+            self, name: str, is_errors_enabled: bool = False) -> dict:
+        """Check for service's config in config cells by comparing its given
+        name and return it as dict.
 
-        If appropriate config hasn't been found, raise ValueError if `is_errors_enabled = True` or return empty dict
-        otherwise.
+        If appropriate config hasn't been found, raise ValueError if
+        `is_errors_enabled = True` or return empty dict otherwise.
         """
         try:
-            config_cell_with_target_name = NamedCell.find_by_name(name, self.config_cells)
-        except ValueError:  # i.e config not found.
+            config_cell_with_target_name = NamedCell.find_by_name(
+                name, self.config_cells)
+        except ValueError:  # i.e. config not found.
             # If config not found and errors enabled, raise error.
             if is_errors_enabled:
-                message = format_message("Appropriate config for given name {} hasn't been found.", name)
+                message = format_message(
+                    "Appropriate config for given name {} hasn't been found.",
+                    name)
                 raise ValueError(message)
             else:
                 config = {}

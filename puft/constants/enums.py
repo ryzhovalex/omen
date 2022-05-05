@@ -3,6 +3,12 @@ from typing import Any, List, Dict, Tuple, Union, Callable, Literal, get_args
 from enum import Enum
 
 
+class AppModeEnum(Enum):
+    DEV = "dev"
+    PROD = "prod"
+    TEST = "test"
+
+
 class CLIDatabaseEnum(Enum):
     INIT = "init"
     MIGRATE = "migrate"

@@ -10,6 +10,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 from warepy import log, format_message, join_paths, load_yaml
 
+from puft.constants.enums import AppModeEnum
+
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports
     # and use just for typehints.
@@ -23,7 +25,7 @@ if TYPE_CHECKING:
 
 
 # Set TypeVar upper bound to class defined afterwards.
-# https://stackoverflow.com/questions/63830289/setting-typevar-upper-bound-to-class-defined-afterwards
+# https://stackoverflow.com/a/67662276
 AnyNamedCell = TypeVar("AnyNamedCell", bound="NamedCell")
 
 
@@ -38,7 +40,8 @@ class NamedCell(Cell):
 
     @staticmethod
     def find_by_name(name: str, cells: Sequence[AnyNamedCell]) -> AnyNamedCell:
-        """Traverse through given list of cells and return first one with specified name.
+        """Traverse through given list of cells and return first one with
+        specified name.
         
         Raise:
             ValueError: 
@@ -63,29 +66,32 @@ class NamedCell(Cell):
 class ConfigCell(NamedCell):
     """Config cell which can be used to load configs to appropriate instance's
     configuration by name."""
-    source: str
+    source_by_app_mode: dict[AppModeEnum, str]
 
     def parse(
-            self, root_path: str, update_with: dict | None = None,
+            self, app_mode_enum: AppModeEnum, root_path: str,
+            update_with: dict | None = None,
             convert_keys_to_lower: bool = True) -> dict:
         """Parse config cell and return configuration dictionary.
 
         Args:
-            config_cell:
-                Configuration cell to parse from.
+            app_mode_enum:
+                App mode to run appropriate config.
             root_path:
                 Path to join config cell source with.
             update_with (optional):
-                Dictionary to update config cell mapping with. Defaults to None.
+                Dictionary to update config cell mapping with.
+                Defaults to None.
             convert_keys_to_lower (optional):
-                If true, all keys from origin mapping and mapping from `update_with` will be converted to upper case.
+                If true, all keys from origin mapping and mapping from
+                `update_with` will be converted to upper case.
         
         Raise:
             ValueError:
                 If given config cell's source has unrecognized extension.
         """
         config = {}
-
+        
         # Fetch config's extension.
         if "json" in self.source[-5:len(self.source)]:
             with open(self.source, "r") as config_file:
