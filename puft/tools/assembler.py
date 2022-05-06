@@ -3,9 +3,10 @@ from __future__ import annotations
 import os
 from typing import Dict, TYPE_CHECKING, Any
 
-from puft.constants.hints import CLIModeEnumUnion
-from warepy import log, join_paths, format_message, load_yaml
+from warepy import log, join_paths, format_message, load_yaml, get_enum_values
 
+from puft.constants.hints import CLIModeEnumUnion
+from puft.constants.enums import AppModeEnum, CLIRunEnum, ConfigExtensionEnum
 from .helper import Helper
 from ..models.domains.cells import (
     NamedCell, ConfigCell, ServiceCell, PuftServiceCell, DatabaseServiceCell
@@ -103,16 +104,77 @@ class Assembler(Helper):
         self.config_cells = []
 
         config_path = join_paths(self.root_path, config_dir)
+        source_map_by_name = self._find_config_files(config_path)
+
+        for name, source_map in source_map_by_name.items():
+            self.config_cells.append(ConfigCell(
+                name=name,
+                source_by_app_mode=source_map))
+
+    def _find_config_files(
+            self, config_path: str) -> dict[str, dict[AppModeEnum, str]]:
+        """Accept path to config dir and return dict describing all paths to
+        configs for all app modes per service name.
+        
+        Return example:
+        ```python
+        {
+            "custom_sv_name": {
+                AppModeEnum.PROD: "./some/path",
+                AppModeEnum.DEV: "./some/path",
+                AppModeEnum.TEST: "./some/path"
+            }
+        }
+        ```
+        """
+        source_map_by_name = {} 
         for filename in os.listdir(config_path):
-            # Pick only files under config_dir.
+            # Pick files only under config_dir.
             if os.path.isfile(join_paths(config_path, filename)):
-                name = filename[:filename.rfind(".")]  # Truncate extension.
+                parts = filename.split(".")
                 file_path = join_paths(config_path, filename)
-                self.config_cells.append(ConfigCell(
-                    name=name, source=file_path))
+
+                if len(parts) == 1:
+                    # Skip files without extension.
+                    continue
+                elif len(parts) >= 2:
+                    # Config name shouldn't contain dots and thus we can grab
+                    # it right here.
+                    config_name = parts[0]
+
+                    # Check if file has supported extension.
+                    if parts[1] in get_enum_values(ConfigExtensionEnum):
+                        if len(parts) == 2:
+                            # Add file without app mode automatically to
+                            # `prod`.
+                            if config_name not in source_map_by_name:
+                                source_map_by_name[config_name] = dict()
+                            source_map_by_name[config_name][
+                                AppModeEnum.PROD] = file_path
+                        elif len(parts) == 3:
+                            if parts[-2] in get_enum_values(AppModeEnum):
+                                # File has both normal extension and defined
+                                # app mode.
+                                source_map_by_name[config_name][
+                                    parts[-2]] = file_path
+                            else:
+                                # Unrecognized app mode: maybe raise warning?
+                                continue
+                        else:
+                            # Skip files with names containing dots, e.g.
+                            # "dummy.new.prod.yaml".
+                            continue
+                    else:
+                        # Skip files with unsupported extension.
+                        continue
+                else:
+                    # Unreachable point.
+                    continue
+        return source_map_by_name
 
     @log.catch
-    def _assign_builtin_service_cells(self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
+    def _assign_builtin_service_cells(
+            self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting service cells if configuration file for its service exists."""
         self.builtin_service_cells: list[Any] = [PuftServiceCell(
             name="puft",
@@ -279,7 +341,7 @@ class Assembler(Helper):
 
     @log.catch
     def _assemble_service_config(
-            self, name: str, is_errors_enabled: bool = False) -> dict:
+            self, name: str, is_errors_enabled: bool = False) -> dict[str, Any]:
         """Check for service's config in config cells by comparing its given
         name and return it as dict.
 
@@ -287,7 +349,7 @@ class Assembler(Helper):
         `is_errors_enabled = True` or return empty dict otherwise.
         """
         try:
-            config_cell_with_target_name = NamedCell.find_by_name(
+            config_cell_with_target_name: ConfigCell = NamedCell.find_by_name(
                 name, self.config_cells)
         except ValueError:  # i.e. config not found.
             # If config not found and errors enabled, raise error.
@@ -297,20 +359,33 @@ class Assembler(Helper):
                     name)
                 raise ValueError(message)
             else:
-                config = {}
+                config: dict[str, Any] = {}
         else:
-            config = config_cell_with_target_name.parse(
-                root_path=self.root_path, 
-                update_with=self.extra_configs_by_name.get(name, None)
-            )
-
+            if type(config_cell_with_target_name) is not ConfigCell:
+                raise TypeError(format_message(
+                    "Type of cell should be ConfigCell, but {} received",
+                    type(config_cell_with_target_name)))
+            else:
+                app_mode_enum: AppModeEnum
+                if type(self.mode_enum) is CLIRunEnum:
+                    app_mode_enum = AppModeEnum(self.mode_enum.value) 
+                else:
+                    # Assign dev app mode for all other app modes.
+                    app_mode_enum = AppModeEnum.DEV
+                config = config_cell_with_target_name.parse(
+                    root_path=self.root_path, 
+                    update_with=self.extra_configs_by_name.get(name, None),
+                    app_mode_enum=app_mode_enum)
         return config
 
     @log.catch
     def _fetch_yaml_project_version(self) -> str:
         """Fetch project version from info.yaml from the root path and return it. 
 
-        TODO: Replace this logic with senseful one. Better use configuration's version? Or __init__.py or main.py specified."""
+        TODO:
+            Replace this logic with senseful one. Better use configuration's
+            version? Or __init__.py or main.py specified.
+        """
         info_data = load_yaml(join_paths(self.root_path, "./info.yaml"))
         project_version = info_data["version"]
         return project_version

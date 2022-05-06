@@ -7,10 +7,9 @@ from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
 
 from flask_sqlalchemy import SQLAlchemy
+from warepy import get_enum_values, log, format_message, join_paths, load_yaml
 
-from warepy import log, format_message, join_paths, load_yaml
-
-from puft.constants.enums import AppModeEnum
+from puft.constants.enums import AppModeEnum, ConfigExtensionEnum
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports
@@ -56,7 +55,7 @@ class NamedCell(Cell):
     def map_to_name(cells: list[AnyNamedCell]) -> dict[str, AnyNamedCell]:
         """Traverse through given cells names and return dict with these cells
         as values and their names as keys."""
-        cells_by_name = {}
+        cells_by_name: dict[str, AnyNamedCell] = {}
         for cell in cells:
             cells_by_name[cell.name] = cell
         return cells_by_name
@@ -70,8 +69,8 @@ class ConfigCell(NamedCell):
 
     def parse(
             self, app_mode_enum: AppModeEnum, root_path: str,
-            update_with: dict | None = None,
-            convert_keys_to_lower: bool = True) -> dict:
+            update_with: dict[str, Any] | None = None,
+            convert_keys_to_lower: bool = True) -> dict[str, Any]:
         """Parse config cell and return configuration dictionary.
 
         Args:
@@ -90,18 +89,34 @@ class ConfigCell(NamedCell):
             ValueError:
                 If given config cell's source has unrecognized extension.
         """
-        config = {}
+        config: dict[str, Any] = {}
+        if app_mode_enum in self.source_by_app_mode:
+            source = self.source_by_app_mode[app_mode_enum]
+        else:
+            # Apply searching strategy: test -> dev -> prod.
+            if app_mode_enum is AppModeEnum.TEST:
+                if AppModeEnum.DEV in self.source_by_app_mode:
+                    source = self.source_by_app_mode[AppModeEnum.DEV]
+                else:
+                    source = self.source_by_app_mode[AppModeEnum.PROD]
+            elif app_mode_enum is AppModeEnum.DEV:
+                source = self.source_by_app_mode[AppModeEnum.PROD]
+            else:
+                raise
+                    
+        source_extension = source[source.rfind(".")+1:]
         
         # Fetch config's extension.
-        if "json" in self.source[-5:len(self.source)]:
-            with open(self.source, "r") as config_file:
-                config = json.load(config_file)
-        elif "yaml" in self.source[-5:len(self.source)]:
-            config = load_yaml(self.source)
-        else:
-            error_message = format_message(
-                "Unrecognized config cell source's extension.")
-            raise ValueError(error_message)
+        match source_extension:
+            case "json":
+                with open(source, "r") as config_file:
+                    config = json.load(config_file)
+            case "yaml":
+                config = load_yaml(source)
+            case _:
+                error_message = format_message(
+                    "Unrecognized config cell source's extension.")
+                raise ValueError(error_message)
 
         if config:
             self._parse_string_config_values(config, root_path)
@@ -122,7 +137,7 @@ class ConfigCell(NamedCell):
         return config
     
     def _parse_string_config_values(
-            self, config: dict, root_path: str) -> None:
+            self, config: dict[str, Any], root_path: str) -> None:
         for k, v in config.items():
             if type(v) == str:
                 # Find environs to be requested.

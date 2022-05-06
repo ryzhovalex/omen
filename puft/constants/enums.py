@@ -45,3 +45,8 @@ class TurboActionEnum(Enum):
 class DatabaseTypeEnum(Enum):
     SQLITE = "sqlite"
     PSQL = "psql"
+
+
+class ConfigExtensionEnum(Enum):
+    YAML = "yaml"
+    JSON = "json"

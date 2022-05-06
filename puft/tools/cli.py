@@ -5,7 +5,8 @@ import importlib.util
 from typing import get_args
 
 from warepy import (
-    format_message, join_paths, log, match_enum_containing_value, get_enum_values, get_union_enum_values
+    format_message, join_paths, log, match_enum_containing_value,
+    get_enum_values, get_union_enum_values
 )
 
 from .. import __version__ as puft_version
@@ -26,7 +27,8 @@ def main() -> None:
         mode = args.mode[0] 
 
         # Find enum where mode assigned.
-        mode_enum_class = match_enum_containing_value(mode, *get_args(CLIModeEnumUnion))
+        mode_enum_class = match_enum_containing_value(
+            mode, *get_args(CLIModeEnumUnion))
 
         # Create according enum with mode value.
         mode_enum = mode_enum_class(mode)
