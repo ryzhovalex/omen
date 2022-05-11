@@ -31,7 +31,6 @@ class Dummy(Service):
         super().__init__(config)
         self.app = Puft.instance()
 
-        log.debug(self.config)
         app_mode = get_mode()
         var = self.config.get("var")
         assert var is not None
