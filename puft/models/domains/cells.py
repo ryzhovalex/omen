@@ -95,7 +95,6 @@ class ConfigCell(NamedCell):
         res_config: dict[str, Any] = {}
 
         config_by_mode: dict[AppModeEnum, dict] = self._load_config_by_mode()
-        log.debug(f"{config_by_mode=}")
         res_config = self._update_config_for_mode(config_by_mode, app_mode_enum)
 
         if res_config:

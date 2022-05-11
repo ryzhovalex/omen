@@ -104,7 +104,8 @@ class Puft(Service):
         self.static_folder = self.config.get("STATIC_FOLDER", None)
 
         # Set Flask environs according to given mode.
-        # Setting exactly through environs instead of config recommended by Flask creators.
+        # Setting exactly through environs instead of config recommended by
+        # Flask creators.
         # https://flask.palletsprojects.com/en/2.0.x/config/#:~:text=Using%20the%20environment,a%20previous%20value.
         if self.mode_enum not in [CLIRunEnum.DEV, CLIRunEnum.TEST]:
             os.environ["FLASK_ENV"] = "production"
@@ -118,11 +119,20 @@ class Puft(Service):
             static_folder=self.static_folder
         )
 
+    @property
+    @log.catch
+    def secret_key(self) -> str:
+        """Return secret key defined in App's config."""
+        return self.native_app.config["SECRET_KEY"]
+
     @log.catch
     def get_url(self) -> str:
         """Return app's url.
 
         Hostname may be e.g. `http://127.0.0.1:5000/`.
+
+        Warning:
+            Has url resolving issues described in issue #6.
         """
         return "http://" + self.host + ":" + str(self.port) + "/"
 
