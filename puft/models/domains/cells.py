@@ -1,12 +1,14 @@
 from __future__ import annotations
-
 import re
+from copy import copy
 import os
 import json
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
+from flask import app
 
 from flask_sqlalchemy import SQLAlchemy
+from ...constants.orm_types import Model
 from warepy import get_enum_values, log, format_message, join_paths, load_yaml
 
 from puft.constants.enums import AppModeEnum, ConfigExtensionEnum
@@ -49,7 +51,8 @@ class NamedCell(Cell):
         for cell in cells:
             if cell.name == name:
                 return cell
-        raise ValueError(format_message("No cell with given name {} found.", name))
+        raise ValueError(
+            format_message("No cell with given name {} found.", name))
 
     @staticmethod
     def map_to_name(cells: list[AnyNamedCell]) -> dict[str, AnyNamedCell]:
@@ -89,51 +92,85 @@ class ConfigCell(NamedCell):
             ValueError:
                 If given config cell's source has unrecognized extension.
         """
-        config: dict[str, Any] = {}
-        if app_mode_enum in self.source_by_app_mode:
-            source = self.source_by_app_mode[app_mode_enum]
+        res_config: dict[str, Any] = {}
+
+        config_by_mode: dict[AppModeEnum, dict] = self._load_config_by_mode()
+        log.debug(f"{config_by_mode=}")
+        res_config = self._update_config_for_mode(config_by_mode, app_mode_enum)
+
+        if res_config:
+            self._parse_string_config_values(res_config, root_path)
         else:
-            # Apply searching strategy: test -> dev -> prod.
-            if app_mode_enum is AppModeEnum.TEST:
-                if AppModeEnum.DEV in self.source_by_app_mode:
-                    source = self.source_by_app_mode[AppModeEnum.DEV]
-                else:
-                    source = self.source_by_app_mode[AppModeEnum.PROD]
-            elif app_mode_enum is AppModeEnum.DEV:
-                source = self.source_by_app_mode[AppModeEnum.PROD]
-            else:
-                raise
-                    
-        source_extension = source[source.rfind(".")+1:]
+            res_config = {}
+
+        # Update given config with extra dictionary if this dictionary given
+        # and not empty.
+        if update_with:
+            res_config.update(update_with)
+
+        if convert_keys_to_lower:
+            temp_config = {}
+            for k, v in res_config.items():
+                temp_config[k.lower()] = v
+            res_config = temp_config
+
+        return res_config
+
+    def _update_config_for_mode(
+            self,
+            config_by_mode: dict[AppModeEnum, dict],
+            app_mode_enum: AppModeEnum) -> dict:
+        """Take config maps for each mode and return result config updated for
+        current mode.
         
-        # Fetch config's extension.
-        match source_extension:
-            case "json":
+        E.g., given mode is TEST, so final config will be PROD config updated
+        by DEV config and then updated by TEST config (so test keys will
+        take priority).
+        """ 
+        prod_config = copy(config_by_mode[AppModeEnum.PROD])
+
+        if app_mode_enum is AppModeEnum.TEST:
+            dev_config = copy(config_by_mode[AppModeEnum.DEV])
+            test_config = copy(config_by_mode[AppModeEnum.TEST])
+            dev_config.update(test_config)
+            prod_config.update(dev_config)
+        elif app_mode_enum is AppModeEnum.DEV:
+            dev_config = copy(config_by_mode[AppModeEnum.DEV])
+            prod_config.update(dev_config)
+        else:
+            # Prod mode, do nothing extra.
+            pass
+        return prod_config
+    
+    def _load_config_by_mode(self) -> dict[AppModeEnum, dict]:
+        config_by_mode: dict[AppModeEnum, dict] = {}
+        for app_mode_enum in AppModeEnum:
+            try:
+                source = self.source_by_app_mode[app_mode_enum]
+            except KeyError:
+                # No source for such mode.
+                config_by_mode[app_mode_enum] = {}
+                continue
+            source_extension = source[source.rfind(".")+1:]
+            config_by_mode[app_mode_enum] = self._load_config_from_file(
+                source_extension_enum=ConfigExtensionEnum(source_extension),
+                source=source)
+        return config_by_mode
+    
+    def _load_config_from_file(
+            self,
+            source_extension_enum: ConfigExtensionEnum, source: str) -> dict:
+        # Fetch extension and load config from file.
+        match source_extension_enum:
+            case ConfigExtensionEnum.JSON:
                 with open(source, "r") as config_file:
                     config = json.load(config_file)
-            case "yaml":
+            case ConfigExtensionEnum.YAML:
                 config = load_yaml(source)
             case _:
                 error_message = format_message(
                     "Unrecognized config cell source's extension.")
                 raise ValueError(error_message)
-
-        if config:
-            self._parse_string_config_values(config, root_path)
-        else:
-            config = {}
-
-        # Update given config with extra dictionary if this dictionary given
-        # and not empty.
-        if update_with:
-            config.update(update_with)
-
-        if convert_keys_to_lower:
-            rconfig = {}
-            for k, v in config.items():
-                rconfig[k.lower()] = v
-            config = rconfig
-
         return config
     
     def _parse_string_config_values(
@@ -151,7 +188,6 @@ class ConfigCell(NamedCell):
                         env = env.strip()
                         real_env_value = os.getenv(env.strip())
                         if real_env_value is None:
-                            log.debug(env == "PATH")
                             raise ValueError(
                                 f"Environ {env} specified in field"
                                 f" {self.name}.{k} was not found")
@@ -194,7 +230,7 @@ class DatabaseServiceCell(ServiceCell):
 @dataclass
 class MapperCell(NamedCell):
     mapper_class: Type[Mapper]
-    model: Type[SQLAlchemy.Model]
+    model: Type[Model]
 
 
 @dataclass

@@ -101,10 +101,11 @@ class Assembler(Helper):
         to appropriate Puft modes. These configs launched per each mode. Config
         without this extra extension, considered `prod` moded.
         """
-        self.config_cells = []
+        self.config_cells: list[ConfigCell] = []
 
-        config_path = join_paths(self.root_path, config_dir)
-        source_map_by_name = self._find_config_files(config_path)
+        config_path: str = join_paths(self.root_path, config_dir)
+        source_map_by_name: dict[str, dict[AppModeEnum, str]] = \
+            self._find_config_files(config_path)
 
         for name, source_map in source_map_by_name.items():
             self.config_cells.append(ConfigCell(
@@ -137,38 +138,41 @@ class Assembler(Helper):
                 if len(parts) == 1:
                     # Skip files without extension.
                     continue
-                elif len(parts) >= 2:
+                # Check if file has supported extension.
+                elif len(parts) == 2:
                     # Config name shouldn't contain dots and thus we can grab
                     # it right here.
                     config_name = parts[0]
-
-                    # Check if file has supported extension.
                     if parts[1] in get_enum_values(ConfigExtensionEnum):
-                        if len(parts) == 2:
-                            # Add file without app mode automatically to
-                            # `prod`.
-                            if config_name not in source_map_by_name:
-                                source_map_by_name[config_name] = dict()
-                            source_map_by_name[config_name][
-                                AppModeEnum.PROD] = file_path
-                        elif len(parts) == 3:
-                            if parts[-2] in get_enum_values(AppModeEnum):
-                                # File has both normal extension and defined
-                                # app mode.
-                                source_map_by_name[config_name][
-                                    parts[-2]] = file_path
-                            else:
-                                # Unrecognized app mode: maybe raise warning?
-                                continue
-                        else:
-                            # Skip files with names containing dots, e.g.
-                            # "dummy.new.prod.yaml".
-                            continue
+                        # Add file without app mode automatically to
+                        # `prod`.
+                        if config_name not in source_map_by_name:
+                            source_map_by_name[config_name] = dict()
+                        source_map_by_name[config_name][
+                            AppModeEnum.PROD] = file_path
                     else:
                         # Skip files with unsupported extension.
                         continue
+                elif len(parts) == 3:
+                    # Config name shouldn't contain dots and thus we can grab
+                    # it right here.
+                    config_name = parts[0]
+                    if parts[1] in get_enum_values(AppModeEnum) \
+                            and parts[2] in get_enum_values(
+                                ConfigExtensionEnum):
+                        # File has both normal extension and defined
+                        # app mode.
+                        if config_name not in source_map_by_name:
+                            source_map_by_name[config_name] = dict()
+                        source_map_by_name[config_name][
+                            AppModeEnum(parts[1])] = file_path
+                    else:
+                        # Unrecognized app mode or extension,
+                        # maybe raise warning?
+                        continue
                 else:
-                    # Unreachable point.
+                    # Skip files with names containing dots, e.g.
+                    # "dummy.new.prod.yaml".
                     continue
         return source_map_by_name
 
@@ -200,11 +204,12 @@ class Assembler(Helper):
     @staticmethod
     @log.catch
     def build(
-        configs_by_name: Dict[str, dict] | None = None, root_path: str | None = None
-    ) -> None:
+            configs_by_name: Dict[str, dict] | None = None,
+            root_path: str | None = None) -> None:
         """Initialize all given to Assembler instances in their dependencies.
         
-        Reassign assembler's attributes to given ones and run it's setup operations to assemble app and other project's instances.
+        Reassign assembler's attributes to given ones and run it's setup
+        operations to assemble app and other project's instances.
 
         Args:
             configs_by_name (optional):
@@ -220,7 +225,8 @@ class Assembler(Helper):
         ```
             root_path (optional):
                 Root path to execute project from. Defaults to `os.getcwd()`.
-                Required in cases of calling this function not from actual project root (e.g. from tests) to set root path explicitly.
+                Required in cases of calling this function not from actual
+                project root (e.g. from tests) to set root path explicitly.
         """
         # Get Assembler instance without args, because it should be initialized before (in root create_app function).
         assembler = Assembler.instance()
@@ -261,7 +267,14 @@ class Assembler(Helper):
                 log_config = None
             else:
                 # Parse config mapping from cell and append extra configs, if they are given.
+                app_mode_enum: AppModeEnum
+                if type(self.mode_enum) is CLIRunEnum:
+                    app_mode_enum = AppModeEnum(self.mode_enum.value) 
+                else:
+                    # Assign dev app mode for all other app modes.
+                    app_mode_enum = AppModeEnum.DEV
                 log_config = log_config_cell.parse(
+                    app_mode_enum=app_mode_enum,
                     root_path=self.root_path, 
                     update_with=self.extra_configs_by_name.get("log", None)
                 )
@@ -341,7 +354,8 @@ class Assembler(Helper):
 
     @log.catch
     def _assemble_service_config(
-            self, name: str, is_errors_enabled: bool = False) -> dict[str, Any]:
+            self,
+            name: str, is_errors_enabled: bool = False) -> dict[str, Any]:
         """Check for service's config in config cells by comparing its given
         name and return it as dict.
 
