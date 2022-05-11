@@ -2,12 +2,11 @@ import os
 import sys
 import code
 import secrets
-from typing import Callable
+from typing import Callable, Type
 
 from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
-from puft.constants.hints import CLIModeEnumUnion
 from warepy import log, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 from flask import cli as flask_cli
@@ -15,10 +14,11 @@ from flask.ctx import AppContext, RequestContext
 from warepy import log, get_enum_values
 
 from .service import Service
+from puft.constants.hints import CLIModeEnumUnion
 from ...constants.enums import HTTPMethodEnum, TurboActionEnum
-from ...constants.hints import CLIModeEnumUnion
 from ..domains.cells import ViewCell
 from ...constants.enums import CLIRunEnum, TurboActionEnum
+from puft.errors.error import Error
 
 
 class Puft(Service):
@@ -166,8 +166,13 @@ class Puft(Service):
         """Register given view cell for the app."""
         # Check if view has kwargs to avoid sending empty dict.
         # Use cell's name as view's endpoint.
-        view = view_cell.view_class.as_view(view_cell.name)
+        view = view_cell.view_class.as_view(view_cell.endpoint)
         self.native_app.add_url_rule(view_cell.route, view_func=view, methods=get_enum_values(HTTPMethodEnum))
+
+    def register_error(
+            self,
+            error_class: type[Error], handler_function: Callable) -> None:
+        self.native_app.register_error_handler(error_class, handler_function)
 
     @log.catch
     def push_turbo(self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}) -> None:

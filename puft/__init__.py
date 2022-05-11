@@ -10,7 +10,9 @@ from .models.mappers.mapper import Mapper
 from .models.services.service import Service
 from .models.services.puft import Puft
 from .models.services.database import Database, native_db
-from .models.domains.cells import (Cell, ViewCell, ConfigCell, ServiceCell, MapperCell, EmitterCell)
+from .models.domains.cells import (
+    Cell, ViewCell, ConfigCell, ServiceCell, MapperCell, EmitterCell, ErrorCell
+)
 from .constants.enums import (
     HTTPMethodEnum, TurboActionEnum
 )

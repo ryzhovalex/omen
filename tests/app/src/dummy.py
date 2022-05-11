@@ -1,5 +1,5 @@
 import os
-from puft import Service, Puft, View, Mapper, Database, get_mode
+from puft import Service, Puft, View, Mapper, Database, get_mode, Error
 from warepy import log, format_message
 from flask import render_template, request
 
@@ -12,6 +12,11 @@ def ctx_processor():
 
 def each_request_processor():
     log.info(f"User connected {request.remote_addr}")
+
+
+def handle_dummy_error(err):
+    log.debug(err)
+    return f"Dummy error: {err}"
 
 
 def dummy_processor():
@@ -65,5 +70,21 @@ class DummyView(View):
         return render_template("dummy.html", user=user)
 
 
+class ErrorView(View):
+    def get(self):
+        err_type = request.args.get("type", "error")
+        if err_type == "dummy":
+            raise DummyError("Hello dummy")
+        else:
+            raise Error(
+                "Hello default error", "And multiple args are supported")
+
+
 class DummyMapper(Mapper):
     pass
+
+
+
+class DummyError(Error):
+    def expose(self):
+        return "DummyError works!"

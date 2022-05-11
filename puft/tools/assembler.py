@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import os
 from typing import Dict, TYPE_CHECKING, Any
 
@@ -9,11 +8,13 @@ from puft.constants.hints import CLIModeEnumUnion
 from puft.constants.enums import AppModeEnum, CLIRunEnum, ConfigExtensionEnum
 from .helper import Helper
 from ..models.domains.cells import (
-    NamedCell, ConfigCell, ServiceCell, PuftServiceCell, DatabaseServiceCell
+    ErrorCell, NamedCell, ConfigCell, ServiceCell, PuftServiceCell, DatabaseServiceCell
 )
 from ..models.services.database import Database
 from ..models.services.puft import Puft
 from ..constants.hints import CLIModeEnumUnion
+from puft.errors.error import Error
+from puft.tools.handlers import handle_wildcard_error
 
 if TYPE_CHECKING:
     from .build import Build
@@ -60,6 +61,7 @@ class Assembler(Helper):
         self.service_cells = build.service_cells
         self.mapper_cells = build.mapper_cells
         self.view_cells = build.view_cells
+        self.error_cells: list[ErrorCell] = build.error_cells
         self.emitter_cells = build.emitter_cells
         self.mode_enum = mode_enum
         self.shell_processors = build.shell_processors
@@ -67,6 +69,7 @@ class Assembler(Helper):
         self.ctx_processor_func = build.ctx_processor_func
         self.each_request_func = build.each_request_func
         self.first_request_func = build.first_request_func
+        self.default_wildcard_error_handler_func = handle_wildcard_error
 
         self._assign_config_cells(build.config_dir)
 
@@ -245,6 +248,7 @@ class Assembler(Helper):
         self._build_services()
         self._build_views()
         self._build_mappers()
+        self._build_errors()
         self._build_emitters()
         self._build_shell_processors()
         self._build_cli_cmds()
@@ -434,3 +438,16 @@ class Assembler(Helper):
     def _build_cli_cmds(self) -> None:
         if self.cli_cmds:
             self.puft.register_cli_cmd(*self.cli_cmds)
+
+    def _build_errors(self) -> None:
+        is_wildcard_specified = False
+        for error_cell in self.error_cells:
+            if type(error_cell.error_class) is Error:
+                is_wildcard_specified = True
+            self.puft.register_error(
+                error_cell.error_class, error_cell.handler_function)
+        # If wildcard handler is not specified, apply the default one.
+        if not is_wildcard_specified:
+            self.puft.register_error(
+                Error, self.default_wildcard_error_handler_func
+            )

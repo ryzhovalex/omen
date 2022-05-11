@@ -2,8 +2,9 @@ import os
 from typing import Callable
 
 from ..models.domains.cells import (
-    ConfigCell, ServiceCell, MapperCell, ViewCell, EmitterCell
+    ConfigCell, ServiceCell, MapperCell, ViewCell, EmitterCell, ErrorCell
 )
+
 
 class Build:
     """Proxy mapping class with collection of initial project instances to be builded by assembler.
@@ -17,11 +18,12 @@ class Build:
         mapper_cells: list[MapperCell] = [],
         view_cells: list[ViewCell] = [],
         emitter_cells: list[EmitterCell] = [],
+        error_cells: list[ErrorCell] = [],
         shell_processors: list[Callable] = [],
         cli_cmds: list[Callable] = [],
         ctx_processor_func: Callable | None = None,
         each_request_func: Callable | None = None,
-        first_request_func: Callable | None = None 
+        first_request_func: Callable | None = None,
     ) -> None:
         # Use native root module path.
         # Because this class imported from root directory, root_path below will be assigned from there during class's
@@ -35,6 +37,7 @@ class Build:
         self.mapper_cells = mapper_cells
         self.view_cells = view_cells
         self.emitter_cells = emitter_cells
+        self.error_cells = error_cells
         self.shell_processors = shell_processors
         self.cli_cmds = cli_cmds
         self.ctx_processor_func = ctx_processor_func

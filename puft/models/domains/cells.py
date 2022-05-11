@@ -8,10 +8,11 @@ from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
 from flask import app
 
 from flask_sqlalchemy import SQLAlchemy
-from ...constants.orm_types import Model
 from warepy import get_enum_values, log, format_message, join_paths, load_yaml
 
 from puft.constants.enums import AppModeEnum, ConfigExtensionEnum
+from puft.constants.orm_types import Model
+from puft.errors.error import Error
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports
@@ -205,13 +206,13 @@ class ConfigCell(NamedCell):
 
 @dataclass
 class ServiceCell(NamedCell):
-    service_class: Type[Service]
+    service_class: type[Service]
 
 
 @dataclass
 class PuftServiceCell(ServiceCell):
     """Injection cell with app itself which is required in any build."""
-    service_class: Type[Puft]
+    service_class: type[Puft]
     mode_enum: CLIModeEnumUnion
     host: str
     port: int
@@ -227,18 +228,24 @@ class DatabaseServiceCell(ServiceCell):
 
 
 @dataclass
-class MapperCell(NamedCell):
-    mapper_class: Type[Mapper]
-    model: Type[Model]
+class MapperCell(Cell):
+    mapper_class: type[Mapper]
+    model: type[Model]
 
 
 @dataclass
-class ViewCell(NamedCell):
-    # `name` == view's final endpoint, e.g. `objective.basic`.
-    view_class: Type[View]
+class ViewCell(Cell):
+    endpoint: str
+    view_class: type[View]
     route: str  # Route will be the same for all methods.
 
 
 @dataclass
-class EmitterCell(NamedCell):
-    emitter_class: Type[Emitter]
+class EmitterCell(Cell):
+    emitter_class: type[Emitter]
+
+
+@dataclass
+class ErrorCell(Cell):
+    error_class: type[Error]
+    handler_function: Callable

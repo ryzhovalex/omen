@@ -1,6 +1,11 @@
-from puft import Build, ServiceCell, ViewCell, ConfigCell, MapperCell
+from puft import (
+    Build, ServiceCell, ViewCell, ConfigCell, MapperCell, ErrorCell
+)
 
-from src.dummy import Dummy, DummyView, DummyMapper, dummy_processor, ctx_processor, each_request_processor
+from src.dummy import (
+    Dummy, DummyError, DummyView, DummyMapper, ErrorView, dummy_processor, ctx_processor,
+    each_request_processor, handle_dummy_error
+)
 from src.orm import User
 
 
@@ -13,16 +18,26 @@ build = Build(
     ],
     view_cells=[
         ViewCell(
-            name="dummy",
+            endpoint="dummy",
             view_class=DummyView,
             route="/"  
-        )
+        ),
+        ViewCell(
+            endpoint="error",
+            view_class=ErrorView,
+            route="/error"  
+        ),
     ],
     mapper_cells=[
         MapperCell(
-            name="dummy",
             mapper_class=DummyMapper,
             model=User
+        )
+    ],
+    error_cells=[
+        ErrorCell(
+            error_class=DummyError,
+            handler_function=handle_dummy_error
         )
     ],
     shell_processors=[dummy_processor],
