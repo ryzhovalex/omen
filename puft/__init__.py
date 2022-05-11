@@ -1,4 +1,4 @@
-__version__ = "0.4.0b0"
+__version__ = "0.4.0b1"
 
 from .errors.error import Error
 from .views.view import View
