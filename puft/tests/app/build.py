@@ -3,8 +3,8 @@ from puft import (
 )
 
 from src.dummy import (
-    Dummy, DummyError, DummyView, DummyMapper, ErrorView, dummy_processor, ctx_processor,
-    each_request_processor, handle_dummy_error
+    Dummy, DummyError, DummyView, DummyMapper, ErrorView, dummy_processor,
+    ctx_processor, each_request_processor, handle_dummy_error
 )
 from src.orm import User
 

@@ -1,4 +1,4 @@
-INSTANCE_PATH: ./instance
+INSTANCE_PATH: ./var
 TEMPLATE_FOLDER: ./src/templates
 STATIC_FOLDER: ./src/static
 IS_CORS_ENABLED: True
