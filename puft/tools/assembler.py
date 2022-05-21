@@ -440,6 +440,8 @@ class Assembler(Helper):
             self.puft.register_cli_cmd(*self.cli_cmds)
 
     def _build_errors(self) -> None:
+        # TODO: Test case when user same error class registered twice (e.g. in
+        # duplicate cells)
         is_wildcard_specified = False
         for error_cell in self.error_cells:
             if type(error_cell.error_class) is Error:
@@ -449,5 +451,5 @@ class Assembler(Helper):
         # If wildcard handler is not specified, apply the default one.
         if not is_wildcard_specified:
             self.puft.register_error(
-                Error, self.default_wildcard_error_handler_func
-            )
+                Error, self.default_wildcard_error_handler_func)
+        # Also register built-in Python exceptions

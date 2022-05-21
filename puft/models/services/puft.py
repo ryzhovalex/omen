@@ -31,9 +31,9 @@ class Puft(Service):
         mode_enum: CLIModeEnumUnion,
         host: str,
         port: int,
-        ctx_processor_func: Callable = None,
-        each_request_func: Callable = None,
-        first_request_func: Callable = None
+        ctx_processor_func: Callable | None = None,
+        each_request_func: Callable | None = None,
+        first_request_func: Callable | None = None
     ) -> None:
         # Convert all keys from given config to upper case.
         self.config = self._make_upper_keys(config)
@@ -65,25 +65,37 @@ class Puft(Service):
         for k, v in mapping.items():
             rmap[k.upper()] = v
         return rmap
+    
+    def _enable_cors(self, config: dict) -> None:
+        # Enable CORS for the app's resources.
+        is_cors_enabled = config.get("IS_CORS_ENABLED", None)
+        if is_cors_enabled:
+            CORS(self.native_app)
 
     def _flush_redis_session_db(self) -> None:
         # Flush redis session db if mode is not `prod`. 
         if self.mode_enum is not CLIRunEnum.PROD: 
             if self.native_app.config.get("SESSION_TYPE", None):
                 if self.native_app.config["SESSION_TYPE"] == "redis":
-                    log.info("Flush session redis database because of non-production run.")
-                    self.native_app.session_interface.redis.flushdb()
+                    log.info(
+                        "Flush session redis database because"
+                        " of non-production run.")
+                    session_interface = self.native_app.session_interface
+                    redis = session_interface.redis  # type: ignore
+                    redis.flushdb()
             else:
                 # Apply default null interface, basically do nothing.
                 pass
     
     def _add_random_hex_token_to_config(self) -> None:
-        # Generate random hex token for App's secret key, if not given in config.
+        # Generate random hex token for App's secret key, if not given in
+        # config.
         if self.native_app.config["SECRET_KEY"] is None:
             self.native_app.config["SECRET_KEY"] = secrets.token_hex(16)
             
     def _enable_testing_config(self, config: dict) -> None:
-        # Enable testing if appropriate mode has been set. Do not rely on enum if given config explicitly sets TESTING.
+        # Enable testing if appropriate mode has been set. Do not rely on enum
+        # if given config explicitly sets TESTING.
         if config.get("TESTING", None) is None:
             if self.mode_enum is CLIRunEnum.TEST:
                 self.native_app.config["TESTING"] = True
@@ -91,12 +103,6 @@ class Puft(Service):
                 self.native_app.config["TESTING"] = False
         else:
             self.native_app.config["TESTING"] = config["TESTING"]
-    
-    def _enable_cors(self, config: dict) -> None:
-        # Enable CORS for the app's resources.
-        is_cors_enabled = config.get("IS_CORS_ENABLED", None)
-        if is_cors_enabled:
-            CORS(self.native_app)
 
     def _spawn_native_app(self, config: dict) -> Flask:
         self.instance_path = self.config.get("INSTANCE_PATH", None)
@@ -167,40 +173,56 @@ class Puft(Service):
         # Check if view has kwargs to avoid sending empty dict.
         # Use cell's name as view's endpoint.
         view = view_cell.view_class.as_view(view_cell.endpoint)
-        self.native_app.add_url_rule(view_cell.route, view_func=view, methods=get_enum_values(HTTPMethodEnum))
+        self.native_app.add_url_rule(
+            view_cell.route, view_func=view,
+            methods=get_enum_values(HTTPMethodEnum))
 
     def register_error(
             self,
-            error_class: type[Error], handler_function: Callable) -> None:
+            error_class: type[Exception], handler_function: Callable) -> None:
         self.native_app.register_error_handler(error_class, handler_function)
 
     @log.catch
     def push_turbo(self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}) -> None:
-        """Push turbo action to target with rendered from path template contextualized with given data.
+        """Push turbo action to target with rendered from path template
+        contextualized with given data.
         
         Args:
-            action: Turbo-Flask action to perform.
-            target: Id of HTML element to push action to.
-            template_path: Path to template to render.
-            ctx_data (optional): Context data to push to rendered template. Defaults to empty dict.
+            action:
+                Turbo-Flask action to perform.
+            target:
+                Id of HTML element to push action to.
+            template_path:
+                Path to template to render.
+            ctx_data (optional):
+                Context data to push to rendered template.
+                Defaults to empty dict.
         """
         with self.native_app.app_context():
             action = action.value
             target = target
             template_path = template_path
             ctx_data = ctx_data
-            exec(f"self.turbo.push(self.turbo.{action}(render_template('{template_path}', **{ctx_data}), '{target}'))")
+            exec(
+                f"self.turbo.push(self.turbo.{action}"
+                "(render_template("
+                f"'{template_path}', **{ctx_data}), '{target}'))")
 
     def postbuild(self) -> None:
         """Abstract method to perform post-injection operation related to app. 
         
         Called by Assembler.
 
-        WARNING: This method not working as intended now (runs not actually after app starting), so better to not use it temporary.
+        WARNING:
+            This method not working as intended now (runs not actually after
+            app starting), so better to not use it temporary.
         
         Raise:
-            NotImplementedError: If not re-implemented in children."""
-        raise NotImplementedError("Method `postbuild` hasn't been reimplemented.")
+            NotImplementedError:
+                If not re-implemented in children.
+        """
+        raise NotImplementedError(
+            "Method `postbuild` hasn't been reimplemented.")
 
     @log.catch
     def register_cli_cmd(self, *cmds: Callable) -> None:
@@ -264,9 +286,9 @@ class Puft(Service):
         code.interact(banner=banner, local=ctx)
 
     def _init_app_daemons(
-        self, ctx_processor_func: Callable | None, each_request_func: Callable | None,
-        first_request_func: Callable | None
-    ) -> None:
+            self, ctx_processor_func: Callable | None,
+            each_request_func: Callable | None,
+            first_request_func: Callable | None) -> None:
         """Binds various background processes to the app."""
         flask_app = self.get_native_app()
 
