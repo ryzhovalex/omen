@@ -1,3 +1,4 @@
 include MANIFEST.in
 graft puft
 global-exclude __pycache__
+global-exclude tests
