@@ -56,7 +56,7 @@ class ErrorView(View):
             raise DummyError("Hello dummy")
         else:
             raise Error(
-                "Hello default error", "And multiple args are supported")
+                "Hello default error", 404)
 
 
 class DummyMapper(Mapper):

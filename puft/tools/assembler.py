@@ -448,7 +448,7 @@ class Assembler(Helper):
                 is_wildcard_specified = True
             self.puft.register_error(
                 error_cell.error_class, error_cell.handler_function)
-        # If wildcard handler is not specified, apply the default one.
+        # If wildcard handler is not specified, apply the default one
         if not is_wildcard_specified:
             self.puft.register_error(
                 Error, self.default_wildcard_error_handler_func)

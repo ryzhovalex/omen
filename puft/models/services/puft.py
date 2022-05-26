@@ -179,7 +179,8 @@ class Puft(Service):
 
     def register_error(
             self,
-            error_class: type[Exception], handler_function: Callable) -> None:
+            error_class: type[Exception],
+            handler_function: Callable) -> None:
         self.native_app.register_error_handler(error_class, handler_function)
 
     @log.catch

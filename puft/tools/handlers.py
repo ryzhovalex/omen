@@ -2,11 +2,8 @@ from puft.errors.error import Error
 
 
 def handle_wildcard_error(err: Error):
-    return err.expose()
+    return err.expose(), err.status_code
 
 
 def handle_wildcard_builtin_error(err: Exception):
-    return {"error": {
-        "name": err.__class__.__name__,
-        "message": "; ".join(err.args)
-    }}
+    return handle_wildcard_error(Error(' ; '.join(err.args), 400))
