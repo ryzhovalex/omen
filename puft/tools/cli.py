@@ -1,5 +1,6 @@
 import os
 import sys
+import pytest
 import argparse
 import importlib.util
 from typing import get_args
@@ -13,7 +14,7 @@ from .. import __version__ as puft_version
 from .assembler import Assembler
 from ..constants.hints import CLIModeEnumUnion
 from ..constants.enums import (
-    CLIRunEnum, CLIDatabaseEnum, CLIHelperEnum
+    AppModeEnum, CLIRunEnum, CLIDatabaseEnum, CLIHelperEnum
 )
 
 
@@ -97,8 +98,12 @@ def spawn_assembler(
 def invoke_run(
     assembler: Assembler
 ) -> None:
-    """"""
-    assembler.get_puft().run()
+    if assembler.mode_enum is CLIRunEnum.TEST:
+        log.info('Run pytest')
+        # TODO: Move this logic to Assembler or Puft
+        pytest.main([assembler.root_path])
+    else:
+        assembler.get_puft().run()
 
 
 def invoke_database_change(
@@ -121,10 +126,11 @@ def parse_input() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", nargs="*")
     parser.add_argument("-a", dest="host", default="127.0.0.1")
-    parser.add_argument("-p", dest="port", default="5000")  # TODO: Add check if given port is integer.
+    parser.add_argument("-p", dest="port", default="5000")
     parser.add_argument("-dir", dest="root_dir", default=os.getcwd())
     parser.add_argument("-src", dest="source_file", default="build")
-    parser.add_argument("-v", "--version", action="store_true", dest="check_version")
+    parser.add_argument(
+        "-v", "--version", action="store_true", dest="check_version")
     return parser.parse_args()
 
 

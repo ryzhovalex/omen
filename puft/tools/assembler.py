@@ -38,7 +38,7 @@ class Assembler(Helper):
     form.
     """
     DEFAULT_LOG_PARAMS = {
-        "path": "./instance/logs/system.log",
+        "path": "./var/logs/system.log",
         "level": "DEBUG",
         "format":
             "{time:%Y.%m.%d at %H:%M:%S:%f%z} | {level} | {extra} >> {message}",
