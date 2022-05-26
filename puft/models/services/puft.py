@@ -24,7 +24,8 @@ from puft.errors.error import Error
 class Puft(Service):
     """Operates over Puft processes.
     
-    Should be inherited by project's AppService."""
+    Should be inherited by project's AppService.
+    """
     def __init__(
         self, 
         config: dict,
@@ -35,8 +36,18 @@ class Puft(Service):
         each_request_func: Callable | None = None,
         first_request_func: Callable | None = None
     ) -> None:
-        # Convert all keys from given config to upper case.
+        # Templates by default searched within src/app, which allows to
+        # integrate them directly to their logical component's folders
+        self.DEFAULT_TEMPLATE_PATH = os.path.join(
+            config['root_path'], 'src/app')
+        self.DEFAULT_STATIC_PATH = os.path.join(
+            config['root_path'], 'src/assets')
+        self.DEFAULT_INSTANCE_PATH = os.path.join(config['root_path'], 'var')
+
+        # Convert all keys from given config to upper case
         self.config = self._make_upper_keys(config)
+        self._assign_defaults_to_config(self.config)
+        self._validate_config(self.config)
 
         super().__init__(self.config)
         self.mode_enum = mode_enum
@@ -47,10 +58,10 @@ class Puft(Service):
         self._enable_cors(self.config)
         self._enable_testing_config(self.config)
         self._add_random_hex_token_to_config()
-        # Initialize turbo.js.
-        # src: https://blog.miguelgrinberg.com/post/dynamically-update-your-flask-web-pages-using-turbo-flask
+        # Initialize turbo.js
+        # https://blog.miguelgrinberg.com/post/dynamically-update-your-flask-web-pages-using-turbo-flask
         self.turbo = Turbo(self.native_app)
-        # Initialize flask-session after all settings are applied.
+        # Initialize flask-session after all settings are applied
         self.flask_session = Session(self.native_app)
         self._flush_redis_session_db()
 
@@ -59,6 +70,19 @@ class Puft(Service):
             each_request_func=each_request_func,
             first_request_func=first_request_func
         )
+
+    def _assign_defaults_to_config(self, config: dict) -> None:
+        if 'TEMPLATE_PATH' not in config:
+            config['TEMPLATE_PATH'] = self.DEFAULT_TEMPLATE_PATH
+        if 'STATIC_PATH' not in config:
+            config['STATIC_PATH'] = self.DEFAULT_STATIC_PATH
+        if 'INSTANCE_PATH' not in config:
+            config['INSTANCE_PATH'] = self.DEFAULT_INSTANCE_PATH
+
+    def _validate_config(self, config: dict) -> None:
+        """Check if all keys in the config are correct."""
+        # TODO
+        pass
 
     def _make_upper_keys(self, mapping: dict) -> dict:
         rmap = {}
@@ -105,9 +129,9 @@ class Puft(Service):
             self.native_app.config["TESTING"] = config["TESTING"]
 
     def _spawn_native_app(self, config: dict) -> Flask:
-        self.instance_path = self.config.get("INSTANCE_PATH", None)
-        self.template_folder = self.config.get("TEMPLATE_FOLDER", None) 
-        self.static_folder = self.config.get("STATIC_FOLDER", None)
+        self.instance_path = self.config.get("INSTANCE_PATH")
+        self.template_folder = self.config.get("TEMPLATE_PATH") 
+        self.static_folder = self.config.get("STATIC_PATH")
 
         # Set Flask environs according to given mode.
         # Setting exactly through environs instead of config recommended by

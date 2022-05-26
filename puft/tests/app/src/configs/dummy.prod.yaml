@@ -1,3 +1,0 @@
-var: 1
-path_environ: Here's your path {PATH}
-non_environ: Here's your non-environ \{configuration\}
