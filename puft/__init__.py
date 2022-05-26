@@ -1,6 +1,7 @@
 __version__ = "0.4.0b3"
 
 from .errors.error import Error
+from .errors.not_found_error import NotFoundError
 from .views.view import View
 from .tools.helper import Helper
 from .tools.build import Build

@@ -1,6 +1,7 @@
 from puft import Service, Puft, View, Mapper, Database, get_mode, Error
-from warepy import log, format_message
-from flask import render_template, request
+from flask import request, render_template
+from puft.errors.not_found_error import NotFoundError
+from warepy import log
 
 from src.orm import User, Message, Base, Admin
 
@@ -14,7 +15,6 @@ def each_request_processor():
 
 
 def handle_dummy_error(err):
-    log.debug(err)
     return f"Dummy error: {err}"
 
 
@@ -53,10 +53,11 @@ class ErrorView(View):
     def get(self):
         err_type = request.args.get("type", "error")
         if err_type == "dummy":
-            raise DummyError("Hello dummy")
+            raise DummyError("Hello from dummy", 404)
+        elif err_type == "404":
+            raise NotFoundError
         else:
-            raise Error(
-                "Hello default error", 404)
+            raise Error
 
 
 class DummyMapper(Mapper):
@@ -65,5 +66,4 @@ class DummyMapper(Mapper):
 
 
 class DummyError(Error):
-    def expose(self):
-        return "DummyError works!"
+    pass

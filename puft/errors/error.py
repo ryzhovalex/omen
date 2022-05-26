@@ -1,6 +1,6 @@
 class Error(Exception):
     """Main error class to be inherited in all app's custom errors."""
-    def __init__(self, message: str, status_code: int = 400) -> None:
+    def __init__(self, message: str = '', status_code: int = 400) -> None:
         super().__init__(message)
         if type(message) is str:
             self.message: str = message

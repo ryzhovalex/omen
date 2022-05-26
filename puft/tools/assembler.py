@@ -452,4 +452,3 @@ class Assembler(Helper):
         if not is_wildcard_specified:
             self.puft.register_error(
                 Error, self.default_wildcard_error_handler_func)
-        # Also register built-in Python exceptions
