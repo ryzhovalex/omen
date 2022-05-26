@@ -125,9 +125,8 @@ class Puft(Service):
             static_folder=self.static_folder
         )
 
-    @property
     @log.catch
-    def secret_key(self) -> str:
+    def get_secret_key(self) -> str:
         """Return secret key defined in App's config."""
         return self.native_app.config["SECRET_KEY"]
 
