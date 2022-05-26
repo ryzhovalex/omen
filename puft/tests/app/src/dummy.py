@@ -23,8 +23,7 @@ def dummy_processor():
         "puft": Puft.instance(),
         "db": Database.instance(),
         "ctx": Puft.instance().get_native_app().test_request_context(),
-        "User": User,
-        "Message": Message,
+        "User": User, "Message": Message,
         "Base": Base,
         "Admin": Admin
     }
