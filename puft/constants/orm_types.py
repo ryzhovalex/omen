@@ -4,7 +4,7 @@ from ..models.services.database import native_db
 # Helper references for shorter writing at ORMs.
 # Ignore lines added for a workaround to fix issue:
 # https://github.com/microsoft/pylance-release/issues/187
-Model = native_db.Model  # type: ignore
+Model: any = native_db.Model  # type: ignore
 column = native_db.Column  # type: ignore
 integer = native_db.Integer  # type: ignore
 string = native_db.String  # type: ignore
