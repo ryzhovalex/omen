@@ -249,7 +249,6 @@ class Assembler(Singleton):
     @log.catch
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
-        log.debug('TEST')
         self._build_log()
         self._build_services()
         self._build_views()

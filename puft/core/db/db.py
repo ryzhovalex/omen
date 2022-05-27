@@ -1,20 +1,19 @@
+from __future__ import annotations
 import re
 from functools import wraps
-from typing import Callable
+from typing import Callable, Any
 
-from warepy import format_message
+from warepy import format_message, snakefy
 from puft.tools.log import log
 from flask import Flask
 import flask_migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import Model as BaseModel
+import sqlalchemy as sa
+from sqlalchemy.ext.declarative import declared_attr
 
-from ..service import Service
+from puft.core.service import Service
 from .db_type_enum import DbTypeEnum
-
-
-# Here Db variable are referenced at top layer to be visible for ORMs.
-# It is kinda messy, and in future it may be refactored (nothing more permanent than temporary).
-native_db = SQLAlchemy()
 
 
 # TODO: Fix type hinting for decorated functions under this decorator.
@@ -23,23 +22,119 @@ def migration_implemented(func: Callable):
     def inner(self_instance, *args, **kwargs):
         if type(self_instance) is not Db:
             raise TypeError(
-                format_message("Decorator migration_implemented cannot be applied to type {}.", type(self_instance))
-            )
+                "Decorator migration_implemented cannot be"
+                f" applied to type {type(self_instance)}")
         elif not self_instance.migration:
-            error_message = format_message("Migrate object hasn't been implemented yet.")
+            error_message = "Migrate object hasn't been implemented yet"
             raise AttributeError(error_message)
         else:
             return func(self_instance, *args, **kwargs)
     return inner
 
 
+class Mapper(BaseModel):
+    # sqlalchemy used instead of `orm` class to avoid reference errors
+    # https://flask-sqlalchemy.palletsprojects.com/en/2.x/customizing/
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    @declared_attr
+    def __tablename__(cls):
+        cls_name: str = cls.__name__  # type: ignore
+        return snakefy(cls_name)
+
+    @classmethod
+    @log.catch
+    def get_first(
+            cls,
+            order_by: object | list[object] | None = None,
+            **kwargs) -> orm.Model:
+        """Filter first ORM mapped model by given kwargs and return it.
+        
+        Raise:
+            ValueError:
+                No such ORM model in db matched given kwargs
+        """
+        query: Any = cls.query.filter_by(**kwargs)  # type: ignore
+
+        if order_by is not None:
+            query = cls._order_query(query, order_by)
+
+        model: orm.Model = query.first()
+
+        if not model:
+            raise ValueError(
+                f"No model {cls.__name__} with such parameters: {kwargs}")
+        else:
+            return model
+
+    @classmethod
+    @log.catch
+    def get_all(
+            cls,
+            order_by: object | list[object] | None = None,
+            limit: int | None = None,
+            **kwargs) -> list[orm.Model]:
+        """Filter all ORM mapped models by given kwargs and return them.
+
+        Raise:
+            ValueError:
+                No such ORM model in db matched given kwargs
+        """
+        query: Any = cls.query.filter_by(**kwargs)  # type: ignore
+
+        if order_by is not None:
+            query = cls._order_query(query, order_by)
+
+            if limit:
+                query = query.limit(limit)
+        elif limit:
+            query = query.limit(limit)
+
+        models: list[orm.Model] = query.all()
+
+        if not models:
+            raise ValueError(
+                f"No model {cls.__name__} with such parameters: {kwargs}")
+        else:
+            return models
+
+    @staticmethod
+    def _order_query(query: Any, order_by: object | list[object]) -> object:
+        if type(order_by) is list:
+            return query.order_by(*order_by)
+        else:
+            return query.order_by(order_by)
+
+
+class orm:
+    # Helper references for shorter writing at ORMs.
+    # Ignore lines added for a workaround to fix issue:
+    # https://github.com/microsoft/pylance-release/issues/187
+    native_db = SQLAlchemy(model_class=Mapper)
+    Model: Any = native_db.Model 
+    column = native_db.Column  # type: ignore 
+    integer = native_db.Integer  # type: ignore
+    string = native_db.String  # type: ignore
+    text = native_db.Text  # type: ignore
+    float = native_db.Float  # type: ignore
+    boolean = native_db.Boolean  # type: ignore
+    foreign_key = native_db.ForeignKey  # type: ignore
+    table = native_db.Table  # type: ignore
+    check_constraint = native_db.CheckConstraint  # type: ignore
+    relationship = native_db.relationship  # type: ignore
+    backref = native_db.backref  # type: ignore
+    pickle = native_db.PickleType  # type: ignore
+    binary = native_db.LargeBinary  # type: ignore
+    datetime = native_db.DateTime  # type: ignore
+
+
 class Db(Service):
-    """Operates over Db processes."""
+    """Operates over database processes."""
     def __init__(self, config: dict) -> None:
         super().__init__(config)
         self.DEFAULT_URI = f"sqlite:///{self.config['root_path']}/sqlite3.db"
 
-        self.native_db = native_db
+        self.native_db = orm.native_db
         # For now service config propagated to Db domain.
         self._assign_uri_from_config(config)
 
@@ -125,10 +220,11 @@ class Db(Service):
     def setup(self, flask_app: Flask) -> None:
         """Setup Db and migration object with given Flask app."""
         flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
-        flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
+        flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
         self.native_db.init_app(flask_app)
 
-        # render_as_batch kwarg required only for sqlite3 Dbs to avoid ALTER TABLE issue on migrations
+        # render_as_batch kwarg required only for sqlite3 databases to avoid
+        # ALTER TABLE issue on migrations
         # https://blog.miguelgrinberg.com/post/fixing-alter-table-errors-with-flask-migrate-and-sqlite
         if self.type_enum is DbTypeEnum.SQLITE:
             is_sqlite_db = True
@@ -146,7 +242,8 @@ class Db(Service):
         """Return migration object.
         
         Raise:
-            AttributeError: If Migrate object hasn't implemented yet."""
+            AttributeError: If Migrate object hasn't implemented yet.
+        """
         return self.migration
 
     @log.catch

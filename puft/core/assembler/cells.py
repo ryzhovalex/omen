@@ -12,20 +12,20 @@ from warepy import get_enum_values, format_message, join_paths, load_yaml
 
 from puft.core.app.app_mode_enum import AppModeEnum
 from .config_extension_enum import ConfigExtensionEnum
-from puft.core.db.orm import orm
 from puft.core.error import Error
 from puft.tools.log import log
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports
     # and use just for typehints.
-    from ..app.puft import Puft
-    from ..db.db import Db
-    from ..view import View
-    from ..emitter import Emitter
-    from ..mapper import Mapper
-    from ..service import Service
-    from ...tools.hints import CLIModeEnumUnion
+    from puft.core.db.db import orm
+    from puft.core.app.puft import Puft
+    from puft.core.db.db import Db
+    from puft.core.view import View
+    from puft.core.emitter import Emitter
+    from puft.core.db.mapper import Mapper
+    from puft.core.service import Service
+    from puft.tools.hints import CLIModeEnumUnion
 
 
 # Set TypeVar upper bound to class defined afterwards.

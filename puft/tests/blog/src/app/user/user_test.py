@@ -24,6 +24,15 @@ class TestUser():
             db.commit()
 
     def test_user_get(
+            self, app: Puft, push_user):
+        with app.app_context():
+            user = User.get_first(id=1)
+        assert user.username == self.USERNAME
+        assert check_password_hash(user.password, self.PASSWORD)
+
+
+class TestUserApi(TestUser):
+    def test_user_get(
             self, client: FlaskClient, push_user):
         data = client.get('/user/1').json
         if type(data) is dict:
