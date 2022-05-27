@@ -1,5 +1,5 @@
 flask
-warepy
+warepy==0.6.1
 requests
 turbo-flask
 flask-migrate

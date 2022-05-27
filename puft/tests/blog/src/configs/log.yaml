@@ -2,5 +2,5 @@ path: ./var/logs/system.log
 level: DEBUG
 format: "\\{time:%Y.%m.%d at %H:%M:%S:%f%z\\} | \\{level\\} | \\{extra\\} >> \\{message\\}"
 rotation: 10 MB
-serialize: true
+serialize: false
 delete_old: true
