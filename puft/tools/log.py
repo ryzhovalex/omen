@@ -1,8 +1,5 @@
 import os
-import sys
-import inspect
 from typing import Literal
-from functools import wraps
 
 from loguru import logger as loguru
 from warepy import Singleton
@@ -57,6 +54,9 @@ class log(Singleton):
         
         Remove previous old log if `delete_old=True`.
         """
+        # TODO: Add more clarified explanation/logic to this deletion.  It
+        # should be either documented to user or refactored with security
+        # considerations
         if (
                 delete_old
                 and os.path.isfile(path)
