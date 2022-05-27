@@ -13,7 +13,7 @@ test.ipynb
 # ignore temporary folders
 temp/
 
-# ignore sqlite3 database file 
+# ignore sqlite3 Db file 
 *.db
 
 # ignore logs files

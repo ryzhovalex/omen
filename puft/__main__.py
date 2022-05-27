@@ -5,9 +5,9 @@ python -m puft
 ```
 """
 try:
-    from .tools import cli
+    from .core.cli import cli
 except ImportError:
-    from tools import cli
+    from puft.core.cli import cli
 
 
 if __name__ == "__main__":

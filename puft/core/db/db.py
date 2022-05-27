@@ -7,11 +7,11 @@ from flask import Flask
 import flask_migrate
 from flask_sqlalchemy import SQLAlchemy
 
-from .service import Service
-from ...constants.enums import DatabaseTypeEnum
+from ..service import Service
+from .db_type_enum import DbTypeEnum
 
 
-# Here database variable are referenced at top layer to be visible for ORMs.
+# Here Db variable are referenced at top layer to be visible for ORMs.
 # It is kinda messy, and in future it may be refactored (nothing more permanent than temporary).
 native_db = SQLAlchemy()
 
@@ -20,7 +20,7 @@ native_db = SQLAlchemy()
 def migration_implemented(func: Callable):
     @wraps(func)
     def inner(self_instance, *args, **kwargs):
-        if type(self_instance) is not Database:
+        if type(self_instance) is not Db:
             raise TypeError(
                 format_message("Decorator migration_implemented cannot be applied to type {}.", type(self_instance))
             )
@@ -32,14 +32,14 @@ def migration_implemented(func: Callable):
     return inner
 
 
-class Database(Service):
-    """Operates over Database processes."""
+class Db(Service):
+    """Operates over Db processes."""
     def __init__(self, config: dict) -> None:
         super().__init__(config)
         self.DEFAULT_URI = f"sqlite:///{self.config['root_path']}/sqlite3.db"
 
         self.native_db = native_db
-        # For now service config propagated to Database domain.
+        # For now service config propagated to Db domain.
         self._assign_uri_from_config(config)
 
     @log.catch
@@ -48,11 +48,11 @@ class Database(Service):
 
         if not raw_uri:
             raw_uri = self.DEFAULT_URI
-            log.info(f"URI for database not specified, using default")
+            log.info(f"URI for Db not specified, using default")
         else:
-            # Case 1: SQLite database.
-            # Developer can give relative path to the database (it will be absolutized at ConfigCell.parse()),
-            # by setting sqlite database extension to `.db`, e.g. `./instance/sqlite3.db`,
+            # Case 1: SQLite Db.
+            # Developer can give relative path to the Db (it will be absolutized at ConfigCell.parse()),
+            # by setting sqlite Db extension to `.db`, e.g. `./instance/sqlite3.db`,
             # or by setting full absolute path with protocol, e.g. `sqlite:////home/user/project/instance/sqlite3.db`.
             if raw_uri.rfind(".db") != -1 or "sqlite:///" in raw_uri:
                 if "sqlite:///" not in raw_uri: 
@@ -61,18 +61,18 @@ class Database(Service):
                     self.uri = "sqlite:///" + raw_uri
                 else:
                     self.uri = raw_uri
-                self.type_enum = DatabaseTypeEnum.SQLITE
-            # Case 2: PostgreSQL database.
+                self.type_enum = DbTypeEnum.SQLITE
+            # Case 2: PostgreSQL Db.
             elif re.match(r"postgresql(\+\w+)?://", raw_uri):
                 # No need to calculate path since psql uri should be given in full form.
                 self.uri = raw_uri
-                self.type_enum = DatabaseTypeEnum.PSQL
+                self.type_enum = DbTypeEnum.PSQL
             else:
-                raise ValueError(format_message("Unrecognized or yet unsupported type of database uri: {}", raw_uri))
+                raise ValueError(format_message("Unrecognized or yet unsupported type of Db uri: {}", raw_uri))
             
-            # WARNING: Never print full database uri to config, since it may contain user's password (as in case of
+            # WARNING: Never print full Db uri to config, since it may contain user's password (as in case of
             # psql)
-            log.info(f"Set database type: {self.type_enum.value}")
+            log.info(f"Set Db type: {self.type_enum.value}")
 
     @log.catch
     @migration_implemented
@@ -122,14 +122,14 @@ class Database(Service):
 
     @log.catch
     def setup(self, flask_app: Flask) -> None:
-        """Setup database and migration object with given Flask app."""
-        flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
+        """Setup Db and migration object with given Flask app."""
+        flask_app.config["SQLALCHEMY_db_URI"] = self.uri
         flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
         self.native_db.init_app(flask_app)
 
-        # render_as_batch kwarg required only for sqlite3 databases to avoid ALTER TABLE issue on migrations
+        # render_as_batch kwarg required only for sqlite3 Dbs to avoid ALTER TABLE issue on migrations
         # https://blog.miguelgrinberg.com/post/fixing-alter-table-errors-with-flask-migrate-and-sqlite
-        if self.type_enum is DatabaseTypeEnum.SQLITE:
+        if self.type_enum is DbTypeEnum.SQLITE:
             is_sqlite_db = True
         else:
             is_sqlite_db = False
@@ -171,6 +171,14 @@ class Database(Service):
     def commit_session(self):
         """Commit current transaction."""
         self.native_db.session.commit()
+
+    @migration_implemented
+    def push(self, entity):
+        """Do fast push of entity to the session and immediately commit this
+        session.
+        """
+        self.add_to_session(entity)
+        self.commit_session()
 
     @log.catch
     @migration_implemented

@@ -1,5 +1,5 @@
 from warepy import log
-from puft.errors.error import Error
+from puft.core.error import Error
 
 
 def handle_wildcard_error(err: Error):

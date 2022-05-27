@@ -1,7 +1,7 @@
 from flask import url_for
 from werkzeug.security import check_password_hash as from_hash
 from werkzeug.security import generate_password_hash as to_hash
-from puft import Puft, Database
+from puft import Puft, Db
 
 from src.app.user.user import User
 from src.app.post.post import Post
@@ -10,7 +10,7 @@ from src.app.post.post import Post
 def import_std():
     """Import standard instances for testing."""
     puft = Puft.instance()
-    db = Database.instance()
+    db = Db.instance()
     # Create test request context for the app
     ctx = puft.test_request_context()
     return {

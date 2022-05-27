@@ -1,4 +1,4 @@
-![puft](puft.png)
+![puft](puft/assets/logo.png)
 
 Puft
 ===

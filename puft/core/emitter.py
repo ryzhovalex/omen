@@ -1,7 +1,7 @@
-from ..constants.enums import TurboActionEnum
+from puft.core.app.turbo_action_enum import TurboActionEnum
 from warepy import log, Singleton
 
-from ..models.services.puft import Puft
+from .app.puft import Puft
 
 
 class Emitter(Singleton):

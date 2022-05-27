@@ -1,14 +1,12 @@
-from puft.constants.orm_types import (
-    Model, column, text, relationship, integer, string, foreign_key
-)
+from puft import orm
 
 from src.app.user.user import User
 
 
-class Post(Model):
+class Post(orm.Model):
     __tablename__ = 'post'
 
-    id = column(integer, primary_key=True)
-    title = column(string(150))
-    dscr = column(text)
-    user_id = column(integer, foreign_key(User.id))
+    id = orm.column(orm.integer, primary_key=True)
+    title = orm.column(orm.string(150))
+    dscr = orm.column(orm.text)
+    user_id = orm.column(orm.integer, orm.foreign_key(User.id))

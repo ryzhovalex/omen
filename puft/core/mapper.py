@@ -4,29 +4,30 @@ from typing import TYPE_CHECKING
 from warepy import log, Singleton, format_message
 from flask_sqlalchemy import SQLAlchemy
 
-from ..services.database import native_db
+from puft.core.db.orm import orm
+from .db.db import native_db
 
 
 class Mapper(Singleton):
-    """Represents database table data manipulations. Abstracted to only contain classmethods.
+    """Represents Db table data manipulations. Abstracted to only contain classmethods.
 
     Contain class variable `params` which can be assigned during program assembling individually for each children."""
     model = native_db.Model 
 
     @classmethod
     @log.catch
-    def set_orm_model(cls, model: SQLAlchemy.Model) -> None:
+    def set_orm_model(cls, model: orm.Model) -> None:
         """Set mapper's orm model attribute to work with."""
         cls.model = model
 
     @classmethod
     @log.catch
-    def filter_first(cls, **kwargs) -> SQLAlchemy.Model:
+    def filter_first(cls, **kwargs) -> orm.Model:
         """Filter first ORM mapped model by given kwargs and return it.
         
         Raise:
-            ValueError: if there is no such ORM model in database matched given kwargs."""
-        model = cls.model.query.filter_by(**kwargs).first()
+            ValueError: if there is no such ORM model in Db matched given kwargs."""
+        model = cls.model.query.filter_by(**kwargs).first()  # type: ignore
         if model is None:
             error_message = format_message("There is no model {} with such parameters: {}", [cls.model, kwargs])            
             raise ValueError(error_message)
@@ -35,7 +36,7 @@ class Mapper(Singleton):
 
     @classmethod
     @log.catch
-    def filter_all(cls, order_by: str | None = None, descending_order: bool = False, **kwargs) -> list[SQLAlchemy.Model]:
+    def filter_all(cls, order_by: str | None = None, descending_order: bool = False, **kwargs) -> list[orm.Model]:
         """Filter all ORM mapped models by given kwargs and return them.
 
         It's possible to send argument `order_by` to order resulting instance. It should be string referencing to target object attribute.
@@ -46,7 +47,7 @@ class Mapper(Singleton):
         Also you can append `descending_order=True` to apply descending ordering.
         
         Raise:
-            ValueError: If there is no such ORM models in database matched given kwargs.
+            ValueError: If there is no such ORM models in Db matched given kwargs.
             ValuerError: If there is no such attribute to order by (wrong string given to argument `order_by`)."""
         if order_by is not None:
             # Calculate order target.
@@ -59,9 +60,9 @@ class Mapper(Singleton):
                 exec(f"order_target = cls.model.{order_by}.desc()")
             else:
                 exec(f"order_target = cls.model.{order_by}")
-            models = cls.model.query.filter_by(**kwargs).order_by(order_target).all()
+            models = cls.model.query.filter_by(**kwargs).order_by(order_target).all()  # type: ignore
         else:
-            models = cls.model.query.filter_by(**kwargs).all()
+            models = cls.model.query.filter_by(**kwargs).all()  # type: ignore
 
         if not models:
             error_message = format_message("There is no model {} with such parameters: {}", [cls.model, kwargs])            

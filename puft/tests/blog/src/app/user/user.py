@@ -1,12 +1,13 @@
-from puft.constants.orm_types import (
-    Model, boolean, integer, string, text, backref, relationship, column
-)
+# from puft.orm_types import (
+#     Model, boolean, integer, string, text, backref, relationship, column
+# )
+from puft import orm
 
 
-class User(Model):
+class User(orm.Model):
     __tablename__ = 'user'
 
-    id = column(integer, primary_key=True)
-    username = column(string(150))
-    password = column(string(150))
-    posts = relationship('Post', backref='user', foreign_keys='[Post.user_id]')
+    id = orm.column(orm.integer, primary_key=True)
+    username = orm.column(orm.string(150))
+    password = orm.column(orm.string(150))
+    posts = orm.relationship('Post', backref='user', foreign_keys='[Post.user_id]')

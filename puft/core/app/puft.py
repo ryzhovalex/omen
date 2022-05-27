@@ -13,12 +13,13 @@ from flask import cli as flask_cli
 from flask.ctx import AppContext, RequestContext
 from warepy import log, get_enum_values
 
-from .service import Service
-from puft.constants.hints import CLIModeEnumUnion
-from ...constants.enums import HTTPMethodEnum, TurboActionEnum
-from ..domains.cells import ViewCell
-from ...constants.enums import CLIRunEnum, TurboActionEnum
-from puft.errors.error import Error
+from puft.core.service import Service
+from puft.tools.hints import CLIModeEnumUnion
+from .http_method_enum import HTTPMethodEnum
+from .turbo_action_enum import TurboActionEnum
+from ..assembler.cells import ViewCell
+from puft.core.cli.cli_run_enum import CLIRunEnum
+from puft.core.error import Error
 
 
 class Puft(Service):
@@ -102,7 +103,7 @@ class Puft(Service):
             if self.native_app.config.get("SESSION_TYPE", None):
                 if self.native_app.config["SESSION_TYPE"] == "redis":
                     log.info(
-                        "Flush session redis database because"
+                        "Flush session redis Db because"
                         " of non-production run.")
                     session_interface = self.native_app.session_interface
                     redis = session_interface.redis  # type: ignore

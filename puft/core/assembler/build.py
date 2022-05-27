@@ -1,7 +1,7 @@
 import os
 from typing import Callable
 
-from ..models.domains.cells import (
+from .cells import (
     ConfigCell, ServiceCell, MapperCell, ViewCell, EmitterCell, ErrorCell
 )
 

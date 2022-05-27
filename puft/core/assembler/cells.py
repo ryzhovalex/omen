@@ -10,20 +10,21 @@ from flask import app
 from flask_sqlalchemy import SQLAlchemy
 from warepy import get_enum_values, log, format_message, join_paths, load_yaml
 
-from puft.constants.enums import AppModeEnum, ConfigExtensionEnum
-from puft.constants.orm_types import Model
-from puft.errors.error import Error
+from puft.core.app.app_mode_enum import AppModeEnum
+from .config_extension_enum import ConfigExtensionEnum
+from puft.core.db.orm import orm
+from puft.core.error import Error
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports
     # and use just for typehints.
-    from ..services.puft import Puft
-    from ..services.database import Database
-    from ...views.view import View
-    from ...emitters.emitter import Emitter
-    from ..mappers.mapper import Mapper
-    from ..services.service import Service
-    from ...constants.hints import CLIModeEnumUnion
+    from ..app.puft import Puft
+    from ..db.db import Db
+    from ..view import View
+    from ..emitter import Emitter
+    from ..mapper import Mapper
+    from ..service import Service
+    from ...tools.hints import CLIModeEnumUnion
 
 
 # Set TypeVar upper bound to class defined afterwards.
@@ -222,15 +223,15 @@ class PuftServiceCell(ServiceCell):
 
 
 @dataclass
-class DatabaseServiceCell(ServiceCell):
-    """Injection cell with database itself which can be applied to created application."""
-    service_class: Type[Database]
+class DbServiceCell(ServiceCell):
+    """Injection cell with Db itself which can be applied to created application."""
+    service_class: Type[Db]
 
 
 @dataclass
 class MapperCell(Cell):
     mapper_class: type[Mapper]
-    model: type[Model]
+    model: type[orm.Model]
 
 
 @dataclass

@@ -2,19 +2,23 @@ from __future__ import annotations
 import os
 from typing import Dict, TYPE_CHECKING, Any
 
-from warepy import log, join_paths, format_message, load_yaml, get_enum_values
-
-from puft.constants.hints import CLIModeEnumUnion
-from puft.constants.enums import AppModeEnum, CLIRunEnum, ConfigExtensionEnum
-from .helper import Helper
-from ..models.domains.cells import (
-    ErrorCell, NamedCell, ConfigCell, ServiceCell, PuftServiceCell, DatabaseServiceCell
+from warepy import (
+    log, join_paths, format_message, load_yaml, get_enum_values, Singleton
 )
-from ..models.services.database import Database
-from ..models.services.puft import Puft
-from ..constants.hints import CLIModeEnumUnion
-from puft.errors.error import Error
-from puft.tools.handlers import handle_wildcard_error
+
+from puft.tools.hints import CLIModeEnumUnion
+from puft.core.app.app_mode_enum import AppModeEnum
+from puft.core.cli.cli_run_enum import CLIRunEnum
+from puft.core.error import Error
+from puft.tools.error_handlers import handle_wildcard_error
+from .cells import (
+    ErrorCell, NamedCell, ConfigCell, ServiceCell, PuftServiceCell,
+    DbServiceCell
+)
+from puft.core.db.db import Db
+from puft.core.app.puft import Puft
+from puft.tools.hints import CLIModeEnumUnion
+from .config_extension_enum import ConfigExtensionEnum
 
 if TYPE_CHECKING:
     from .build import Build
@@ -30,7 +34,7 @@ def get_root_path() -> str:
     return Assembler.instance().get_root_path()
 
 
-class Assembler(Helper):
+class Assembler(Singleton):
     """Assembles all project instances from given `Builder` type's class and
     initializes it.
     
@@ -81,8 +85,8 @@ class Assembler(Helper):
         return self.puft
 
     @log.catch
-    def get_database(self) -> Database:
-        return self.database
+    def get_db(self) -> Db:
+        return self.db
 
     @log.catch
     def get_root_path(self) -> str:
@@ -194,15 +198,15 @@ class Assembler(Helper):
         # Enable only modules with specified configs.
         if self.config_cells:
             try:
-                NamedCell.find_by_name("database", self.config_cells)
+                NamedCell.find_by_name("db", self.config_cells)
             except ValueError:
                 pass
             else:
-                self.builtin_service_cells.append(DatabaseServiceCell(
-                    name="database",
-                    service_class=Database
+                self.builtin_service_cells.append(DbServiceCell(
+                    name="db",
+                    service_class=Db
                 ))
-                log.info("Database layer enabled.")
+                log.info("Db layer enabled.")
 
     @staticmethod
     @log.catch
@@ -223,7 +227,7 @@ class Assembler(Helper):
         ```python
         configs_by_name = {
             "app": {"TESTING": True},
-            "database": {"db_uri": "sqlite3:///:memory:"}
+            "db": {"db_uri": "sqlite3:///:memory:"}
         }
         ```
             root_path (optional):
@@ -302,11 +306,11 @@ class Assembler(Helper):
         self._run_custom_service_cells()
 
     @log.catch
-    def _perform_database_postponed_setup(self) -> None:
-        """Postponed setup is required, because Database uses Flask app to init native SQLAlchemy db inside, 
+    def _perform_db_postponed_setup(self) -> None:
+        """Postponed setup is required, because Db uses Flask app to init native SQLAlchemy db inside, 
         so it's possible only after App initialization.
         The setup_db requires native flask app to work with."""
-        self.database.setup(flask_app=self.puft.get_native_app())
+        self.db.setup(flask_app=self.puft.get_native_app())
     
     @log.catch
     def _run_builtin_service_cells(self) -> None:
@@ -337,10 +341,12 @@ class Assembler(Helper):
             # Assign builtin cells to according Assembler vars to operate with later.
             if type(cell) is PuftServiceCell:
                 self.puft = cell.service_class.instance()
-            elif type(cell) is DatabaseServiceCell:
-                self.database = cell.service_class.instance()
-                # Perform database postponed setup.
-                self._perform_database_postponed_setup()
+            elif type(cell) is DbServiceCell:
+                self.db = cell.service_class.instance()
+                # Perform Db postponed setup.
+                self._perform_db_postponed_setup()
+            else:
+                raise TypeError(f'Unrecognized type of cell: {type(cell)}')
 
     @log.catch
     def _run_custom_service_cells(self) -> None:

@@ -10,12 +10,12 @@ from warepy import (
     get_enum_values, get_union_enum_values
 )
 
-from .. import __version__ as puft_version
-from .assembler import Assembler
-from ..constants.hints import CLIModeEnumUnion
-from ..constants.enums import (
-    AppModeEnum, CLIRunEnum, CLIDatabaseEnum, CLIHelperEnum
-)
+from puft import __version__ as puft_version
+from puft.core.assembler.assembler import Assembler
+from puft.tools.hints import CLIModeEnumUnion
+from .cli_run_enum import CLIRunEnum
+from .cli_db_enum import CLIDbEnum
+from .cli_helper_enum import CLIHelperEnum
 
 
 def main() -> None:
@@ -36,7 +36,7 @@ def main() -> None:
     else:
         raise NotImplementedError(f"Command {args.mode[0]} is not supported")
         # Mode is probably targeted to custom command.
-        mode_enum = CLIHelperEnum.CUSTOM_CMD
+        # mode_enum = CLIHelperEnum.CUSTOM_CMD
         #!! custom_cmd = 
 
     # Create and build assembler.
@@ -53,9 +53,9 @@ def main() -> None:
         # Call appropriate actions depend on chosen mode.
         if type(mode_enum) is CLIRunEnum:
             invoke_run(assembler)
-        elif type(mode_enum) is CLIDatabaseEnum:
+        elif type(mode_enum) is CLIDbEnum:
             with assembler.get_puft().get_native_app().app_context():
-                invoke_database_change(assembler, mode_enum)
+                invoke_db_change(assembler, mode_enum)
         elif type(mode_enum) is CLIHelperEnum:
             if mode_enum is CLIHelperEnum.SHELL:
                 invoke_shell(assembler)
@@ -96,8 +96,7 @@ def spawn_assembler(
 
 
 def invoke_run(
-    assembler: Assembler
-) -> None:
+        assembler: Assembler) -> None:
     if assembler.mode_enum is CLIRunEnum.TEST:
         log.info('Run pytest')
         # TODO: Move this logic to Assembler or Puft
@@ -106,17 +105,17 @@ def invoke_run(
         assembler.get_puft().run()
 
 
-def invoke_database_change(
+def invoke_db_change(
     assembler: Assembler,
-    mode_enum: CLIDatabaseEnum
+    mode_enum: CLIDbEnum
 ) -> None:
-    db = assembler.get_database()
+    db = assembler.get_db()
 
-    if mode_enum is CLIDatabaseEnum.INIT:
+    if mode_enum is CLIDbEnum.INIT:
         db.init_migration()
-    elif mode_enum is CLIDatabaseEnum.MIGRATE:
+    elif mode_enum is CLIDbEnum.MIGRATE:
         db.migrate_migration()
-    elif mode_enum is CLIDatabaseEnum.UPGRADE:
+    elif mode_enum is CLIDbEnum.UPGRADE:
         db.upgrade_migration()
 
 
