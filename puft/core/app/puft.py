@@ -8,11 +8,13 @@ from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
 from flask.testing import FlaskClient
-from warepy import log, format_message, get_or_error
+from warepy import format_message, get_or_error
+from puft.tools.log import log
 from flask import Flask, Blueprint, render_template, session, g
 from flask import cli as flask_cli
 from flask.ctx import AppContext, RequestContext
-from warepy import log, get_enum_values
+from warepy import get_enum_values
+from puft.tools.log import log
 
 from puft.core.service import Service
 from puft.tools.hints import CLIModeEnumUnion

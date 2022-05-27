@@ -3,10 +3,11 @@ import os
 from typing import Dict, TYPE_CHECKING, Any
 
 from warepy import (
-    log, join_paths, format_message, load_yaml, get_enum_values, Singleton
+    join_paths, format_message, load_yaml, get_enum_values, Singleton
 )
 
 from puft.tools.hints import CLIModeEnumUnion
+from puft.tools.log import log
 from puft.core.app.app_mode_enum import AppModeEnum
 from puft.core.cli.cli_run_enum import CLIRunEnum
 from puft.core.error import Error
@@ -248,6 +249,7 @@ class Assembler(Singleton):
     @log.catch
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
+        log.debug('TEST')
         self._build_log()
         self._build_services()
         self._build_views()
@@ -266,20 +268,20 @@ class Assembler(Singleton):
     @log.catch
     def _build_log(self) -> None:
         """Call chain to build log."""
-        # Try to find log config cell and build log class from it.
+        # Try to find log config cell and build log class from it
         if self.config_cells:
             try:
                 log_config_cell = NamedCell.find_by_name("log", self.config_cells)
             except ValueError:
-                # log config is not attached.
                 log_config = None
             else:
-                # Parse config mapping from cell and append extra configs, if they are given.
+                # Parse config mapping from cell and append extra configs,
+                # if they are given
                 app_mode_enum: AppModeEnum
                 if type(self.mode_enum) is CLIRunEnum:
                     app_mode_enum = AppModeEnum(self.mode_enum.value) 
                 else:
-                    # Assign dev app mode for all other app modes.
+                    # Assign dev app mode for all other app modes
                     app_mode_enum = AppModeEnum.DEV
                 log_config = log_config_cell.parse(
                     app_mode_enum=app_mode_enum,

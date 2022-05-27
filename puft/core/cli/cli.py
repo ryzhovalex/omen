@@ -6,9 +6,10 @@ import importlib.util
 from typing import get_args
 
 from warepy import (
-    format_message, join_paths, log, match_enum_containing_value,
+    format_message, join_paths, match_enum_containing_value,
     get_enum_values, get_union_enum_values
 )
+from puft.tools.log import log
 
 from puft import __version__ as puft_version
 from puft.core.assembler.assembler import Assembler

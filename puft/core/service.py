@@ -2,7 +2,8 @@ import json
 from abc import abstractmethod
 from typing import Any, List, Dict, Literal, Union, Callable, Type
 
-from warepy import log, Singleton, format_message
+from warepy import Singleton, format_message
+from puft.tools.log import log
 
 
 class Service(Singleton):

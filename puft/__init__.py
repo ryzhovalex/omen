@@ -15,3 +15,4 @@ from .core.assembler.cells import (
 )
 from .tools.login_required_dec import login_required
 from .core.db.orm import orm
+from .tools.log import log

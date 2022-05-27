@@ -8,12 +8,13 @@ from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
 from flask import app
 
 from flask_sqlalchemy import SQLAlchemy
-from warepy import get_enum_values, log, format_message, join_paths, load_yaml
+from warepy import get_enum_values, format_message, join_paths, load_yaml
 
 from puft.core.app.app_mode_enum import AppModeEnum
 from .config_extension_enum import ConfigExtensionEnum
 from puft.core.db.orm import orm
 from puft.core.error import Error
+from puft.tools.log import log
 
 if TYPE_CHECKING:
     # Import at type checking with future.annotations to avoid circular imports

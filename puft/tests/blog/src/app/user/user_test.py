@@ -1,5 +1,5 @@
 import pytest
-from puft import Puft, Db
+from puft import Puft, Db, log
 from flask.testing import FlaskClient
 from werkzeug.security import check_password_hash, generate_password_hash
 
