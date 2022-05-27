@@ -20,7 +20,8 @@ class TestUser():
     @pytest.fixture
     def push_user(self, app: Puft, db: Db, user: User) -> None:
         with app.app_context():
-            db.push(user)
+            db.add(user)
+            db.commit()
 
     def test_user_get(
             self, client: FlaskClient, push_user):

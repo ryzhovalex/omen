@@ -15,14 +15,15 @@ def db(app):
     db: Db = Db.instance()
 
     with app.app_context():
-        db.create_all_tables()
+        db.drop_all()
+        db.create_all()
 
     yield db
 
     with app.app_context():
-        db.drop_all_tables()
+        db.drop_all()
 
 
 @pytest.fixture()
 def client(app: Puft) -> FlaskClient:
-    return app.native_app.test_client()
+    return app.test_client()

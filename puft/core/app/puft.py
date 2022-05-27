@@ -7,6 +7,7 @@ from typing import Callable, Type
 from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
+from flask.testing import FlaskClient
 from warepy import log, format_message, get_or_error
 from flask import Flask, Blueprint, render_template, session, g
 from flask import cli as flask_cli
@@ -28,15 +29,14 @@ class Puft(Service):
     Should be inherited by project's AppService.
     """
     def __init__(
-        self, 
-        config: dict,
-        mode_enum: CLIModeEnumUnion,
-        host: str,
-        port: int,
-        ctx_processor_func: Callable | None = None,
-        each_request_func: Callable | None = None,
-        first_request_func: Callable | None = None
-    ) -> None:
+            self, 
+            config: dict,
+            mode_enum: CLIModeEnumUnion,
+            host: str,
+            port: int,
+            ctx_processor_func: Callable | None = None,
+            each_request_func: Callable | None = None,
+            first_request_func: Callable | None = None) -> None:
         # Templates by default searched within src/app, which allows to
         # integrate them directly to their logical component's folders
         self.DEFAULT_TEMPLATE_PATH = os.path.join(
@@ -71,6 +71,9 @@ class Puft(Service):
             each_request_func=each_request_func,
             first_request_func=first_request_func
         )
+
+    def test_client(self) -> FlaskClient:
+        return self.native_app.test_client()
 
     def _assign_defaults_to_config(self, config: dict) -> None:
         if 'TEMPLATE_PATH' not in config:

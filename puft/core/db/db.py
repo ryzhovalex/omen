@@ -47,8 +47,8 @@ class Db(Service):
         raw_uri = config.get("uri", None)  # type: str
 
         if not raw_uri:
+            log.info(f"URI for database is not specified, using default")
             raw_uri = self.DEFAULT_URI
-            log.info(f"URI for Db not specified, using default")
         else:
             # Case 1: SQLite Db.
             # Developer can give relative path to the Db (it will be absolutized at ConfigCell.parse()),
@@ -72,7 +72,7 @@ class Db(Service):
             
             # WARNING: Never print full Db uri to config, since it may contain user's password (as in case of
             # psql)
-            log.info(f"Set Db type: {self.type_enum.value}")
+            log.info(f"Set db type: {self.type_enum.value}")
 
     @log.catch
     @migration_implemented
@@ -123,7 +123,7 @@ class Db(Service):
     @log.catch
     def setup(self, flask_app: Flask) -> None:
         """Setup Db and migration object with given Flask app."""
-        flask_app.config["SQLALCHEMY_db_URI"] = self.uri
+        flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
         flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Supress warning.
         self.native_db.init_app(flask_app)
 
@@ -150,42 +150,34 @@ class Db(Service):
 
     @log.catch
     @migration_implemented
-    def create_all_tables(self) -> None:
+    def create_all(self) -> None:
         self.native_db.create_all()
 
     @log.catch
     @migration_implemented
-    def drop_all_tables(self):
+    def drop_all(self):
         "Drop all tables."
         self.native_db.drop_all()
 
     @log.catch
     @migration_implemented
-    def add_to_session(self, entity):
+    def add(self, entity):
         """Place an object in the session."""
         # TODO: Add functionality to accept multiple entities as *args.
         self.native_db.session.add(entity)
 
     @log.catch
     @migration_implemented
-    def commit_session(self):
+    def commit(self):
         """Commit current transaction."""
         self.native_db.session.commit()
 
-    @migration_implemented
-    def push(self, entity):
-        """Do fast push of entity to the session and immediately commit this
-        session.
-        """
-        self.add_to_session(entity)
-        self.commit_session()
-
     @log.catch
     @migration_implemented
-    def rollback_session(self):
+    def rollback(self):
         self.native_db.session.rollback()
 
     @log.catch
     @migration_implemented
-    def remove_session(self):
+    def remove(self):
         self.native_db.session.remove()
