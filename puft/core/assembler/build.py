@@ -2,20 +2,21 @@ import os
 from typing import Callable
 
 from .cells import (
-    ConfigCell, ServiceCell, MapperCell, ViewCell, EmitterCell, ErrorCell
+    ConfigCell, ServiceCell, ViewCell, EmitterCell, ErrorCell
 )
 
 
 class Build:
-    """Proxy mapping class with collection of initial project instances to be builded by assembler.
+    """Proxy mapping class with collection of initial project instances to be
+    builded by assembler.
     
-    Should be inherited by build class in root folder."""
+    Should be inherited by build class in root folder.
+    """
     def __init__(
         self,
         version: str = "",
         config_dir: str = "./src/configs",
         service_cells: list[ServiceCell] = [],
-        mapper_cells: list[MapperCell] = [],
         view_cells: list[ViewCell] = [],
         emitter_cells: list[EmitterCell] = [],
         error_cells: list[ErrorCell] = [],
@@ -34,7 +35,6 @@ class Build:
         self.version = version
         self.config_dir = config_dir
         self.service_cells = service_cells
-        self.mapper_cells = mapper_cells
         self.view_cells = view_cells
         self.emitter_cells = emitter_cells
         self.error_cells = error_cells

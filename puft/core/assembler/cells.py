@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from puft.core.db.db import Db
     from puft.core.view import View
     from puft.core.emitter import Emitter
-    from puft.core.db.mapper import Mapper
     from puft.core.service import Service
     from puft.tools.hints import CLIModeEnumUnion
 
@@ -227,12 +226,6 @@ class PuftServiceCell(ServiceCell):
 class DbServiceCell(ServiceCell):
     """Injection cell with Db itself which can be applied to created application."""
     service_class: Type[Db]
-
-
-@dataclass
-class MapperCell(Cell):
-    mapper_class: type[Mapper]
-    model: type[orm.Model]
 
 
 @dataclass

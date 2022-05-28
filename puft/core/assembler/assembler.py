@@ -64,7 +64,6 @@ class Assembler(Singleton):
         self.extra_configs_by_name = {}
         self.root_path = build.root_path
         self.service_cells = build.service_cells
-        self.mapper_cells = build.mapper_cells
         self.view_cells = build.view_cells
         self.error_cells: list[ErrorCell] = build.error_cells
         self.emitter_cells = build.emitter_cells
@@ -252,7 +251,6 @@ class Assembler(Singleton):
         self._build_log()
         self._build_services()
         self._build_views()
-        self._build_mappers()
         self._build_errors()
         self._build_emitters()
         self._build_shell_processors()
@@ -421,13 +419,6 @@ class Assembler(Singleton):
         if self.view_cells:
             for view_cell in self.view_cells:
                 self.puft.register_view(view_cell)
-
-    @log.catch
-    def _build_mappers(self) -> None:
-        """Assign models parameters to mapper classes."""
-        if self.mapper_cells:
-            for cell in self.mapper_cells:
-                cell.mapper_class.set_orm_model(cell.model)
 
     @log.catch
     def _build_emitters(self) -> None:
