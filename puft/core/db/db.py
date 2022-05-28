@@ -38,9 +38,21 @@ class Mapper(BaseModel):
     id = sa.Column(sa.Integer, primary_key=True)
 
     @declared_attr
-    def __tablename__(cls):
+    def __tablename__(cls) -> str:
         cls_name: str = cls.__name__  # type: ignore
         return snakefy(cls_name)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict[str, Any]:
+        args: dict[str, Any] = {}
+        if hasattr(cls, 'type'):
+            # If classes intended to build an inheritance tree, they must
+            # include `type` attr
+            args.update({
+                'polymorphic_on': 'type',
+                'polymorphic_identity': cls.__tablename__
+            })
+        return args
 
     @classmethod
     @log.catch
