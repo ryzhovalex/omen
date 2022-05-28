@@ -1,7 +1,7 @@
 import pytest
-from puft import Puft, Db, log
+from puft import Puft, Db, log, Error
 from flask.testing import FlaskClient
-from werkzeug.security import check_password_hash, generate_password_hash
+from puft.core.db.model_not_found_error import ModelNotFoundError
 
 from src.app.user.user import AdvancedUser, User
 from src.app.badge.badge import Badge
@@ -13,9 +13,9 @@ class TestUser():
 
     @pytest.fixture
     def user(self) -> User:
-        user: User = User(
+        user: User = User.create(
             username=self.USERNAME,
-            password=generate_password_hash(self.PASSWORD))
+            password=self.PASSWORD)
         return user
 
     @pytest.fixture
@@ -29,18 +29,38 @@ class TestUser():
         with app.app_context():
             user = User.get_first(id=1)
         assert user.username == self.USERNAME
-        assert check_password_hash(user.password, self.PASSWORD)
+        assert user.check_password(self.PASSWORD)
+
+    def test_del(
+            self, app: Puft, push_user):
+        with app.app_context():
+            User.delete_first(id=1)
+
+            try:
+                User.get_first(id=1)
+            except ModelNotFoundError:
+                model_deleted = True
+            else:
+                model_deleted = False
+
+            assert model_deleted, 'Model should have been properly deleted'
 
 
 class TestAdvancedUser(TestUser):
     BADGE_NAME = 'Best User'
 
     @pytest.fixture
-    def advanced_user(self) -> AdvancedUser:
-        user: AdvancedUser = AdvancedUser(
+    def advanced_user(self, badge) -> AdvancedUser:
+        user: AdvancedUser = AdvancedUser.create(
             username=self.USERNAME,
-            password=generate_password_hash(self.PASSWORD))
+            password=self.PASSWORD,
+            badge=badge)
         return user
+
+    @pytest.fixture
+    def badge(self, app: Puft) -> Badge:
+        with app.app_context():
+            return Badge.create(name=self.BADGE_NAME)
 
     @pytest.fixture
     def push_advanced_user(
@@ -49,21 +69,8 @@ class TestAdvancedUser(TestUser):
             db.add(advanced_user)
             db.commit()
 
-    @pytest.fixture
-    def badge(self, app: Puft) -> Badge:
-        with app.app_context():
-            return Badge(name=self.BADGE_NAME)
-
-    @pytest.fixture
-    def add_advanced_user_badge(
-            self, app: Puft, db: Db, push_advanced_user, badge: Badge) -> None:
-        with app.app_context():
-            user: AdvancedUser = AdvancedUser.get_first(id=1)
-            badge.advanced_users.append(user)
-            db.commit()
-
     def test_get_advanced_user_badge(
-            self, app: Puft, add_advanced_user_badge):
+            self, app: Puft, push_advanced_user):
         with app.app_context():
             advanced_user = AdvancedUser.get_first(id=1)
 

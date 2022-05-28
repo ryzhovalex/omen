@@ -1,9 +1,10 @@
 from __future__ import annotations
 import re
 from functools import wraps
-from typing import Callable, Any
+from typing import Callable, Any, TypeVar
 
 from warepy import format_message, snakefy
+from puft.core.db.model_not_found_error import ModelNotFoundError
 from puft.tools.log import log
 from flask import Flask
 import flask_migrate
@@ -14,6 +15,9 @@ from sqlalchemy.ext.declarative import declared_attr
 
 from puft.core.service import Service
 from .db_type_enum import DbTypeEnum
+
+
+AnyModel = TypeVar('AnyModel', bound='orm.Model')
 
 
 # TODO: Fix type hinting for decorated functions under this decorator.
@@ -33,6 +37,15 @@ def migration_implemented(func: Callable):
 
 
 class Mapper(BaseModel):
+    """Base orm model responsible of holding model's data and at least
+    it's basic CRUD operations.
+
+    Contains create(), get_first(), get_all() and delete_first() methods as
+    Create, Retrieve and Delete representatives.
+    Update representatives are defined individually at each subclass
+    (e.g. `set_something()`), and by default accessed via basic model
+    alteration, e.g. `MyModel.name = 'Another name'`.
+    """
     # sqlalchemy used instead of `orm` class to avoid reference errors
     # https://flask-sqlalchemy.palletsprojects.com/en/2.x/customizing/
     id = sa.Column(sa.Integer, primary_key=True)
@@ -55,7 +68,15 @@ class Mapper(BaseModel):
         return args
 
     @classmethod
-    @log.catch
+    @log.catch(exclude=(NotImplementedError))
+    def create(cls: AnyModel, **kwargs) -> AnyModel:
+        """Create model and return it. Accepts all given kwargs and thus is
+        recommended to be redefined at subclasses.
+        """
+        return cls(**kwargs)  # type: ignore
+
+    @classmethod
+    @log.catch(exclude=(ModelNotFoundError))
     def get_first(
             cls,
             order_by: object | list[object] | None = None,
@@ -74,13 +95,12 @@ class Mapper(BaseModel):
         model: orm.Model = query.first()
 
         if not model:
-            raise ValueError(
-                f"No model {cls.__name__} with such parameters: {kwargs}")
+            raise ModelNotFoundError(model_name=cls.__name__, **kwargs)
         else:
             return model
 
     @classmethod
-    @log.catch
+    @log.catch(exclude=(ModelNotFoundError))
     def get_all(
             cls,
             order_by: object | list[object] | None = None,
@@ -105,10 +125,18 @@ class Mapper(BaseModel):
         models: list[orm.Model] = query.all()
 
         if not models:
-            raise ValueError(
-                f"No model {cls.__name__} with such parameters: {kwargs}")
+            raise ModelNotFoundError(model_name=cls.__name__, **kwargs)
         else:
             return models
+
+    @classmethod
+    def delete_first(
+            cls,
+            order_by: object | list[object] | None = None,
+            **kwargs) -> None:
+        """Delete first accessed by `get_first()` method model."""
+        model: orm.Model = cls.get_first(order_by=order_by, **kwargs)
+        Db.instance().native_db.session.delete(model)
 
     @staticmethod
     def _order_query(query: Any, order_by: object | list[object]) -> object:
