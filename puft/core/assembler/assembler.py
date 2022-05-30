@@ -25,16 +25,6 @@ if TYPE_CHECKING:
     from .build import Build
 
 
-def get_mode() -> str:
-    """Return app mode string representation."""
-    return Assembler.instance().get_mode_enum().value
-    
-
-def get_root_path() -> str:
-    """Return app project root path."""
-    return Assembler.instance().get_root_path()
-
-
 class Assembler(Singleton):
     """Assembles all project instances from given `Builder` type's class and
     initializes it.

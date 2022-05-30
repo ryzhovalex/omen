@@ -70,8 +70,12 @@ class Mapper(BaseModel):
     @classmethod
     @log.catch(exclude=(NotImplementedError))
     def create(cls: AnyModel, **kwargs) -> AnyModel:
-        """Create model and return it. Accepts all given kwargs and thus is
-        recommended to be redefined at subclasses.
+        """Create model and return it.
+        
+        Accepts all given kwargs and thus is recommended to be redefined at
+        subclasses.
+
+        Model creation intended to be done only through this method.
         """
         return cls(**kwargs)  # type: ignore
 

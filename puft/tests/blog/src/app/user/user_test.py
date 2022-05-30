@@ -1,6 +1,6 @@
 import os
 import pytest
-from puft import Puft, Db, log, Error, NotFoundError, ModelNotFoundError
+from puft import Puft, Db, log, Error, NotFoundError, ModelNotFoundError, Test
 from warepy import load_yaml
 from flask.testing import FlaskClient
 
@@ -9,7 +9,7 @@ from src.app.badge.badge import Badge
 from src.app.user.user_sv import UserSv
 
 
-class TestUser():
+class TestUser(Test):
     USERNAME = 'zerohero'
     PASSWORD = '1234'
 
@@ -112,7 +112,7 @@ class TestUserApi(TestUser):
                 f'Unrecognized type of returned data: {type(data)}')
 
 
-class TestUserSv():
+class TestUserSv(Test):
     @pytest.fixture
     def user_sv(self) -> UserSv:
         return UserSv.instance()
