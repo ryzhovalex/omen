@@ -19,11 +19,11 @@ class Post(orm.Model):
             cls,
             title: str,
             user: User,
-            dscr: str = '',
+            content: str = '',
             tags: list[Tag] = []) -> 'Post':
         post: Post = cls(
             title=title,
-            dscr=dscr)
+            content=content)
 
         post.set_user(user)
         for tag in tags:

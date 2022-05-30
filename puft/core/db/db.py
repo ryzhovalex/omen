@@ -185,7 +185,6 @@ class Db(Service):
         # For now service config propagated to Db domain.
         self._assign_uri_from_config(config)
 
-    @log.catch
     def _assign_uri_from_config(self, config: dict) -> None:
         raw_uri = config.get("uri", None)  # type: str
 
@@ -217,13 +216,11 @@ class Db(Service):
             # psql)
             log.info(f"Set db type: {self.type_enum.value}")
 
-    @log.catch
     @migration_implemented
     def init_migration(self, directory: str = "migrations", multidb: bool = False) -> None:
         """Initializes migration support for the application."""
         flask_migrate.init(directory=directory, multidb=multidb)
 
-    @log.catch
     @migration_implemented
     def migrate_migration(
         self,
@@ -247,7 +244,6 @@ class Db(Service):
             rev_id=rev_id
         )
 
-    @log.catch
     @migration_implemented
     def upgrade_migration(
         self,
@@ -263,7 +259,6 @@ class Db(Service):
             tag=tag
         )
 
-    @log.catch
     def setup(self, flask_app: Flask) -> None:
         """Setup Db and migration object with given Flask app."""
         flask_app.config["SQLALCHEMY_DATABASE_URI"] = self.uri
@@ -279,11 +274,9 @@ class Db(Service):
             is_sqlite_db = False
         self.migration = flask_migrate.Migrate(flask_app, self.native_db, render_as_batch=is_sqlite_db)
 
-    @log.catch
     def get_native_db(self) -> SQLAlchemy:
         return self.native_db
 
-    @log.catch
     @migration_implemented
     def get_migration(self) -> flask_migrate.Migrate:
         """Return migration object.
@@ -293,42 +286,35 @@ class Db(Service):
         """
         return self.migration
 
-    @log.catch
     @migration_implemented
     def create_all(self) -> None:
         self.native_db.create_all()
 
-    @log.catch
     @migration_implemented
     def drop_all(self):
         "Drop all tables."
         self.native_db.drop_all()
 
-    @log.catch
     @migration_implemented
     def _add(self, entity):
         """Place an object in the session."""
         # TODO: Add functionality to accept multiple entities as *args.
         self.native_db.session.add(entity)
 
-    @log.catch
     def push(self, entity):
         """Add entity to session and immediately commit the session."""
         self._add(entity)
         self.commit()
 
-    @log.catch
     @migration_implemented
     def commit(self):
         """Commit current transaction."""
         self.native_db.session.commit()
 
-    @log.catch
     @migration_implemented
     def rollback(self):
         self.native_db.session.rollback()
 
-    @log.catch
     @migration_implemented
     def remove(self):
         self.native_db.session.remove()

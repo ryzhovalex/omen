@@ -51,10 +51,10 @@ class TestUser(Test):
             user_mock: UserMock):
         with app.app_context():
             db.push(user)
-            user = User.get_first(id=1)
+            new_user: User = User.get_first()
 
-            assert user.username == user_mock.username
-            assert user.check_password(user_mock.password)
+            assert new_user.username == user_mock.username
+            assert new_user.check_password(user_mock.password)
 
     def test_del(
             self,
@@ -63,10 +63,10 @@ class TestUser(Test):
             user: User):
         with app.app_context():
             db.push(user)
-            User.delete_first(id=1)
+            User.delete_first()
 
             try:
-                User.get_first(id=1)
+                User.get_first()
             except ModelNotFoundError:
                 model_deleted = True
             else:
@@ -84,12 +84,12 @@ class TestAdvancedUser(TestUser):
             badge: Badge):
         with app.app_context():
             db.push(advanced_user_with_badge)
-            advanced_user: AdvancedUser = AdvancedUser.get_first(id=1)
+            new_advanced_user: AdvancedUser = AdvancedUser.get_first()
 
             assert \
-                type(advanced_user.badge_id) is int, \
+                type(new_advanced_user.badge_id) is int, \
                     'Advanced user should have integer badge_id'
-            assert advanced_user in badge.advanced_users
+            assert new_advanced_user in badge.advanced_users
 
 
 class TestUserApi(TestUser):
