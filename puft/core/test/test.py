@@ -38,7 +38,7 @@ class Test:
     @fixture
     def sock_client(self, app: Puft, sock: Sock) -> SocketIOTestClient:
         # https://github.com/miguelgrinberg/Flask-SocketIO/blob/main/test_socketio.py
-        return sock.test_client()
+        return sock.get_test_client()
 
     @fixture
     def root_path(self) -> str:

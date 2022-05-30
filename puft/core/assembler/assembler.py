@@ -5,6 +5,7 @@ from typing import Dict, TYPE_CHECKING, Any
 from warepy import (
     join_paths, format_message, load_yaml, get_enum_values, Singleton
 )
+from flask_socketio import SocketIO
 
 from puft.core.sock.sock import Sock
 from puft.tools.hints import CLIModeEnumUnion
@@ -22,7 +23,7 @@ from puft.core.sv.sv_cell import SvCell
 from puft.core.view.view_cell import ViewCell
 from puft.core.emt.emt_cell import EmtCell
 from puft.core.error.error_cell import ErrorCell
-
+from puft.core.sock.sock_handler import SockHandler
 
 from puft.core.db.db import Db
 from puft.core.app.puft import Puft
@@ -72,6 +73,10 @@ class Assembler(Singleton):
         self.each_request_func = build.each_request_func
         self.first_request_func = build.first_request_func
         self.default_wildcard_error_handler_func = handle_wildcard_error
+        self.sock_handler_cells = build.sock_handler_cells
+        self.default_sock_error_handler = build.default_sock_error_handler
+
+        self.sock_enabled: bool = False
 
         self._assign_config_cells(build.config_dir)
 
@@ -217,6 +222,7 @@ class Assembler(Singleton):
                 self.builtin_sv_cells.append(SockSvCell(
                     name='sock',
                     sv_class=Sock))
+                self.sock_enabled = True
                 log_layers.append('sock')
             
             if log_layers:
@@ -269,6 +275,7 @@ class Assembler(Singleton):
         self._build_emts()
         self._build_shell_processors()
         self._build_cli_cmds()
+        self._build_sock_handlers()
 
         # Call postponed build from created App.
         try:
@@ -319,6 +326,18 @@ class Assembler(Singleton):
         self._run_custom_sv_cells()
 
     @log.catch
+    def _build_sock_handlers(self) -> None:
+        if self.sock_handler_cells and self.sock_enabled:
+            for cell in self.sock_handler_cells:
+                socket: SocketIO = self.sock.get_socket()
+
+                # Register class for socketio namespace
+                # https://flask-socketio.readthedocs.io/en/latest/getting_started.html#class-based-namespaces
+                socket.on_namespace(cell.handler_class(cell.namespace))
+                # Also register error handler for the same namespace
+                socket.on_error(cell.namespace)(cell.error_handler) 
+
+    @log.catch
     def _perform_db_postponed_setup(self) -> None:
         """Postponed setup is required, because Db uses Flask app to init
         native SQLAlchemy db inside, so it's possible only after App
@@ -364,13 +383,10 @@ class Assembler(Singleton):
         if self.sv_cells:
             for cell in self.sv_cells:
                 if self.config_cells:
-                    # Check for domain's config in given cells by comparing names and apply to sv config if it 
-                    # exists.
                     sv_config = self._assemble_sv_config(name=cell.name) 
                 else:
                     sv_config = {}
 
-                # Initialize cell's sv (first) and controller (second) singletons.
                 cell.sv_class(config=sv_config)
 
     @log.catch
