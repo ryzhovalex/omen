@@ -76,15 +76,20 @@ def invoke_shell(assembler: Assembler):
     assembler.get_puft().run_shell()
 
 def spawn_assembler(
-    mode_enum: CLIModeEnumUnion, host: str, port: int, root_dir: str, source_file: str
-) -> Assembler:
+        mode_enum: CLIModeEnumUnion,
+        host: str,
+        port: int,
+        root_dir: str,
+        source_file: str) -> Assembler:
     """Create assembler with required parameters and return it."""
-    # Add root_dir to sys.path to avoid ModuleNotFoundError during lib importing.
+    # Add root_dir to sys.path to avoid ModuleNotFoundError during lib
+    # importing
     sys.path.append(root_dir)
 
     # Load target module spec from location, where cli were called.
     module_location = os.path.join(root_dir, source_file + ".py")
-    module_spec = importlib.util.spec_from_file_location(source_file, module_location)
+    module_spec = importlib.util.spec_from_file_location(
+        source_file, module_location)
     if module_spec and module_spec.loader:
         main_module = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(main_module)
@@ -97,7 +102,10 @@ def spawn_assembler(
         )
         return assembler
     else:
-        raise NameError(format_message("Could not resolve module spec for location: {}.", module_location))
+        raise NameError(
+            format_message(
+                "Could not resolve module spec for location: {}.",
+                module_location))
 
 
 def invoke_run(
@@ -105,7 +113,11 @@ def invoke_run(
     if assembler.mode_enum is CLIRunEnum.TEST:
         log.info('Run pytest')
         # TODO: Move this logic to Assembler or Puft
-        pytest.main([assembler.root_path])
+        from puft.core import test
+        pytest.main([
+            assembler.root_path,
+            f"--rootdir={assembler.root_path}"
+        ])
     else:
         assembler.get_puft().run()
 

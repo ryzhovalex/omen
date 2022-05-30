@@ -139,8 +139,11 @@ class Mapper(BaseModel):
             order_by: object | list[object] | None = None,
             **kwargs) -> None:
         """Delete first accessed by `get_first()` method model."""
+        db: Db = Db.instance()
         model: orm.Model = cls.get_first(order_by=order_by, **kwargs)
-        Db.instance().native_db.session.delete(model)
+
+        db.native_db.session.delete(model)
+        db.commit()
 
     @staticmethod
     def _order_query(query: Any, order_by: object | list[object]) -> object:
@@ -303,10 +306,16 @@ class Db(Service):
 
     @log.catch
     @migration_implemented
-    def add(self, entity):
+    def _add(self, entity):
         """Place an object in the session."""
         # TODO: Add functionality to accept multiple entities as *args.
         self.native_db.session.add(entity)
+
+    @log.catch
+    def push(self, entity):
+        """Add entity to session and immediately commit the session."""
+        self._add(entity)
+        self.commit()
 
     @log.catch
     @migration_implemented

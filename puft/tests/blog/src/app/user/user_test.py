@@ -1,6 +1,8 @@
 import os
+from dataclasses import dataclass
+
 import pytest
-from puft import Puft, Db, log, Error, NotFoundError, ModelNotFoundError, Test
+from puft import Puft, Db, log, ModelNotFoundError, Test, Mock
 from warepy import load_yaml
 from flask.testing import FlaskClient
 
@@ -9,33 +11,58 @@ from src.app.badge.badge import Badge
 from src.app.user.user_sv import UserSv
 
 
+@dataclass
+class UserMock(Mock):
+    username: str
+    password: str
+
+
+@pytest.fixture
+def user_mock() -> UserMock:
+    return UserMock(
+        username='helloworld',
+        password='1234')
+
+
+@pytest.fixture
+def user(user_mock: UserMock) -> User:
+    user: User = User.create(
+        username=user_mock.username,
+        password=user_mock.password)
+    return user
+
+
+@pytest.fixture
+def advanced_user_with_badge(
+        badge: Badge, user_mock: UserMock) -> AdvancedUser:
+    user: AdvancedUser = AdvancedUser.create(
+        username=user_mock.username,
+        password=user_mock.password,
+        badge=badge)
+    return user
+
+
 class TestUser(Test):
-    USERNAME = 'zerohero'
-    PASSWORD = '1234'
-
-    @pytest.fixture
-    def user(self) -> User:
-        user: User = User.create(
-            username=self.USERNAME,
-            password=self.PASSWORD)
-        return user
-
-    @pytest.fixture
-    def push_user(self, app: Puft, db: Db, user: User) -> None:
-        with app.app_context():
-            db.add(user)
-            db.commit()
-
     def test_get(
-            self, app: Puft, push_user):
+            self,
+            app: Puft,
+            db: Db,
+            user: User,
+            user_mock: UserMock):
         with app.app_context():
+            db.push(user)
             user = User.get_first(id=1)
-        assert user.username == self.USERNAME
-        assert user.check_password(self.PASSWORD)
+
+            assert user.username == user_mock.username
+            assert user.check_password(user_mock.password)
 
     def test_del(
-            self, app: Puft, push_user):
+            self,
+            app: Puft,
+            db: Db,
+            user: User):
         with app.app_context():
+            db.push(user)
             User.delete_first(id=1)
 
             try:
@@ -49,50 +76,35 @@ class TestUser(Test):
 
 
 class TestAdvancedUser(TestUser):
-    BADGE_NAME = 'Best User'
-
-    @pytest.fixture
-    def advanced_user(self, badge) -> AdvancedUser:
-        user: AdvancedUser = AdvancedUser.create(
-            username=self.USERNAME,
-            password=self.PASSWORD,
-            badge=badge)
-        return user
-
-    @pytest.fixture
-    def badge(self, app: Puft) -> Badge:
-        with app.app_context():
-            return Badge.create(name=self.BADGE_NAME)
-
-    @pytest.fixture
-    def push_advanced_user(
-            self, app: Puft, db: Db, advanced_user: AdvancedUser) -> None:
-        with app.app_context():
-            db.add(advanced_user)
-            db.commit()
-
     def test_get_advanced_user_badge(
-            self, app: Puft, push_advanced_user):
+            self,
+            app: Puft,
+            db: Db,
+            advanced_user_with_badge: AdvancedUser,
+            badge: Badge):
         with app.app_context():
-            advanced_user = AdvancedUser.get_first(id=1)
+            db.push(advanced_user_with_badge)
+            advanced_user: AdvancedUser = AdvancedUser.get_first(id=1)
 
             assert \
                 type(advanced_user.badge_id) is int, \
                     'Advanced user should have integer badge_id'
-
-            badge = Badge.get_first(id=advanced_user.badge_id)
-
-            assert \
-                badge.name == self.BADGE_NAME, \
-                    'Badge of advanced user should have' \
-                    f' name {self.BADGE_NAME}, got {badge.name} instead'
             assert advanced_user in badge.advanced_users
 
 
 class TestUserApi(TestUser):
     def test_get(
-            self, client: FlaskClient, push_user):
+            self,
+            app: Puft,
+            db: Db,
+            user: User,
+            client: FlaskClient,
+            user_mock: UserMock):
+        with app.app_context():
+            db.push(user) 
+
         data = client.get('/user/1').json
+
         if type(data) is dict:
             assert \
                 'username' in data, \
@@ -105,7 +117,7 @@ class TestUserApi(TestUser):
                     'User data should contain `post_ids` field'
             
             assert \
-                data['username'] == self.USERNAME, \
+                data['username'] == user_mock.username, \
                     'Username should be as created one'
         else:
             raise TypeError(

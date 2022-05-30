@@ -115,8 +115,6 @@ class ConfigCell(NamedCell):
                 temp_config[k.lower()] = v
             res_config = temp_config
 
-        if self.name == 'log':
-            log.debug(res_config)
         return res_config
 
     def _update_config_for_mode(
