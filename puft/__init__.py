@@ -14,3 +14,4 @@ from .core.assembler.cells import (
 )
 from .tools.login_required_dec import login_required
 from .tools.log import log
+from .core.db.model_not_found_error import ModelNotFoundError

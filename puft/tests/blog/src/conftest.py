@@ -1,5 +1,5 @@
 import pytest
-from puft import Puft, Db
+from puft import Puft, Db, get_root_path
 from flask.testing import FlaskClient
 
 
@@ -27,3 +27,8 @@ def db(app):
 @pytest.fixture()
 def client(app: Puft) -> FlaskClient:
     return app.test_client()
+
+
+@pytest.fixture()
+def root_path() -> str:
+    return get_root_path()

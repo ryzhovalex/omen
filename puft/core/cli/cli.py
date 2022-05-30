@@ -10,6 +10,7 @@ from warepy import (
     get_enum_values, get_union_enum_values
 )
 from puft.tools.log import log
+from dotenv import load_dotenv
 
 from puft import __version__ as puft_version
 from puft.core.assembler.assembler import Assembler
@@ -20,6 +21,9 @@ from .cli_helper_enum import CLIHelperEnum
 
 
 def main() -> None:
+    # Envrons should be loaded from app's root directory
+    load_dotenv(os.path.join(os.getcwd(), '.env'))
+
     args = parse_input()
 
     if args.check_version:

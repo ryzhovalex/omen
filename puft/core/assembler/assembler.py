@@ -374,7 +374,7 @@ class Assembler(Singleton):
         try:
             config_cell_with_target_name: ConfigCell = NamedCell.find_by_name(
                 name, self.config_cells)
-        except ValueError:  # i.e. config not found.
+        except ValueError:
             # If config not found and errors enabled, raise error.
             if is_errors_enabled:
                 message = format_message(

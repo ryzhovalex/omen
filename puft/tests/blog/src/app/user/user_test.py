@@ -1,10 +1,12 @@
+import os
 import pytest
-from puft import Puft, Db, log, Error
+from puft import Puft, Db, log, Error, NotFoundError, ModelNotFoundError
+from warepy import load_yaml
 from flask.testing import FlaskClient
-from puft.core.db.model_not_found_error import ModelNotFoundError
 
 from src.app.user.user import AdvancedUser, User
 from src.app.badge.badge import Badge
+from src.app.user.user_sv import UserSv
 
 
 class TestUser():
@@ -108,3 +110,52 @@ class TestUserApi(TestUser):
         else:
             raise TypeError(
                 f'Unrecognized type of returned data: {type(data)}')
+
+
+class TestUserSv():
+    @pytest.fixture
+    def user_sv(self) -> UserSv:
+        return UserSv.instance()
+
+    @pytest.fixture
+    def yaml_config(self, root_path) -> dict:
+        return load_yaml(os.path.join(root_path, 'src/configs/user.yaml'))
+
+    @pytest.fixture
+    def yaml_user_system_token(self, yaml_config) -> str:
+        try:
+            return yaml_config['user_system_token']
+        except KeyError:
+            raise KeyError('Config should define `user_system_token`')
+
+    @pytest.fixture
+    def user_system_token_environ(self) -> str:
+        try:
+            return os.environ['BLOG_USER_SYSTEM_TOKEN']
+        except KeyError:
+            raise KeyError('OS should define environ BLOG_USER_SYSTEM_TOKEN')
+
+    def test_license_number(self, user_sv: UserSv, yaml_config: dict):
+        license_number: int = user_sv.get_license_number()
+        yaml_license_number: int = yaml_config.get('license_number', '')
+
+        assert \
+            yaml_license_number != '', \
+                'Config should define `license_number`'
+        assert \
+            license_number == yaml_license_number, \
+                'License number from config and license number from service' \
+                ' should be the same'
+
+    def test_pc_hostname(
+            self,
+            user_sv: UserSv,
+            user_system_token_environ: str,
+            yaml_user_system_token: str):
+        user_system_token: str = user_sv.get_user_system_token()
+        yaml_replaced_user_system_token: str = yaml_user_system_token.replace(
+            '{HOSTNAME}', user_system_token_environ)
+
+        assert \
+            user_system_token == yaml_replaced_user_system_token, \
+                'User service pc_hostname should equal config\'s pc_hostname'

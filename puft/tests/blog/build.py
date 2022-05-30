@@ -4,12 +4,13 @@ from puft import (
     Build, ServiceCell, ViewCell
 )
 
+from src.app.user.user_sv import UserSv
 from src.tools.shell import import_main, import_std
 from src.app.user.user_view import UserView
 
 
 service_cells: list[ServiceCell] = [
-
+    ServiceCell('user', UserSv)
 ]
 
 

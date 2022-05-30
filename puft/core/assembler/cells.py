@@ -115,6 +115,8 @@ class ConfigCell(NamedCell):
                 temp_config[k.lower()] = v
             res_config = temp_config
 
+        if self.name == 'log':
+            log.debug(res_config)
         return res_config
 
     def _update_config_for_mode(
@@ -178,8 +180,9 @@ class ConfigCell(NamedCell):
             self, config: dict[str, Any], root_path: str) -> None:
         for k, v in config.items():
             if type(v) == str:
-                # Find environs to be requested.
-                # Exclude escaped curly braces like `\{not_environ\}`.
+                # Find environs to be requested
+                # Exclude escaped curly brace like `\{not_environ}`
+                # Note that environs matching \w+ pattern only supported
                 envs: list[str] = re.findall(r"[^\\]\{\w+\}", v)
                 if envs:
                     for env in [
