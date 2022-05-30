@@ -3,4 +3,4 @@ level: DEBUG
 format: "\\{time:%Y.%m.%d at %H:%M:%S:%f%z} | \\{level} | \\{extra} >> \\{message}"
 rotation: 10 MB
 serialize: false
-delete_old: true
+delete_old: false

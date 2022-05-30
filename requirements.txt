@@ -1,5 +1,5 @@
 flask
-warepy==0.6.1
+warepy==0.7.1
 requests
 turbo-flask
 flask-migrate
@@ -9,3 +9,4 @@ flask-session
 redis
 click
 python-dotenv
+flask-socketio

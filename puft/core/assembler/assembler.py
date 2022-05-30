@@ -6,15 +6,16 @@ from warepy import (
     join_paths, format_message, load_yaml, get_enum_values, Singleton
 )
 
+from puft.core.sock.sock import Sock
 from puft.tools.hints import CLIModeEnumUnion
 from puft.tools.log import log
 from puft.core.app.app_mode_enum import AppModeEnum
 from puft.core.cli.cli_run_enum import CLIRunEnum
 from puft.core.error import Error
 from puft.tools.error_handlers import handle_wildcard_error
-from .cells import (
+from ..cell import (
     ErrorCell, NamedCell, ConfigCell, ServiceCell, PuftServiceCell,
-    DbServiceCell
+    DbServiceCell, SockServiceCell
 )
 from puft.core.db.db import Db
 from puft.core.app.puft import Puft
@@ -176,7 +177,9 @@ class Assembler(Singleton):
     @log.catch
     def _assign_builtin_service_cells(
             self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
-        """Assign builting service cells if configuration file for its service exists."""
+        """Assign builting service cells if configuration file for its service
+        exists.
+        """
         self.builtin_service_cells: list[Any] = [PuftServiceCell(
             name="puft",
             service_class=Puft,
@@ -184,6 +187,7 @@ class Assembler(Singleton):
             host=host,
             port=port
         )]
+        log_layers: list[str] = []
 
         # Enable only modules with specified configs.
         if self.config_cells:
@@ -196,7 +200,20 @@ class Assembler(Singleton):
                     name="db",
                     service_class=Db
                 ))
-                log.info("Db layer enabled.")
+                log_layers.append('db')
+
+            try:
+                NamedCell.find_by_name('sock', self.config_cells)
+            except ValueError:
+                pass
+            else:
+                self.builtin_service_cells.append(SockServiceCell(
+                    name='sock',
+                    service_class=Sock))
+                log_layers.append('sock')
+            
+            if log_layers:
+                log.info(f'Enabled layers: {", ".join(log_layers)}')
 
     @staticmethod
     @log.catch
@@ -296,46 +313,44 @@ class Assembler(Singleton):
 
     @log.catch
     def _perform_db_postponed_setup(self) -> None:
-        """Postponed setup is required, because Db uses Flask app to init native SQLAlchemy db inside, 
-        so it's possible only after App initialization.
-        The setup_db requires native flask app to work with."""
+        """Postponed setup is required, because Db uses Flask app to init
+        native SQLAlchemy db inside, so it's possible only after App
+        initialization.
+
+        The setup_db requires native flask app to work with.
+        """
         self.db.setup(flask_app=self.puft.get_native_app())
     
     @log.catch
     def _run_builtin_service_cells(self) -> None:
         for cell in self.builtin_service_cells:
-            # Check for domain's config in given cells by comparing names and apply to service config if it exists.
+            # Check for domain's config in given cells by comparing names and
+            # apply to service config if it exists
             config = self._assemble_service_config(name=cell.name) 
 
             # Each builtin service should receive essential fields for their
             # configs, such as root_path, because they cannot import Assembler
-            # due to circular import issue and get this fields by themselves.
+            # due to circular import issue and get this fields by themselves
             config["root_path"] = self.root_path
 
             # Initialize service.
             if type(cell) is PuftServiceCell:
                 # Run special initialization with mode, host and port for Puft
-                # service.
-                cell.service_class(
+                # service
+                self.puft: Puft = cell.service_class(
                     mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
                     config=config,
-                    # Lines below are ignored since Pyright gives strange error
-                    # on service_class() and funcs below types incopatibility.
-                    ctx_processor_func=self.ctx_processor_func,  # type: ignore
-                    each_request_func=self.each_request_func,  # type: ignore
-                    first_request_func=self.first_request_func)  # type: ignore
+                    ctx_processor_func=self.ctx_processor_func,
+                    each_request_func=self.each_request_func,
+                    first_request_func=self.first_request_func)
+            elif type(cell) is DbServiceCell:
+                self.db: Db = cell.service_class(config=config)
+                # Perform Db postponed setup
+                self._perform_db_postponed_setup()
+            elif type(cell) is SockServiceCell:
+                self.sock = cell.service_class(config=config, app=self.puft)
             else:
                 cell.service_class(config=config)
-
-            # Assign builtin cells to according Assembler vars to operate with later.
-            if type(cell) is PuftServiceCell:
-                self.puft = cell.service_class.instance()
-            elif type(cell) is DbServiceCell:
-                self.db = cell.service_class.instance()
-                # Perform Db postponed setup.
-                self._perform_db_postponed_setup()
-            else:
-                raise TypeError(f'Unrecognized type of cell: {type(cell)}')
 
     @log.catch
     def _run_custom_service_cells(self) -> None:

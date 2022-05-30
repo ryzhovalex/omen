@@ -1,7 +1,7 @@
 import os
 from typing import Callable
 
-from .cells import (
+from ..cell import (
     ConfigCell, ServiceCell, ViewCell, EmitterCell, ErrorCell
 )
 

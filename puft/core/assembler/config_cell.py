@@ -1,70 +1,15 @@
-from __future__ import annotations
 import re
-from copy import copy
 import os
 import json
+from copy import copy
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING, Callable, Type, Sequence, TypeVar
-from flask import app
+from typing import Any
 
-from flask_sqlalchemy import SQLAlchemy
-from warepy import get_enum_values, format_message, join_paths, load_yaml
+from warepy import join_paths, load_yaml
 
 from puft.core.app.app_mode_enum import AppModeEnum
 from .config_extension_enum import ConfigExtensionEnum
-from puft.core.error import Error
-from puft.tools.log import log
-
-if TYPE_CHECKING:
-    # Import at type checking with future.annotations to avoid circular imports
-    # and use just for typehints.
-    from puft.core.db.db import orm
-    from puft.core.app.puft import Puft
-    from puft.core.db.db import Db
-    from puft.core.view import View
-    from puft.core.emitter import Emitter
-    from puft.core.service import Service
-    from puft.tools.hints import CLIModeEnumUnion
-
-
-# Set TypeVar upper bound to class defined afterwards.
-# https://stackoverflow.com/a/67662276
-AnyNamedCell = TypeVar("AnyNamedCell", bound="NamedCell")
-
-
-@dataclass
-class Cell:
-    pass
-
-
-@dataclass
-class NamedCell(Cell):
-    name: str
-
-    @staticmethod
-    def find_by_name(name: str, cells: Sequence[AnyNamedCell]) -> AnyNamedCell:
-        """Traverse through given list of cells and return first one with
-        specified name.
-        
-        Raise:
-            ValueError: 
-                No cell with given name found.
-        """
-        for cell in cells:
-            if cell.name == name:
-                return cell
-        raise ValueError(
-            format_message("No cell with given name {} found.", name))
-
-    @staticmethod
-    def map_to_name(cells: list[AnyNamedCell]) -> dict[str, AnyNamedCell]:
-        """Traverse through given cells names and return dict with these cells
-        as values and their names as keys."""
-        cells_by_name: dict[str, AnyNamedCell] = {}
-        for cell in cells:
-            cells_by_name[cell.name] = cell
-        return cells_by_name
-
+from .named_cell import NamedCell
 
 @dataclass
 class ConfigCell(NamedCell):
@@ -139,7 +84,7 @@ class ConfigCell(NamedCell):
             dev_config = copy(config_by_mode[AppModeEnum.DEV])
             prod_config.update(dev_config)
         else:
-            # Prod mode, do nothing extra.
+            # Prod mode, do nothing extra
             pass
         return prod_config
     
@@ -149,7 +94,7 @@ class ConfigCell(NamedCell):
             try:
                 source = self.source_by_app_mode[app_mode_enum]
             except KeyError:
-                # No source for such mode.
+                # No source for such mode
                 config_by_mode[app_mode_enum] = {}
                 continue
             source_extension = source[source.rfind(".")+1:]
@@ -168,10 +113,10 @@ class ConfigCell(NamedCell):
                     config = json.load(config_file)
             case ConfigExtensionEnum.YAML:
                 config = load_yaml(source)
+                if config is None:
+                    raise NotImplementedError(self.name)
             case _:
-                error_message = format_message(
-                    "Unrecognized config cell source's extension.")
-                raise ValueError(error_message)
+                raise ValueError("Unrecognized config cell source's extension")
         return config
     
     def _parse_string_config_values(
@@ -204,44 +149,3 @@ class ConfigCell(NamedCell):
                     config[k] = join_paths(root_path, v)
                 else:
                     config[k] = v
-
-
-@dataclass
-class ServiceCell(NamedCell):
-    service_class: type[Service]
-
-
-@dataclass
-class PuftServiceCell(ServiceCell):
-    """Injection cell with app itself which is required in any build."""
-    service_class: type[Puft]
-    mode_enum: CLIModeEnumUnion
-    host: str
-    port: int
-    ctx_processor_func: Callable | None = None
-    each_request_func: Callable | None = None
-    first_request_func: Callable | None = None
-
-
-@dataclass
-class DbServiceCell(ServiceCell):
-    """Injection cell with Db itself which can be applied to created application."""
-    service_class: Type[Db]
-
-
-@dataclass
-class ViewCell(Cell):
-    endpoint: str
-    view_class: type[View]
-    route: str  # Route will be the same for all methods.
-
-
-@dataclass
-class EmitterCell(Cell):
-    emitter_class: type[Emitter]
-
-
-@dataclass
-class ErrorCell(Cell):
-    error_class: type[Error]
-    handler_function: Callable

@@ -113,7 +113,6 @@ def invoke_run(
     if assembler.mode_enum is CLIRunEnum.TEST:
         log.info('Run pytest')
         # TODO: Move this logic to Assembler or Puft
-        from puft.core import test
         pytest.main([
             assembler.root_path,
             f"--rootdir={assembler.root_path}"
