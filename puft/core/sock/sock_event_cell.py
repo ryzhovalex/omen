@@ -1,1 +1,1 @@
-from puft.core.cell import Cell
+from puft.core.cell.cell import Cell

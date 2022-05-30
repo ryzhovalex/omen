@@ -11,12 +11,19 @@ from puft.tools.hints import CLIModeEnumUnion
 from puft.tools.log import log
 from puft.core.app.app_mode_enum import AppModeEnum
 from puft.core.cli.cli_run_enum import CLIRunEnum
-from puft.core.error import Error
+from puft.core.error.error import Error
 from puft.tools.error_handlers import handle_wildcard_error
-from ..cell import (
-    ErrorCell, NamedCell, ConfigCell, ServiceCell, PuftServiceCell,
-    DbServiceCell, SockServiceCell
-)
+from puft.core.cell.named_cell import NamedCell
+from puft.core.cell.config_cell import ConfigCell
+from puft.core.app.puft_sv_cell import PuftSvCell
+from puft.core.db.db_sv_cell import DbSvCell
+from puft.core.sock.sock_sv_cell import SockSvCell
+from puft.core.sv.sv_cell import SvCell
+from puft.core.view.view_cell import ViewCell
+from puft.core.emt.emt_cell import EmtCell
+from puft.core.error.error_cell import ErrorCell
+
+
 from puft.core.db.db import Db
 from puft.core.app.puft import Puft
 from puft.tools.hints import CLIModeEnumUnion
@@ -54,10 +61,10 @@ class Assembler(Singleton):
         # `get()` method called from this dictionary.
         self.extra_configs_by_name = {}
         self.root_path = build.root_path
-        self.service_cells = build.service_cells
+        self.sv_cells = build.sv_cells
         self.view_cells = build.view_cells
         self.error_cells: list[ErrorCell] = build.error_cells
-        self.emitter_cells = build.emitter_cells
+        self.emt_cells = build.emt_cells
         self.mode_enum = mode_enum
         self.shell_processors = build.shell_processors
         self.cli_cmds = build.cli_cmds
@@ -69,7 +76,7 @@ class Assembler(Singleton):
         self._assign_config_cells(build.config_dir)
 
         # Traverse given configs and assign enabled builtin cells.
-        self._assign_builtin_service_cells(mode_enum, host, port)
+        self._assign_builtin_sv_cells(mode_enum, host, port)
 
     @log.catch
     def get_puft(self) -> Puft:
@@ -93,7 +100,7 @@ class Assembler(Singleton):
         ConfigCells from them.
 
         Name taken from filename of config and should be the same as specified 
-        at config's target service_cell.name.
+        at config's target sv_cell.name.
 
         Names can contain additional extension like `name.prod.yaml` according
         to appropriate Puft modes. These configs launched per each mode. Config
@@ -113,7 +120,7 @@ class Assembler(Singleton):
     def _find_config_files(
             self, config_path: str) -> dict[str, dict[AppModeEnum, str]]:
         """Accept path to config dir and return dict describing all paths to
-        configs for all app modes per service name.
+        configs for all app modes per sv name.
         
         Return example:
         ```python
@@ -175,14 +182,14 @@ class Assembler(Singleton):
         return source_map_by_name
 
     @log.catch
-    def _assign_builtin_service_cells(
+    def _assign_builtin_sv_cells(
             self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
-        """Assign builting service cells if configuration file for its service
+        """Assign builting sv cells if configuration file for its sv
         exists.
         """
-        self.builtin_service_cells: list[Any] = [PuftServiceCell(
+        self.builtin_sv_cells: list[Any] = [PuftSvCell(
             name="puft",
-            service_class=Puft,
+            sv_class=Puft,
             mode_enum=mode_enum,
             host=host,
             port=port
@@ -196,9 +203,9 @@ class Assembler(Singleton):
             except ValueError:
                 pass
             else:
-                self.builtin_service_cells.append(DbServiceCell(
+                self.builtin_sv_cells.append(DbSvCell(
                     name="db",
-                    service_class=Db
+                    sv_class=Db
                 ))
                 log_layers.append('db')
 
@@ -207,9 +214,9 @@ class Assembler(Singleton):
             except ValueError:
                 pass
             else:
-                self.builtin_service_cells.append(SockServiceCell(
+                self.builtin_sv_cells.append(SockSvCell(
                     name='sock',
-                    service_class=Sock))
+                    sv_class=Sock))
                 log_layers.append('sock')
             
             if log_layers:
@@ -256,10 +263,10 @@ class Assembler(Singleton):
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
         self._build_log()
-        self._build_services()
+        self._build_svs()
         self._build_views()
         self._build_errors()
-        self._build_emitters()
+        self._build_emts()
         self._build_shell_processors()
         self._build_cli_cmds()
 
@@ -307,9 +314,9 @@ class Assembler(Singleton):
         log.configure(**log_kwargs)
 
     @log.catch
-    def _build_services(self) -> None:
-        self._run_builtin_service_cells()
-        self._run_custom_service_cells()
+    def _build_svs(self) -> None:
+        self._run_builtin_sv_cells()
+        self._run_custom_sv_cells()
 
     @log.catch
     def _perform_db_postponed_setup(self) -> None:
@@ -322,55 +329,55 @@ class Assembler(Singleton):
         self.db.setup(flask_app=self.puft.get_native_app())
     
     @log.catch
-    def _run_builtin_service_cells(self) -> None:
-        for cell in self.builtin_service_cells:
+    def _run_builtin_sv_cells(self) -> None:
+        for cell in self.builtin_sv_cells:
             # Check for domain's config in given cells by comparing names and
-            # apply to service config if it exists
-            config = self._assemble_service_config(name=cell.name) 
+            # apply to sv config if it exists
+            config = self._assemble_sv_config(name=cell.name) 
 
-            # Each builtin service should receive essential fields for their
+            # Each builtin sv should receive essential fields for their
             # configs, such as root_path, because they cannot import Assembler
             # due to circular import issue and get this fields by themselves
             config["root_path"] = self.root_path
 
-            # Initialize service.
-            if type(cell) is PuftServiceCell:
+            # Initialize sv.
+            if type(cell) is PuftSvCell:
                 # Run special initialization with mode, host and port for Puft
-                # service
-                self.puft: Puft = cell.service_class(
+                # sv
+                self.puft: Puft = cell.sv_class(
                     mode_enum=cell.mode_enum, host=cell.host, port=cell.port, 
                     config=config,
                     ctx_processor_func=self.ctx_processor_func,
                     each_request_func=self.each_request_func,
                     first_request_func=self.first_request_func)
-            elif type(cell) is DbServiceCell:
-                self.db: Db = cell.service_class(config=config)
+            elif type(cell) is DbSvCell:
+                self.db: Db = cell.sv_class(config=config)
                 # Perform Db postponed setup
                 self._perform_db_postponed_setup()
-            elif type(cell) is SockServiceCell:
-                self.sock = cell.service_class(config=config, app=self.puft)
+            elif type(cell) is SockSvCell:
+                self.sock = cell.sv_class(config=config, app=self.puft)
             else:
-                cell.service_class(config=config)
+                cell.sv_class(config=config)
 
     @log.catch
-    def _run_custom_service_cells(self) -> None:
-        if self.service_cells:
-            for cell in self.service_cells:
+    def _run_custom_sv_cells(self) -> None:
+        if self.sv_cells:
+            for cell in self.sv_cells:
                 if self.config_cells:
-                    # Check for domain's config in given cells by comparing names and apply to service config if it 
+                    # Check for domain's config in given cells by comparing names and apply to sv config if it 
                     # exists.
-                    service_config = self._assemble_service_config(name=cell.name) 
+                    sv_config = self._assemble_sv_config(name=cell.name) 
                 else:
-                    service_config = {}
+                    sv_config = {}
 
-                # Initialize cell's service (first) and controller (second) singletons.
-                cell.service_class(config=service_config)
+                # Initialize cell's sv (first) and controller (second) singletons.
+                cell.sv_class(config=sv_config)
 
     @log.catch
-    def _assemble_service_config(
+    def _assemble_sv_config(
             self,
             name: str, is_errors_enabled: bool = False) -> dict[str, Any]:
-        """Check for service's config in config cells by comparing its given
+        """Check for sv's config in config cells by comparing its given
         name and return it as dict.
 
         If appropriate config hasn't been found, raise ValueError if
@@ -426,11 +433,11 @@ class Assembler(Singleton):
                 self.puft.register_view(view_cell)
 
     @log.catch
-    def _build_emitters(self) -> None:
-        """Build emitters from given cells and inject Puft application controllers to each."""
-        if self.emitter_cells:
-            for cell in self.emitter_cells:
-                cell.emitter_class(puft=self.puft)
+    def _build_emts(self) -> None:
+        """Build emts from given cells and inject Puft application controllers to each."""
+        if self.emt_cells:
+            for cell in self.emt_cells:
+                cell.emt_class(puft=self.puft)
 
     @log.catch
     def _build_shell_processors(self) -> None:

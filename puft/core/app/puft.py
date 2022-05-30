@@ -15,18 +15,18 @@ from flask.ctx import AppContext, RequestContext
 from warepy import get_enum_values
 from puft.tools.log import log
 
-from puft.core.service import Service
+from puft.core.sv.sv import Sv
 from puft.tools.hints import CLIModeEnumUnion
-from puft.core.cell import ViewCell
+from puft.core.view.view_cell import ViewCell
 from puft.core.cli.cli_run_enum import CLIRunEnum
 from .http_method_enum import HTTPMethodEnum
 from .turbo_action_enum import TurboActionEnum
 
 
-class Puft(Service):
+class Puft(Sv):
     """Operates over Puft processes.
     
-    Should be inherited by project's AppService.
+    Should be inherited by project's AppSv.
     """
     def __init__(
             self, 

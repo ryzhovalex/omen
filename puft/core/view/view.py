@@ -2,7 +2,7 @@ from flask.views import MethodView
 from warepy import Singleton, format_message
 from puft.tools.log import log
 
-from ..tools.noconflict import makecls
+from ...tools.noconflict import makecls
 
 
 class View(MethodView):

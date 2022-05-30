@@ -1,9 +1,10 @@
 import os
 from typing import Callable
 
-from ..cell import (
-    ConfigCell, ServiceCell, ViewCell, EmitterCell, ErrorCell
-)
+from puft.core.sv.sv_cell import SvCell
+from puft.core.view.view_cell import ViewCell
+from puft.core.emt.emt_cell import EmtCell
+from puft.core.error.error_cell import ErrorCell
 
 
 class Build:
@@ -16,9 +17,9 @@ class Build:
         self,
         version: str = "",
         config_dir: str = "./src/configs",
-        service_cells: list[ServiceCell] = [],
+        sv_cells: list[SvCell] = [],
         view_cells: list[ViewCell] = [],
-        emitter_cells: list[EmitterCell] = [],
+        emt_cells: list[EmtCell] = [],
         error_cells: list[ErrorCell] = [],
         shell_processors: list[Callable] = [],
         cli_cmds: list[Callable] = [],
@@ -34,9 +35,9 @@ class Build:
 
         self.version = version
         self.config_dir = config_dir
-        self.service_cells = service_cells
+        self.sv_cells = sv_cells
         self.view_cells = view_cells
-        self.emitter_cells = emitter_cells
+        self.emt_cells = emt_cells
         self.error_cells = error_cells
         self.shell_processors = shell_processors
         self.cli_cmds = cli_cmds

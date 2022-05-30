@@ -14,5 +14,5 @@ class TestChat(Test):
     def test_send_message(self, sock_client: SocketIOTestClient):
         sock_client.send('Hello!')
         received = sock_client.get_received()
-        log.debug(received)
-        assert False
+
+        assert type(received) is list

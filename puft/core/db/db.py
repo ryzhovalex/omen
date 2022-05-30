@@ -13,7 +13,7 @@ from flask_sqlalchemy import Model as BaseModel
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declared_attr
 
-from puft.core.service import Service
+from puft.core.sv.sv import Sv
 from .db_type_enum import DbTypeEnum
 
 
@@ -175,14 +175,14 @@ class orm:
     datetime = native_db.DateTime  # type: ignore
 
 
-class Db(Service):
+class Db(Sv):
     """Operates over database processes."""
     def __init__(self, config: dict) -> None:
         super().__init__(config)
         self.DEFAULT_URI = f"sqlite:///{self.config['root_path']}/sqlite3.db"
 
         self.native_db = orm.native_db
-        # For now service config propagated to Db domain.
+        # For now sv config propagated to Db domain.
         self._assign_uri_from_config(config)
 
     def _assign_uri_from_config(self, config: dict) -> None:

@@ -1,7 +1,7 @@
-from puft import Service, log
+from puft import Sv, log
 
 
-class UserSv(Service):
+class UserSv(Sv):
     def __init__(self, config: dict) -> None:
         super().__init__(config)
 

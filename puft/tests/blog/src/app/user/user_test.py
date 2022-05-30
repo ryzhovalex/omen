@@ -156,7 +156,7 @@ class TestUserSv(Test):
                 'Config should define `license_number`'
         assert \
             license_number == yaml_license_number, \
-                'License number from config and license number from service' \
+                'License number from config and license number from sv' \
                 ' should be the same'
 
     def test_pc_hostname(
@@ -170,4 +170,4 @@ class TestUserSv(Test):
 
         assert \
             user_system_token == yaml_replaced_user_system_token, \
-                'User service pc_hostname should equal config\'s pc_hostname'
+                'User sv pc_hostname should equal config\'s pc_hostname'

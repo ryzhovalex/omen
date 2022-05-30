@@ -8,7 +8,7 @@ from typing import Any
 from warepy import join_paths, load_yaml
 
 from puft.core.app.app_mode_enum import AppModeEnum
-from .config_extension_enum import ConfigExtensionEnum
+from ..assembler.config_extension_enum import ConfigExtensionEnum
 from .named_cell import NamedCell
 
 @dataclass

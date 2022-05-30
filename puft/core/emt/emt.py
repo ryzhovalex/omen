@@ -2,13 +2,13 @@ from puft.core.app.turbo_action_enum import TurboActionEnum
 from warepy import Singleton
 from puft.tools.log import log
 
-from .app.puft import Puft
+from ..app.puft import Puft
 
 
-class Emitter(Singleton):
-    """Emitter is a special class performing various tasks related to turbo.js actions, such as updating.
+class Emt(Singleton):
+    """Emt is a special class performing various tasks related to turbo.js actions, such as updating.
     
-    It acts with Views, which call methods from Emitters.
+    It acts with Views, which call methods from Emts.
     """
     def __init__(self, puft: Puft) -> None:
         self.puft = puft
