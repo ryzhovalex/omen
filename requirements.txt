@@ -10,3 +10,5 @@ redis
 click
 python-dotenv
 flask-socketio
+loguru
+schema
