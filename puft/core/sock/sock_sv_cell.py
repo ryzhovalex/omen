@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from puft.core.sv.sv_cell import SvCell
 
 if TYPE_CHECKING:
-    from puft.core.sock.sock import Sock
+    from puft.core.sock.socket import Socket
 
 
 @dataclass
-class SockSvCell(SvCell):
+class SocketSvCell(SvCell):
     sv_class: type[Sock]

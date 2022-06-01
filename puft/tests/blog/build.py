@@ -1,13 +1,13 @@
 __version__ = "0.0.0"
 
 from puft import (
-    Build, SvCell, ViewCell, SockHandlerCell)
+    Build, SvCell, ViewCell, SockCell)
 
 from src.app.user.user_sv import UserSv
 from src.tools.shell import import_main, import_std
 from src.app.user.user_view import UserView
 from src.app.chat.chat_sv import ChatSv
-from puft.tests.blog.src.app.chat.chat_sock_handler import ChatSockHandler
+from puft.tests.blog.src.app.chat.chat_sock import ChatSock
 
 
 sv_cells: list[SvCell] = [
@@ -15,8 +15,8 @@ sv_cells: list[SvCell] = [
     SvCell('chat', sv_class=ChatSv)
 ]
 
-sock_handler_cells: list[SockHandlerCell] = [
-    SockHandlerCell('/chat', ChatSockHandler)
+sock_handler_cells: list[SockCell] = [
+    SockCell('/chat', ChatSock)
 ]
 
 

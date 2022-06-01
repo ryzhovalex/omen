@@ -1,7 +1,7 @@
 from typing import Any
 from flask_socketio import SocketIOTestClient
 from pytest import fixture
-from puft import Test, log, Sock
+from puft import Test, log, Socket
 
 
 class TestChatSock(Test):
@@ -14,9 +14,9 @@ class TestChatSock(Test):
         sock_client.disconnect('/chat')
         # TODO
 
-    def test_send_message(self, sock: Sock, sock_client: SocketIOTestClient):
+    def test_send_message(self, socket: Socket, sock_client: SocketIOTestClient):
         sock_client.connect('/chat')
-        sock.emit(
+        socket.emit(
             'message',
             {'message': {
                 'user_author_id': 2,

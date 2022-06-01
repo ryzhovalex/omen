@@ -1,7 +1,7 @@
-from puft import SockHandler, log
+from puft import Sock, log
 
 
-class ChatSockHandler(SockHandler):
+class ChatSock(Sock):
     def on_message(self, message):
         return {'message': {
             'user_author_id': 1,

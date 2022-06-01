@@ -7,7 +7,7 @@ from warepy import (
 )
 from flask_socketio import SocketIO
 
-from puft.core.sock.sock import Sock
+from puft.core.sock.socket import Socket
 from puft.tools.hints import CLIModeEnumUnion
 from puft.tools.log import log
 from puft.core.app.app_mode_enum import AppModeEnum
@@ -18,12 +18,11 @@ from puft.core.cell.named_cell import NamedCell
 from puft.core.cell.config_cell import ConfigCell
 from puft.core.app.puft_sv_cell import PuftSvCell
 from puft.core.db.db_sv_cell import DbSvCell
-from puft.core.sock.sock_sv_cell import SockSvCell
+from puft.core.sock.sock_sv_cell import SocketSvCell
 from puft.core.sv.sv_cell import SvCell
 from puft.core.view.view_cell import ViewCell
 from puft.core.emt.emt_cell import EmtCell
 from puft.core.error.error_cell import ErrorCell
-from puft.core.sock.sock_handler import SockHandler
 
 from puft.core.db.db import Db
 from puft.core.app.puft import Puft
@@ -73,10 +72,10 @@ class Assembler(Singleton):
         self.each_request_func = build.each_request_func
         self.first_request_func = build.first_request_func
         self.default_wildcard_error_handler_func = handle_wildcard_error
-        self.sock_handler_cells = build.sock_handler_cells
+        self.socket_handler_cells = build.sock_handler_cells
         self.default_sock_error_handler = build.default_sock_error_handler
 
-        self.sock_enabled: bool = False
+        self.socket_enabled: bool = False
 
         self._assign_config_cells(build.config_dir)
 
@@ -219,11 +218,11 @@ class Assembler(Singleton):
             except ValueError:
                 pass
             else:
-                self.builtin_sv_cells.append(SockSvCell(
-                    name='sock',
-                    sv_class=Sock))
-                self.sock_enabled = True
-                log_layers.append('sock')
+                self.builtin_sv_cells.append(SocketSvCell(
+                    name='socket',
+                    sv_class=Socket))
+                self.socket_enabled = True
+                log_layers.append('socket')
             
             if log_layers:
                 log.info(f'Enabled layers: {", ".join(log_layers)}')
@@ -327,9 +326,9 @@ class Assembler(Singleton):
 
     @log.catch
     def _build_sock_handlers(self) -> None:
-        if self.sock_handler_cells and self.sock_enabled:
-            for cell in self.sock_handler_cells:
-                socket: SocketIO = self.sock.get_socket()
+        if self.socket_handler_cells and self.socket_enabled:
+            for cell in self.socket_handler_cells:
+                socket: SocketIO = self.socket.get_socket()
 
                 # Register class for socketio namespace
                 # https://flask-socketio.readthedocs.io/en/latest/getting_started.html#class-based-namespaces
@@ -373,8 +372,8 @@ class Assembler(Singleton):
                 self.db: Db = cell.sv_class(config=config)
                 # Perform Db postponed setup
                 self._perform_db_postponed_setup()
-            elif type(cell) is SockSvCell:
-                self.sock = cell.sv_class(config=config, app=self.puft)
+            elif type(cell) is SocketSvCell:
+                self.socket = cell.sv_class(config=config, app=self.puft)
             else:
                 cell.sv_class(config=config)
 

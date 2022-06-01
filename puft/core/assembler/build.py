@@ -1,7 +1,7 @@
 import os
 from typing import Callable
 from puft.core.sock.default_sock_error_handler import default_sock_error_handler
-from puft.core.sock.sock_handler_cell import SockHandlerCell
+from puft.core.sock.sock_cell import SockCell
 
 from puft.core.sv.sv_cell import SvCell
 from puft.core.view.view_cell import ViewCell
@@ -25,7 +25,7 @@ class Build:
         error_cells: list[ErrorCell] = [],
         shell_processors: list[Callable] = [],
         cli_cmds: list[Callable] = [],
-        sock_handler_cells: list[SockHandlerCell] = [],
+        sock_handler_cells: list[SockCell] = [],
         default_sock_error_handler: Callable = default_sock_error_handler,
         ctx_processor_func: Callable | None = None,
         each_request_func: Callable | None = None,
