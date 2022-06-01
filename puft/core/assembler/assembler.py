@@ -72,7 +72,7 @@ class Assembler(Singleton):
         self.each_request_func = build.each_request_func
         self.first_request_func = build.first_request_func
         self.default_wildcard_error_handler_func = handle_wildcard_error
-        self.socket_handler_cells = build.sock_handler_cells
+        self.sock_cells = build.sock_cells
         self.default_sock_error_handler = build.default_sock_error_handler
 
         self.socket_enabled: bool = False
@@ -214,7 +214,7 @@ class Assembler(Singleton):
                 log_layers.append('db')
 
             try:
-                NamedCell.find_by_name('sock', self.config_cells)
+                NamedCell.find_by_name('socket', self.config_cells)
             except ValueError:
                 pass
             else:
@@ -274,7 +274,7 @@ class Assembler(Singleton):
         self._build_emts()
         self._build_shell_processors()
         self._build_cli_cmds()
-        self._build_sock_handlers()
+        self._build_socks()
 
         # Call postponed build from created App.
         try:
@@ -325,16 +325,16 @@ class Assembler(Singleton):
         self._run_custom_sv_cells()
 
     @log.catch
-    def _build_sock_handlers(self) -> None:
-        if self.socket_handler_cells and self.socket_enabled:
-            for cell in self.socket_handler_cells:
-                socket: SocketIO = self.socket.get_socket()
+    def _build_socks(self) -> None:
+        if self.sock_cells and self.socket_enabled:
+            for cell in self.sock_cells:
+                socketio: SocketIO = self.socket.get_socketio()
 
                 # Register class for socketio namespace
                 # https://flask-socketio.readthedocs.io/en/latest/getting_started.html#class-based-namespaces
-                socket.on_namespace(cell.handler_class(cell.namespace))
+                socketio.on_namespace(cell.handler_class(cell.namespace))
                 # Also register error handler for the same namespace
-                socket.on_error(cell.namespace)(cell.error_handler) 
+                socketio.on_error(cell.namespace)(cell.error_handler) 
 
     @log.catch
     def _perform_db_postponed_setup(self) -> None:

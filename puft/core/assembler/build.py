@@ -25,7 +25,7 @@ class Build:
         error_cells: list[ErrorCell] = [],
         shell_processors: list[Callable] = [],
         cli_cmds: list[Callable] = [],
-        sock_handler_cells: list[SockCell] = [],
+        sock_cells: list[SockCell] = [],
         default_sock_error_handler: Callable = default_sock_error_handler,
         ctx_processor_func: Callable | None = None,
         each_request_func: Callable | None = None,
@@ -48,5 +48,5 @@ class Build:
         self.ctx_processor_func = ctx_processor_func
         self.each_request_func = each_request_func
         self.first_request_func = first_request_func
-        self.sock_handler_cells = sock_handler_cells
+        self.sock_cells = sock_cells
         self.default_sock_error_handler = default_sock_error_handler

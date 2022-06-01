@@ -15,7 +15,7 @@ sv_cells: list[SvCell] = [
     SvCell('chat', sv_class=ChatSv)
 ]
 
-sock_handler_cells: list[SockCell] = [
+sock_cells: list[SockCell] = [
     SockCell('/chat', ChatSock)
 ]
 
@@ -29,4 +29,5 @@ build = Build(
     version=__version__,
     sv_cells=sv_cells,
     view_cells=view_cells,
-    shell_processors=[import_std, import_main])
+    shell_processors=[import_std, import_main],
+    sock_cells=sock_cells)

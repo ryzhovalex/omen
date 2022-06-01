@@ -10,4 +10,4 @@ if TYPE_CHECKING:
 
 @dataclass
 class SocketSvCell(SvCell):
-    sv_class: type[Sock]
+    sv_class: type[Socket]

@@ -13,13 +13,14 @@ class Socket(Sv):
     def __init__(self, config: dict, app: 'Puft') -> None:
         super().__init__(config)
         self.app = app
-        self.socket: SocketIO = SocketIO(self.app.get_native_app())
+        self.socketio: SocketIO = SocketIO(self.app.get_native_app())
 
-    def get_socket(self) -> SocketIO:
-        return self.socket
+    def get_socketio(self) -> SocketIO:
+        return self.socketio
 
-    def get_test_client(self) -> SocketIOTestClient:
-        return self.socket.test_client(self.app.get_native_app())
+    def get_test_client(self, namespace: str | None = None) -> SocketIOTestClient:
+        return self.socketio.test_client(
+            self.app.get_native_app(), namespace=namespace)
 
     def register_handler_cell(self):
         pass
@@ -33,7 +34,7 @@ class Socket(Sv):
         namespace=None,
         callback=None) -> None:
         """Emit a custom event to one or more connected clients."""
-        return self.socket.emit(
+        return self.socketio.emit(
             event, 
             data, 
             room=room,
@@ -50,7 +51,7 @@ class Socket(Sv):
             callback=None,
             json=False) -> None:
         """Send a message to one or more connected clients."""
-        return self.socket.send(
+        return self.socketio.send(
             data,
             room=room,
             include_self=include_self,

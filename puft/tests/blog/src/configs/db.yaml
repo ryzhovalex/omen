@@ -1,1 +1,1 @@
-uri: ./var/sqlite3.db
+uri: 'sqlite:///:memory:'

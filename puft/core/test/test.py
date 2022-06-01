@@ -36,7 +36,7 @@ class Test:
         return app.test_client()
 
     @fixture
-    def sock_client(self, app: Puft, socket: Socket) -> SocketIOTestClient:
+    def socket_client(self, app: Puft, socket: Socket) -> SocketIOTestClient:
         # https://github.com/miguelgrinberg/Flask-SocketIO/blob/main/test_socketio.py
         return socket.get_test_client()
 
