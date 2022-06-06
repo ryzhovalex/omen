@@ -1,4 +1,4 @@
-__version__ = '0.4.0rc4'
+__version__ = '0.4.0rc5'
 
 from .core.error.error import Error
 from .tools.not_found_error import NotFoundError
