@@ -18,7 +18,7 @@ class Socket(Sv):
 
         log.info(f'Socket cors allowed: {cors_allowed_origin}')
         self.socketio: SocketIO = SocketIO(
-            self.app.get_native_app(), cors_allowed_origin=cors_allowed_origin)
+            self.app.get_native_app(), cors_allowed_origins=cors_allowed_origin)
 
     def get_socketio(self) -> SocketIO:
         return self.socketio
