@@ -2,14 +2,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
 
-from core.sv.sv_cell import SvCell
+from puft.core.sv.sv_ie import SvIe
 
 if TYPE_CHECKING:
-    from core.db.db import Db
+    from puft.core.db.db import Db
 
 
 @dataclass
-class DbSvCell(SvCell):
+class DbSvIe(SvIe):
     """Injection cell with Db itself which can be applied to created
     application.
     """

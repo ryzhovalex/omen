@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from core.cell.cell import Cell
+from puft.core.ie.ie import Ie
 
 from .emt import Emt
 
 
 @dataclass
-class EmtCell(Cell):
+class EmtIe(Ie):
     emt_class: type[Emt]

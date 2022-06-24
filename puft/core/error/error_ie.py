@@ -1,12 +1,12 @@
 from typing import Callable
 from dataclasses import dataclass
 
-from core.cell.cell import Cell
+from puft.core.ie.ie import Ie
 
 from .error import Error
 
 
 @dataclass
-class ErrorCell(Cell):
+class ErrorIe(Ie):
     error_class: type[Error]
     handler_function: Callable

@@ -7,26 +7,26 @@ from warepy import (
 )
 from flask_socketio import SocketIO
 
-from core.sock.socket import Socket
-from tools.hints import CLIModeEnumUnion
-from tools.log import log
-from core.app.app_mode_enum import AppModeEnum
-from core.cli.cli_run_enum import CLIRunEnum
-from core.error.error import Error
-from tools.error_handlers import handle_wildcard_error
-from core.cell.named_cell import NamedCell
-from core.cell.config_cell import ConfigCell
-from core.app.puft_sv_cell import PuftSvCell
-from core.db.db_sv_cell import DbSvCell
-from core.sock.sock_sv_cell import SocketSvCell
-from core.sv.sv_cell import SvCell
-from core.view.view_cell import ViewCell
-from core.emt.emt_cell import EmtCell
-from core.error.error_cell import ErrorCell
+from puft.core.sock.socket import Socket
+from puft.tools.hints import CLIModeEnumUnion
+from puft.tools.log import log
+from puft.core.app.app_mode_enum import AppModeEnum
+from puft.core.cli.cli_run_enum import CLIRunEnum
+from puft.core.error.error import Error
+from puft.tools.error_handlers import handle_wildcard_error
+from puft.core.ie.named_ie import NamedIe
+from puft.core.ie.config_ie import ConfigIe
+from puft.core.app.puft_sv_ie import PuftSvIe
+from puft.core.db.db_sv_ie import DbSvIe
+from puft.core.sock.sock_sv_ie import SocketSvIe
+from puft.core.sv.sv_ie import SvIe
+from puft.core.view.view_ie import ViewIe
+from puft.core.emt.emt_ie import EmtIe
+from puft.core.error.error_ie import ErrorIe
 
-from core.db.db import Db
-from core.app.puft import Puft
-from tools.hints import CLIModeEnumUnion
+from puft.core.db.db import Db
+from puft.core.app.puft import Puft
+from puft.tools.hints import CLIModeEnumUnion
 from .config_extension_enum import ConfigExtensionEnum
 
 if TYPE_CHECKING:
@@ -61,10 +61,10 @@ class Assembler(Singleton):
         # `get()` method called from this dictionary.
         self.extra_configs_by_name = {}
         self.root_path = build.root_path
-        self.sv_cells = build.sv_cells
-        self.view_cells = build.view_cells
-        self.error_cells: list[ErrorCell] = build.error_cells
-        self.emt_cells = build.emt_cells
+        self.sv_ies = build.sv_ies
+        self.view_ies = build.view_ies
+        self.error_ies: list[ErrorIe] = build.error_ies
+        self.emt_ies = build.emt_ies
         self.mode_enum = mode_enum
         self.shell_processors = build.shell_processors
         self.cli_cmds = build.cli_cmds
@@ -72,15 +72,15 @@ class Assembler(Singleton):
         self.each_request_func = build.each_request_func
         self.first_request_func = build.first_request_func
         self.default_wildcard_error_handler_func = handle_wildcard_error
-        self.sock_cells = build.sock_cells
+        self.sock_ies = build.sock_ies
         self.default_sock_error_handler = build.default_sock_error_handler
 
         self.socket_enabled: bool = False
 
-        self._assign_config_cells(build.config_dir)
+        self._assign_config_ies(build.config_dir)
 
         # Traverse given configs and assign enabled builtin cells.
-        self._assign_builtin_sv_cells(mode_enum, host, port)
+        self._assign_builtin_sv_ies(mode_enum, host, port)
 
     @log.catch
     def get_puft(self) -> Puft:
@@ -99,25 +99,25 @@ class Assembler(Singleton):
         return self.mode_enum
 
     @log.catch
-    def _assign_config_cells(self, config_dir: str) -> None:
+    def _assign_config_ies(self, config_dir: str) -> None:
         """Traverse through config files under given config_dir and create 
-        ConfigCells from them.
+        ConfigIes from them.
 
         Name taken from filename of config and should be the same as specified 
-        at config's target sv_cell.name.
+        at config's target sv_ie.name.
 
         Names can contain additional extension like `name.prod.yaml` according
         to appropriate Puft modes. These configs launched per each mode. Config
         without this extra extension, considered `prod` moded.
         """
-        self.config_cells: list[ConfigCell] = []
+        self.config_ies: list[ConfigIe] = []
 
         config_path: str = join_paths(self.root_path, config_dir)
         source_map_by_name: dict[str, dict[AppModeEnum, str]] = \
             self._find_config_files(config_path)
 
         for name, source_map in source_map_by_name.items():
-            self.config_cells.append(ConfigCell(
+            self.config_ies.append(ConfigIe(
                 name=name,
                 source_by_app_mode=source_map))
 
@@ -186,12 +186,12 @@ class Assembler(Singleton):
         return source_map_by_name
 
     @log.catch
-    def _assign_builtin_sv_cells(
+    def _assign_builtin_sv_ies(
             self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting sv cells if configuration file for its sv
         exists.
         """
-        self.builtin_sv_cells: list[Any] = [PuftSvCell(
+        self.builtin_sv_ies: list[Any] = [PuftSvIe(
             name="puft",
             sv_class=Puft,
             mode_enum=mode_enum,
@@ -201,24 +201,24 @@ class Assembler(Singleton):
         log_layers: list[str] = []
 
         # Enable only modules with specified configs.
-        if self.config_cells:
+        if self.config_ies:
             try:
-                NamedCell.find_by_name("db", self.config_cells)
+                NamedIe.find_by_name("db", self.config_ies)
             except ValueError:
                 pass
             else:
-                self.builtin_sv_cells.append(DbSvCell(
+                self.builtin_sv_ies.append(DbSvIe(
                     name="db",
                     sv_class=Db
                 ))
                 log_layers.append('db')
 
             try:
-                NamedCell.find_by_name('socket', self.config_cells)
+                NamedIe.find_by_name('socket', self.config_ies)
             except ValueError:
                 pass
             else:
-                self.builtin_sv_cells.append(SocketSvCell(
+                self.builtin_sv_ies.append(SocketSvIe(
                     name='socket',
                     sv_class=Socket))
                 self.socket_enabled = True
@@ -241,7 +241,7 @@ class Assembler(Singleton):
             configs_by_name (optional):
                 Configs to be appended to appropriate ones described in Build
                 class. Defaults to None.
-                Contain config name as key (which is compared to ConfigCell
+                Contain config name as key (which is compared to ConfigIe
                 name field) and configuration mapping as value, e.g.:
         ```python
         configs_by_name = {
@@ -286,9 +286,9 @@ class Assembler(Singleton):
     def _build_log(self) -> None:
         """Call chain to build log."""
         # Try to find log config cell and build log class from it
-        if self.config_cells:
+        if self.config_ies:
             try:
-                log_config_cell = NamedCell.find_by_name("log", self.config_cells)
+                log_config_ie = NamedIe.find_by_name("log", self.config_ies)
             except ValueError:
                 log_config = None
             else:
@@ -300,7 +300,7 @@ class Assembler(Singleton):
                 else:
                     # Assign dev app mode for all other app modes
                     app_mode_enum = AppModeEnum.DEV
-                log_config = log_config_cell.parse(
+                log_config = log_config_ie.parse(
                     app_mode_enum=app_mode_enum,
                     root_path=self.root_path, 
                     update_with=self.extra_configs_by_name.get("log", None)
@@ -321,13 +321,13 @@ class Assembler(Singleton):
 
     @log.catch
     def _build_svs(self) -> None:
-        self._run_builtin_sv_cells()
-        self._run_custom_sv_cells()
+        self._run_builtin_sv_ies()
+        self._run_custom_sv_ies()
 
     @log.catch
     def _build_socks(self) -> None:
-        if self.sock_cells and self.socket_enabled:
-            for cell in self.sock_cells:
+        if self.sock_ies and self.socket_enabled:
+            for cell in self.sock_ies:
                 socketio: SocketIO = self.socket.get_socketio()
 
                 # Register class for socketio namespace
@@ -347,8 +347,8 @@ class Assembler(Singleton):
         self.db.setup(flask_app=self.puft.get_native_app())
     
     @log.catch
-    def _run_builtin_sv_cells(self) -> None:
-        for cell in self.builtin_sv_cells:
+    def _run_builtin_sv_ies(self) -> None:
+        for cell in self.builtin_sv_ies:
             # Check for domain's config in given cells by comparing names and
             # apply to sv config if it exists
             config = self._assemble_sv_config(name=cell.name) 
@@ -359,7 +359,7 @@ class Assembler(Singleton):
             config["root_path"] = self.root_path
 
             # Initialize sv.
-            if type(cell) is PuftSvCell:
+            if type(cell) is PuftSvIe:
                 # Run special initialization with mode, host and port for Puft
                 # sv
                 self.puft: Puft = cell.sv_class(
@@ -368,20 +368,20 @@ class Assembler(Singleton):
                     ctx_processor_func=self.ctx_processor_func,
                     each_request_func=self.each_request_func,
                     first_request_func=self.first_request_func)
-            elif type(cell) is DbSvCell:
+            elif type(cell) is DbSvIe:
                 self.db: Db = cell.sv_class(config=config)
                 # Perform Db postponed setup
                 self._perform_db_postponed_setup()
-            elif type(cell) is SocketSvCell:
+            elif type(cell) is SocketSvIe:
                 self.socket = cell.sv_class(config=config, app=self.puft)
             else:
                 cell.sv_class(config=config)
 
     @log.catch
-    def _run_custom_sv_cells(self) -> None:
-        if self.sv_cells:
-            for cell in self.sv_cells:
-                if self.config_cells:
+    def _run_custom_sv_ies(self) -> None:
+        if self.sv_ies:
+            for cell in self.sv_ies:
+                if self.config_ies:
                     sv_config = self._assemble_sv_config(name=cell.name) 
                 else:
                     sv_config = {}
@@ -399,8 +399,8 @@ class Assembler(Singleton):
         `is_errors_enabled = True` or return empty dict otherwise.
         """
         try:
-            config_cell_with_target_name: ConfigCell = NamedCell.find_by_name(
-                name, self.config_cells)
+            config_ie_with_target_name: ConfigIe = NamedIe.find_by_name(
+                name, self.config_ies)
         except ValueError:
             # If config not found and errors enabled, raise error.
             if is_errors_enabled:
@@ -411,10 +411,10 @@ class Assembler(Singleton):
             else:
                 config: dict[str, Any] = {}
         else:
-            if type(config_cell_with_target_name) is not ConfigCell:
+            if type(config_ie_with_target_name) is not ConfigIe:
                 raise TypeError(format_message(
-                    "Type of cell should be ConfigCell, but {} received",
-                    type(config_cell_with_target_name)))
+                    "Type of cell should be ConfigIe, but {} received",
+                    type(config_ie_with_target_name)))
             else:
                 app_mode_enum: AppModeEnum
                 if type(self.mode_enum) is CLIRunEnum:
@@ -422,7 +422,7 @@ class Assembler(Singleton):
                 else:
                     # Assign dev app mode for all other app modes.
                     app_mode_enum = AppModeEnum.DEV
-                config = config_cell_with_target_name.parse(
+                config = config_ie_with_target_name.parse(
                     root_path=self.root_path, 
                     update_with=self.extra_configs_by_name.get(name, None),
                     app_mode_enum=app_mode_enum)
@@ -443,15 +443,15 @@ class Assembler(Singleton):
     @log.catch
     def _build_views(self) -> None:
         """Build all views by registering them to app."""
-        if self.view_cells:
-            for view_cell in self.view_cells:
-                self.puft.register_view(view_cell)
+        if self.view_ies:
+            for view_ie in self.view_ies:
+                self.puft.register_view(view_ie)
 
     @log.catch
     def _build_emts(self) -> None:
         """Build emts from given cells and inject Puft application controllers to each."""
-        if self.emt_cells:
-            for cell in self.emt_cells:
+        if self.emt_ies:
+            for cell in self.emt_ies:
                 cell.emt_class(puft=self.puft)
 
     @log.catch
@@ -468,11 +468,11 @@ class Assembler(Singleton):
         # TODO: Test case when user same error class registered twice (e.g. in
         # duplicate cells)
         is_wildcard_specified = False
-        for error_cell in self.error_cells:
-            if type(error_cell.error_class) is Error:
+        for error_ie in self.error_ies:
+            if type(error_ie.error_class) is Error:
                 is_wildcard_specified = True
             self.puft.register_error(
-                error_cell.error_class, error_cell.handler_function)
+                error_ie.error_class, error_ie.handler_function)
         # If wildcard handler is not specified, apply the default one
         if not is_wildcard_specified:
             self.puft.register_error(

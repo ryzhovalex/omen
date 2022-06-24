@@ -1,4 +1,4 @@
-from core.error.error import Error
+from puft.core.error.error import Error
 
 
 class ModelNotFoundError(Error):

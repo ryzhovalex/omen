@@ -1,6 +1,6 @@
-from core.app.turbo_action_enum import TurboActionEnum
+from puft.core.app.turbo_action_enum import TurboActionEnum
 from warepy import Singleton
-from tools.log import log
+from puft.tools.log import log
 
 from ..app.puft import Puft
 

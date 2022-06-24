@@ -1,20 +1,20 @@
 from dataclasses import dataclass
 from typing import Sequence, TypeVar
 
-from core.cell.cell import Cell
+from puft.core.ie.ie import Ie
 
 
 # Set TypeVar upper bound to class defined afterwards.
 # https://stackoverflow.com/a/67662276
-AnyNamedCell = TypeVar("AnyNamedCell", bound="NamedCell")
+AnyNamedIe = TypeVar("AnyNamedIe", bound="NamedIe")
 
 
 @dataclass
-class NamedCell(Cell):
+class NamedIe(Ie):
     name: str
 
     @staticmethod
-    def find_by_name(name: str, cells: Sequence[AnyNamedCell]) -> AnyNamedCell:
+    def find_by_name(name: str, cells: Sequence[AnyNamedIe]) -> AnyNamedIe:
         """Traverse through given list of cells and return first one with
         specified name.
         
@@ -29,10 +29,10 @@ class NamedCell(Cell):
             "No cell with given name {} found.", name)
 
     @staticmethod
-    def map_to_name(cells: list[AnyNamedCell]) -> dict[str, AnyNamedCell]:
+    def map_to_name(cells: list[AnyNamedIe]) -> dict[str, AnyNamedIe]:
         """Traverse through given cells names and return dict with these cells
         as values and their names as keys."""
-        cells_by_name: dict[str, AnyNamedCell] = {}
+        cells_by_name: dict[str, AnyNamedIe] = {}
         for cell in cells:
             cells_by_name[cell.name] = cell
         return cells_by_name

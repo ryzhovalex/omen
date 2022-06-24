@@ -4,8 +4,8 @@ from functools import wraps
 from typing import Callable, Any, TypeVar
 
 from warepy import format_message, snakefy
-from core.db.model_not_found_error import ModelNotFoundError
-from tools.log import log
+from puft.core.db.model_not_found_error import ModelNotFoundError
+from puft.tools.log import log
 from flask import Flask
 import flask_migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -13,7 +13,7 @@ from flask_sqlalchemy import Model as BaseModel
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declared_attr
 
-from core.sv.sv import Sv
+from puft.core.sv.sv import Sv
 from .db_type_enum import DbTypeEnum
 
 
@@ -193,7 +193,7 @@ class Db(Sv):
             raw_uri = self.DEFAULT_URI
         else:
             # Case 1: SQLite Db.
-            # Developer can give relative path to the Db (it will be absolutized at ConfigCell.parse()),
+            # Developer can give relative path to the Db (it will be absolutized at ConfigIe.parse()),
             # by setting sqlite Db extension to `.db`, e.g. `./instance/sqlite3.db`,
             # or by setting full absolute path with protocol, e.g. `sqlite:////home/user/project/instance/sqlite3.db`.
             if raw_uri.rfind(".db") != -1 or "sqlite:///" in raw_uri:

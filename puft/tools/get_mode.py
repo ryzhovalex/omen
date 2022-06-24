@@ -1,4 +1,4 @@
-from core.assembler.assembler import Assembler
+from puft.core.assembler.assembler import Assembler
 
 
 def get_mode() -> str:

@@ -2,10 +2,10 @@ from pytest import fixture
 from flask_socketio import SocketIOTestClient
 from flask.testing import FlaskClient
 
-from core.app.puft import Puft
-from core.db.db import Db
-from core.sock.socket import Socket
-from tools.get_root_path import get_root_path
+from puft.core.app.puft import Puft
+from puft.core.db.db import Db
+from puft.core.sock.socket import Socket
+from puft.tools.get_root_path import get_root_path
 
 
 class Test:

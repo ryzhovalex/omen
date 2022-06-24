@@ -2,11 +2,11 @@ from dataclasses import dataclass, fields
 from typing import Any, ClassVar
 
 from schema import Schema
-from core.db.db import orm
-from tools.log import log
-from core.cell.cell_error import CellError
+from puft.core.db.db import orm
+from puft.tools.log import log
+from puft.core.cell.cell_error import CellError
 from warepy import snakefy
-from core.ie.ie import Ie
+from puft.core.ie.ie import Ie
 
 
 @dataclass
@@ -34,7 +34,7 @@ class Cell(Ie):
 
         # Get models for cells from all inheritance tree
         cell_type_by_model_type.update(
-            cls._get_cell_type_by_model_type(subclasses))
+            cls._get_ie_type_by_model_type(subclasses))
 
         try:
             cell_type = cell_type_by_model_type[model_type]
@@ -42,16 +42,16 @@ class Cell(Ie):
             log.debug(cell_type_by_model_type)
             raise CellError(
                 f'Cannot find cell with requested model type: {model_type}\n'
-                'Maybe you forgot to add `Model=...` to Cell\'s definition?')
+                'Maybe you forgot to add `Model=...` to Ie\'s definition?')
         else:
             return cell_type.gen_instance(instance)
 
     @classmethod
-    def gen_instance(cls) -> 'Cell':
+    def gen_instance(cls) -> 'Ie':
         raise NotImplementedError('Should be re-implemented in child class')
         
     @classmethod
-    def _get_cell_type_by_model_type(cls, subclasses: list) -> dict:
+    def _get_ie_type_by_model_type(cls, subclasses: list) -> dict:
         cell_type_by_model_type: dict[type, type] = {}
 
         # Get own model
@@ -61,7 +61,7 @@ class Cell(Ie):
         # Traverse inheritance tree
         for subclass in subclasses:
             cell_type_by_model_type.update(
-                subclass._get_cell_type_by_model_type(
+                subclass._get_ie_type_by_model_type(
                     subclass.__subclasses__()))
 
         return cell_type_by_model_type

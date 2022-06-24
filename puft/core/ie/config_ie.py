@@ -7,12 +7,12 @@ from typing import Any
 
 from warepy import join_paths, load_yaml
 
-from core.app.app_mode_enum import AppModeEnum
+from puft.core.app.app_mode_enum import AppModeEnum
 from ..assembler.config_extension_enum import ConfigExtensionEnum
-from .named_cell import NamedCell
+from .named_ie import NamedIe
 
 @dataclass
-class ConfigCell(NamedCell):
+class ConfigIe(NamedIe):
     """Config cell which can be used to load configs to appropriate instance's
     configuration by name."""
     source_by_app_mode: dict[AppModeEnum, str]

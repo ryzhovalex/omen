@@ -2,15 +2,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
-from core.sv.sv_cell import SvCell
+from puft.core.sv.sv_ie import SvIe
 
 if TYPE_CHECKING:
-    from core.app.puft import Puft
-    from tools.hints import CLIModeEnumUnion
+    from puft.core.app.puft import Puft
+    from puft.tools.hints import CLIModeEnumUnion
 
 
 @dataclass
-class PuftSvCell(SvCell):
+class PuftSvIe(SvIe):
     """Injection cell with app itself which is required in any build."""
     sv_class: type[Puft]
     mode_enum: CLIModeEnumUnion

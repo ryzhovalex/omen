@@ -8,17 +8,17 @@ from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
 from flask.testing import FlaskClient
-from tools.log import log
+from puft.tools.log import log
 from flask import Flask
 from flask import cli as flask_cli
 from flask.ctx import AppContext, RequestContext
 from warepy import get_enum_values
-from tools.log import log
+from puft.tools.log import log
 
-from core.sv.sv import Sv
-from tools.hints import CLIModeEnumUnion
-from core.view.view_cell import ViewCell
-from core.cli.cli_run_enum import CLIRunEnum
+from puft.core.sv.sv import Sv
+from puft.tools.hints import CLIModeEnumUnion
+from puft.core.view.view_ie import ViewIe
+from puft.core.cli.cli_run_enum import CLIRunEnum
 from .http_method_enum import HTTPMethodEnum
 from .turbo_action_enum import TurboActionEnum
 
@@ -195,13 +195,13 @@ class Puft(Sv):
         return self.native_app.test_request_context()
 
     @log.catch
-    def register_view(self, view_cell: ViewCell) -> None:
+    def register_view(self, view_ie: ViewIe) -> None:
         """Register given view cell for the app."""
         # Check if view has kwargs to avoid sending empty dict.
         # Use cell's name as view's endpoint.
-        view = view_cell.view_class.as_view(view_cell.endpoint)
+        view = view_ie.view_class.as_view(view_ie.endpoint)
         self.native_app.add_url_rule(
-            view_cell.route, view_func=view,
+            view_ie.route, view_func=view,
             methods=get_enum_values(HTTPMethodEnum))
 
     def register_error(

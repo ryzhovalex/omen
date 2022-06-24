@@ -3,7 +3,7 @@ from abc import abstractmethod
 from typing import Any, List, Dict, Literal, Union, Callable, Type
 
 from warepy import Singleton, format_message
-from tools.log import log
+from puft.tools.log import log
 
 
 class Sv(Singleton):

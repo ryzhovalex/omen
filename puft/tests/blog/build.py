@@ -1,7 +1,7 @@
 __version__ = "0.0.0"
 
 from puft import (
-    Build, SvCell, ViewCell, SockCell)
+    Build, SvIe, ViewIe, SockIe)
 
 from src.app.user.user_sv import UserSv
 from src.tools.shell import import_main, import_std
@@ -10,24 +10,24 @@ from src.app.chat.chat_sv import ChatSv
 from puft.tests.blog.src.app.chat.chat_sock import ChatSock
 
 
-sv_cells: list[SvCell] = [
-    SvCell('user', UserSv),
-    SvCell('chat', sv_class=ChatSv)
+sv_ies: list[SvIe] = [
+    SvIe('user', UserSv),
+    SvIe('chat', sv_class=ChatSv)
 ]
 
-sock_cells: list[SockCell] = [
-    SockCell('/chat', ChatSock)
+sock_ies: list[SockIe] = [
+    SockIe('/chat', ChatSock)
 ]
 
 
-view_cells: list[ViewCell] = [
-    ViewCell('user', UserView, '/user/<int:id>')
+view_ies: list[ViewIe] = [
+    ViewIe('user', UserView, '/user/<int:id>')
 ]
 
 
 build = Build(
     version=__version__,
-    sv_cells=sv_cells,
-    view_cells=view_cells,
+    sv_ies=sv_ies,
+    view_ies=view_ies,
     shell_processors=[import_std, import_main],
-    sock_cells=sock_cells)
+    sock_ies=sock_ies)
