@@ -21,7 +21,7 @@ class Ie:
         }
 
     @classmethod
-    def _get_formatted_name(cls, base_name: str = 'Cell') -> str:
+    def _get_formatted_name(cls, base_name: str = 'Ie') -> str:
         name: str
 
         if cls.FORMATTED_NAME:

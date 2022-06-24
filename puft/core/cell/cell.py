@@ -15,7 +15,7 @@ class Cell(Ie):
     type: str
 
     @classmethod
-    def _get_formatted_name(cls, base_name: str = 'ModelCell') -> str:
+    def _get_formatted_name(cls, base_name: str = 'Cell') -> str:
         return super()._get_formatted_name(base_name)
 
     @classmethod
