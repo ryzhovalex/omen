@@ -2,7 +2,8 @@ from dataclasses import dataclass, fields
 from typing import Any, ClassVar
 
 from schema import Schema
-from puft import orm, log
+from core.db.db import orm
+from tools.log import log
 from core.cell.cell_error import CellError
 from warepy import snakefy
 from puft.core.ie.ie import Ie
