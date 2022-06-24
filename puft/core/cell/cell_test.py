@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from puft.core.test.test import Test
-from puft.core.cell.cell import Cell
+from core.test.test import Test
+from core.cell.cell import Cell
 
 
 class TestCell(Test):

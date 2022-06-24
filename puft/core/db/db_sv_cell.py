@@ -2,10 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from dataclasses import dataclass
 
-from puft.core.sv.sv_cell import SvCell
+from core.sv.sv_cell import SvCell
 
 if TYPE_CHECKING:
-    from puft.core.db.db import Db
+    from core.db.db import Db
 
 
 @dataclass

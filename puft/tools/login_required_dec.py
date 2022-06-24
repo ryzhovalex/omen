@@ -6,7 +6,7 @@ from functools import wraps
 from typing import Callable
 
 from warepy import format_message
-from puft.tools.log import log
+from tools.log import log
 from flask import session, redirect, url_for
 
 

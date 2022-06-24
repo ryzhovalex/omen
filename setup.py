@@ -1,10 +1,7 @@
-import pathlib
 from setuptools import setup, find_packages
 
 from puft import __version__ as version
 
-
-here = pathlib.Path(__file__).parent.resolve()
 
 with open("requirements.txt", "r") as file:
     install_requires = [x.strip() for x in file.readlines()]

@@ -1,4 +1,4 @@
-from puft.core.error.error import Error
+from core.error.error import Error
 
 
 def handle_wildcard_error(err: Error):

@@ -7,26 +7,26 @@ from warepy import (
 )
 from flask_socketio import SocketIO
 
-from puft.core.sock.socket import Socket
-from puft.tools.hints import CLIModeEnumUnion
-from puft.tools.log import log
-from puft.core.app.app_mode_enum import AppModeEnum
-from puft.core.cli.cli_run_enum import CLIRunEnum
-from puft.core.error.error import Error
-from puft.tools.error_handlers import handle_wildcard_error
-from puft.core.cell.named_cell import NamedCell
-from puft.core.cell.config_cell import ConfigCell
-from puft.core.app.puft_sv_cell import PuftSvCell
-from puft.core.db.db_sv_cell import DbSvCell
-from puft.core.sock.sock_sv_cell import SocketSvCell
-from puft.core.sv.sv_cell import SvCell
-from puft.core.view.view_cell import ViewCell
-from puft.core.emt.emt_cell import EmtCell
-from puft.core.error.error_cell import ErrorCell
+from core.sock.socket import Socket
+from tools.hints import CLIModeEnumUnion
+from tools.log import log
+from core.app.app_mode_enum import AppModeEnum
+from core.cli.cli_run_enum import CLIRunEnum
+from core.error.error import Error
+from tools.error_handlers import handle_wildcard_error
+from core.cell.named_cell import NamedCell
+from core.cell.config_cell import ConfigCell
+from core.app.puft_sv_cell import PuftSvCell
+from core.db.db_sv_cell import DbSvCell
+from core.sock.sock_sv_cell import SocketSvCell
+from core.sv.sv_cell import SvCell
+from core.view.view_cell import ViewCell
+from core.emt.emt_cell import EmtCell
+from core.error.error_cell import ErrorCell
 
-from puft.core.db.db import Db
-from puft.core.app.puft import Puft
-from puft.tools.hints import CLIModeEnumUnion
+from core.db.db import Db
+from core.app.puft import Puft
+from tools.hints import CLIModeEnumUnion
 from .config_extension_enum import ConfigExtensionEnum
 
 if TYPE_CHECKING:

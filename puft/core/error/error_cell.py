@@ -1,7 +1,7 @@
 from typing import Callable
 from dataclasses import dataclass
 
-from puft.core.cell.cell import Cell
+from core.cell.cell import Cell
 
 from .error import Error
 

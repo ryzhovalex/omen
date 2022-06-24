@@ -1,5 +1,13 @@
 __version__ = '0.4.0'
 
+import os
+import sys
+import pathlib
+
+# Fix import problems during manual installation
+here = pathlib.Path(__file__).parent.resolve()
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from .core.error.error import Error
 from .core.ie.ie import Ie
 from .tools.not_found_error import NotFoundError

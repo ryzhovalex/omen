@@ -1,12 +1,12 @@
 import os
 from typing import Callable
-from puft.core.sock.default_sock_error_handler import default_sock_error_handler
-from puft.core.sock.sock_cell import SockCell
+from core.sock.default_sock_error_handler import default_sock_error_handler
+from core.sock.sock_cell import SockCell
 
-from puft.core.sv.sv_cell import SvCell
-from puft.core.view.view_cell import ViewCell
-from puft.core.emt.emt_cell import EmtCell
-from puft.core.error.error_cell import ErrorCell
+from core.sv.sv_cell import SvCell
+from core.view.view_cell import ViewCell
+from core.emt.emt_cell import EmtCell
+from core.error.error_cell import ErrorCell
 
 
 class Build:

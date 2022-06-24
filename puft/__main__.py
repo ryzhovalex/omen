@@ -7,7 +7,7 @@ python -m puft
 try:
     from .core.cli import cli
 except ImportError:
-    from puft.core.cli import cli
+    from core.cli import cli
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from puft.core.cell.named_cell import NamedCell
-from puft.core.sv.sv import Sv
+from core.cell.named_cell import NamedCell
+from core.sv.sv import Sv
 
 
 @dataclass

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Sequence, TypeVar
 
-from puft.core.cell.cell import Cell
+from core.cell.cell import Cell
 
 
 # Set TypeVar upper bound to class defined afterwards.

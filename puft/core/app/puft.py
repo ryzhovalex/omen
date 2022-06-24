@@ -8,17 +8,17 @@ from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
 from flask.testing import FlaskClient
-from puft.tools.log import log
+from tools.log import log
 from flask import Flask
 from flask import cli as flask_cli
 from flask.ctx import AppContext, RequestContext
 from warepy import get_enum_values
-from puft.tools.log import log
+from tools.log import log
 
-from puft.core.sv.sv import Sv
-from puft.tools.hints import CLIModeEnumUnion
-from puft.core.view.view_cell import ViewCell
-from puft.core.cli.cli_run_enum import CLIRunEnum
+from core.sv.sv import Sv
+from tools.hints import CLIModeEnumUnion
+from core.view.view_cell import ViewCell
+from core.cli.cli_run_enum import CLIRunEnum
 from .http_method_enum import HTTPMethodEnum
 from .turbo_action_enum import TurboActionEnum
 

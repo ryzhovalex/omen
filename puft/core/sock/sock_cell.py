@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable
 
-from puft.core.cell.cell import Cell
+from core.cell.cell import Cell
 from .sock import Sock
 from .default_sock_error_handler import default_sock_error_handler
 

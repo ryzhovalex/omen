@@ -4,8 +4,8 @@ from functools import wraps
 from typing import Callable, Any, TypeVar
 
 from warepy import format_message, snakefy
-from puft.core.db.model_not_found_error import ModelNotFoundError
-from puft.tools.log import log
+from core.db.model_not_found_error import ModelNotFoundError
+from tools.log import log
 from flask import Flask
 import flask_migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -13,7 +13,7 @@ from flask_sqlalchemy import Model as BaseModel
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declared_attr
 
-from puft.core.sv.sv import Sv
+from core.sv.sv import Sv
 from .db_type_enum import DbTypeEnum
 
 

@@ -6,7 +6,7 @@ from core.db.db import orm
 from tools.log import log
 from core.cell.cell_error import CellError
 from warepy import snakefy
-from puft.core.ie.ie import Ie
+from core.ie.ie import Ie
 
 
 @dataclass

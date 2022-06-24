@@ -3,11 +3,11 @@ from typing import TYPE_CHECKING
 from flask_socketio import (
     SocketIO, send, emit, join_room, leave_room, SocketIOTestClient)
 
-from puft.core.sv.sv import Sv
-from puft.tools.log import log
+from core.sv.sv import Sv
+from tools.log import log
 
 if TYPE_CHECKING:
-    from puft.core.app.puft import Puft
+    from core.app.puft import Puft
 
 
 class Socket(Sv):

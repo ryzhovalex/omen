@@ -9,12 +9,12 @@ from warepy import (
     format_message, join_paths, match_enum_containing_value,
     get_enum_values, get_union_enum_values
 )
-from puft.tools.log import log
+from tools.log import log
 from dotenv import load_dotenv
 
 from puft import __version__ as puft_version
-from puft.core.assembler.assembler import Assembler
-from puft.tools.hints import CLIModeEnumUnion
+from core.assembler.assembler import Assembler
+from tools.hints import CLIModeEnumUnion
 from .cli_run_enum import CLIRunEnum
 from .cli_db_enum import CLIDbEnum
 from .cli_helper_enum import CLIHelperEnum

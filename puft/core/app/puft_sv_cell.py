@@ -2,11 +2,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
-from puft.core.sv.sv_cell import SvCell
+from core.sv.sv_cell import SvCell
 
 if TYPE_CHECKING:
-    from puft.core.app.puft import Puft
-    from puft.tools.hints import CLIModeEnumUnion
+    from core.app.puft import Puft
+    from tools.hints import CLIModeEnumUnion
 
 
 @dataclass

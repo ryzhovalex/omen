@@ -1,5 +1,5 @@
 from flask_socketio import SocketIO, Namespace
-from puft.tools.log import log
+from tools.log import log
 
 from .socket import Socket
 
