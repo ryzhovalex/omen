@@ -40,7 +40,7 @@ class Mapper(BaseModel):
     """Base orm model responsible of holding model's data and at least
     it's basic CRUD operations.
 
-    Contains create(), get_first(), get_all() and delete_first() methods as
+    Contains create(), get_first(), get_all() and del_first() methods as
     Create, Retrieve and Delete representatives.
     Update representatives are defined individually at each subclass
     (e.g. `set_something()`), and by default accessed via basic model
@@ -134,7 +134,7 @@ class Mapper(BaseModel):
             return models
 
     @classmethod
-    def delete_first(
+    def del_first(
             cls,
             order_by: object | list[object] | None = None,
             **kwargs) -> None:
