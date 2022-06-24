@@ -1,6 +1,7 @@
 __version__ = '0.4.0'
 
 from .core.error.error import Error
+from .core.ie.ie import Ie
 from .tools.not_found_error import NotFoundError
 from .core.view.view import View
 from .core.assembler.build import Build
