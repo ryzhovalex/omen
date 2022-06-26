@@ -1,4 +1,4 @@
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 from .core.error.error import Error
 from .core.ie.ie import Ie
