@@ -11,6 +11,11 @@ class Ie:
     """Basic interface dataclass."""
     FORMATTED_NAME: ClassVar[str | None] = None
 
+    def get_json(self) -> dict:
+        return {
+            self._get_formatted_name(): self.__dict__
+        }
+
     @classmethod
     def get_json_types(cls) -> dict:
         # https://stackoverflow.com/a/51953411/14748231
