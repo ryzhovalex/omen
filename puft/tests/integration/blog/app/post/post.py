@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from puft import orm
 
-from src.app.user.user import User
+from blog.app.user.user import User
 from .post_tag_table import PostTagTable
 from .tag.tag import Tag
 

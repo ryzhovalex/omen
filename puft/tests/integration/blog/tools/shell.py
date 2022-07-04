@@ -3,8 +3,8 @@ from werkzeug.security import check_password_hash as from_hash
 from werkzeug.security import generate_password_hash as to_hash
 from puft import Puft, Db
 
-from src.app.user.user import User
-from src.app.post.post import Post
+from blog.app.user.user import User
+from blog.app.post.post import Post
 
 
 def import_std():

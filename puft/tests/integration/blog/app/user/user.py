@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
 from puft import orm, Db
 
-from src.app.badge.badge import Badge
+from blog.app.badge.badge import Badge
 from werkzeug.security import generate_password_hash, check_password_hash
 
 if TYPE_CHECKING:
-    from src.app.post.post import Post
+    from blog.app.post.post import Post
 
 
 class User(orm.Model):

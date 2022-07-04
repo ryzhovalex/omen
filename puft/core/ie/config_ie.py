@@ -11,6 +11,7 @@ from puft.core.app.app_mode_enum import AppModeEnum
 from ..assembler.config_extension_enum import ConfigExtensionEnum
 from .named_ie import NamedIe
 
+
 @dataclass
 class ConfigIe(NamedIe):
     """Config cell which can be used to load configs to appropriate instance's

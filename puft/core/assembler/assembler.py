@@ -82,23 +82,18 @@ class Assembler(Singleton):
         # Traverse given configs and assign enabled builtin cells.
         self._assign_builtin_sv_ies(mode_enum, host, port)
 
-    @log.catch
     def get_puft(self) -> Puft:
         return self.puft
 
-    @log.catch
     def get_db(self) -> Db:
         return self.db
 
-    @log.catch
     def get_root_path(self) -> str:
         return self.root_path
 
-    @log.catch
     def get_mode_enum(self) -> CLIModeEnumUnion:
         return self.mode_enum
 
-    @log.catch
     def _assign_config_ies(self, config_dir: str) -> None:
         """Traverse through config files under given config_dir and create 
         ConfigIes from them.
@@ -185,7 +180,6 @@ class Assembler(Singleton):
                     continue
         return source_map_by_name
 
-    @log.catch
     def _assign_builtin_sv_ies(
             self, mode_enum: CLIModeEnumUnion, host: str, port: int) -> None:
         """Assign builting sv cells if configuration file for its sv
@@ -228,7 +222,6 @@ class Assembler(Singleton):
                 log.info(f'Enabled layers: {", ".join(log_layers)}')
 
     @staticmethod
-    @log.catch
     def build(
             configs_by_name: Dict[str, dict] | None = None,
             root_path: str | None = None) -> None:
@@ -264,7 +257,6 @@ class Assembler(Singleton):
 
         assembler._build_all()
         
-    @log.catch
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
         self._build_log()
@@ -282,7 +274,6 @@ class Assembler(Singleton):
         except NotImplementedError:
             pass
 
-    @log.catch
     def _build_log(self) -> None:
         """Call chain to build log."""
         # Try to find log config cell and build log class from it
@@ -307,7 +298,6 @@ class Assembler(Singleton):
                 )
             self._init_log_class(config=log_config)
 
-    @log.catch
     def _init_log_class(self, config: dict | None = None) -> None:
         """Build log with given config.
         
@@ -319,12 +309,10 @@ class Assembler(Singleton):
                 log_kwargs[k] = v
         log.configure(**log_kwargs)
 
-    @log.catch
     def _build_svs(self) -> None:
         self._run_builtin_sv_ies()
         self._run_custom_sv_ies()
 
-    @log.catch
     def _build_socks(self) -> None:
         if self.sock_ies and self.socket_enabled:
             for cell in self.sock_ies:
@@ -336,7 +324,6 @@ class Assembler(Singleton):
                 # Also register error handler for the same namespace
                 socketio.on_error(cell.namespace)(cell.error_handler) 
 
-    @log.catch
     def _perform_db_postponed_setup(self) -> None:
         """Postponed setup is required, because Db uses Flask app to init
         native SQLAlchemy db inside, so it's possible only after App
@@ -346,7 +333,6 @@ class Assembler(Singleton):
         """
         self.db.setup(flask_app=self.puft.get_native_app())
     
-    @log.catch
     def _run_builtin_sv_ies(self) -> None:
         for cell in self.builtin_sv_ies:
             # Check for domain's config in given cells by comparing names and
@@ -377,7 +363,6 @@ class Assembler(Singleton):
             else:
                 cell.sv_class(config=config)
 
-    @log.catch
     def _run_custom_sv_ies(self) -> None:
         if self.sv_ies:
             for cell in self.sv_ies:
@@ -388,7 +373,6 @@ class Assembler(Singleton):
 
                 cell.sv_class(config=sv_config)
 
-    @log.catch
     def _assemble_sv_config(
             self,
             name: str, is_errors_enabled: bool = False) -> dict[str, Any]:
@@ -428,7 +412,6 @@ class Assembler(Singleton):
                     app_mode_enum=app_mode_enum)
         return config
 
-    @log.catch
     def _fetch_yaml_project_version(self) -> str:
         """Fetch project version from info.yaml from the root path and return it. 
 
@@ -440,26 +423,22 @@ class Assembler(Singleton):
         project_version = info_data["version"]
         return project_version
 
-    @log.catch
     def _build_views(self) -> None:
         """Build all views by registering them to app."""
         if self.view_ies:
             for view_ie in self.view_ies:
                 self.puft.register_view(view_ie)
 
-    @log.catch
     def _build_emts(self) -> None:
         """Build emts from given cells and inject Puft application controllers to each."""
         if self.emt_ies:
             for cell in self.emt_ies:
                 cell.emt_class(puft=self.puft)
 
-    @log.catch
     def _build_shell_processors(self) -> None:
         if self.shell_processors:
             self.puft.register_shell_processor(*self.shell_processors)
 
-    @log.catch
     def _build_cli_cmds(self) -> None:
         if self.cli_cmds:
             self.puft.register_cli_cmd(*self.cli_cmds)

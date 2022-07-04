@@ -1,13 +1,19 @@
-__version__ = "0.0.0"
+__version__ = '0.0.0'
+
+import os
+import sys
+
+# "blog" name used to aboid namespace conflicts during puft testing
+sys.path.append(os.path.dirname(__file__))
 
 from puft import (
     Build, SvIe, ViewIe, SockIe)
 
-from src.app.user.user_sv import UserSv
-from src.tools.shell import import_main, import_std
-from src.app.user.user_view import UserView
-from src.app.chat.chat_sv import ChatSv
-from puft.tests.blog.src.app.chat.chat_sock import ChatSock
+from blog.app.user.user_sv import UserSv
+from blog.tools.shell import import_main, import_std
+from blog.app.user.user_view import UserView
+from blog.app.chat.chat_sv import ChatSv
+from blog.app.chat.chat_sock import ChatSock
 
 
 sv_ies: list[SvIe] = [
@@ -19,11 +25,9 @@ sock_ies: list[SockIe] = [
     SockIe('/chat', ChatSock)
 ]
 
-
 view_ies: list[ViewIe] = [
     ViewIe('user', UserView, '/user/<int:id>')
 ]
-
 
 build = Build(
     version=__version__,
