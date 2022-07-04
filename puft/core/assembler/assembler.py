@@ -371,7 +371,8 @@ class Assembler(Singleton):
                 else:
                     sv_config = {}
 
-                cell.sv_class(config=sv_config)
+                a = cell.sv_class(config=sv_config)
+                log.debug(a)
 
     def _assemble_sv_config(
             self,
