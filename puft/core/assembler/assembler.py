@@ -84,7 +84,7 @@ class Assembler(Singleton):
         # Do not set extra_configs_by_name to None at initialization, because
         # `get()` method called from this dictionary
         self.extra_configs_by_name = {}
-        self.root_dir = os.getcwd()
+        self.root_dir = root_dir
         self.default_wildcard_error_handler_func = handle_wildcard_error
         self.mode_enum = mode_enum
         self.socket_enabled: bool = False
@@ -114,18 +114,27 @@ class Assembler(Singleton):
         # testing purposes, when direct import of services are unavailable
         self._custom_svs: dict[str, Any] = {}
 
-        # Add root_dir to sys.path to avoid ModuleNotFoundError during lib
-        # importing
-        sys.path.append(root_dir)
-
         # Add extra configs
         if extra_configs_by_name:
             self.extra_configs_by_name = extra_configs_by_name
 
+        self._register_self_singleton()
         self._build_all()
 
+    def _register_self_singleton(self):
+        """Register self instance to Singleton instance.
+        
+        This should be done at initialization to avoid built services Assembler
+        initialization problem via `Assembler.instance()` call.
+        """
+        type(self.__class__).instances[self.__class__] = self
+
     def _load_target_build(self, source_filename: str) -> Build:
-        # Load target module spec from location, where cli were called
+        """Load target module spec from location, where cli were called."""
+        # Add root_dir to sys.path to avoid ModuleNotFoundError during lib
+        # importing
+        sys.path.append(self.root_dir)
+
         module_location = os.path.join(self.root_dir, source_filename + ".py")
         module_spec = importlib.util.spec_from_file_location(
             source_filename, module_location)
