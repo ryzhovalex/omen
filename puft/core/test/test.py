@@ -5,7 +5,7 @@ from flask.testing import FlaskClient
 from puft.core.app.puft import Puft
 from puft.core.db.db import Db
 from puft.core.sock.socket import Socket
-from puft.tools.get_root_path import get_root_path
+from puft.tools.get_root_dir import get_root_dir
 
 
 class Test:
@@ -41,5 +41,5 @@ class Test:
         return socket.get_test_client()
 
     @fixture
-    def root_path(self) -> str:
-        return get_root_path()
+    def root_dir(self) -> str:
+        return get_root_dir()

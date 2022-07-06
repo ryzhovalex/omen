@@ -7,7 +7,7 @@ from .core.view.view import View
 from .core.assembler.build import Build
 from .core.emt.emt import Emt
 from .tools.get_mode import get_mode
-from .tools.get_root_path import get_root_path
+from .tools.get_root_dir import get_root_dir
 from .core.sv.sv import Sv
 from .core.app.puft import Puft
 from .core.db.db import Db, orm

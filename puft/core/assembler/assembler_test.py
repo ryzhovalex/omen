@@ -19,8 +19,6 @@ def assembler_dev(blog_build: Build, default_host: str, default_port: int):
 
 class TestAssembler():
     def test_build(self, assembler_dev: Assembler):
-        assembler_dev.build()
-
         puft = Puft.instance()
         db = Db.instance()
         user_sv: UserSv = assembler_dev.custom_svs['UserSv']

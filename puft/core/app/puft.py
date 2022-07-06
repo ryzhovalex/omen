@@ -153,12 +153,10 @@ class Puft(Sv):
             static_folder=self.static_folder
         )
 
-    @log.catch
     def get_secret_key(self) -> str:
         """Return secret key defined in App's config."""
         return self.native_app.config["SECRET_KEY"]
 
-    @log.catch
     def get_url(self) -> str:
         """Return app's url.
 
@@ -169,32 +167,25 @@ class Puft(Sv):
         """
         return "http://" + self.host + ":" + str(self.port) + "/"
 
-    @log.catch
     def get_native_app(self) -> Flask:
         """Return native app."""
         return self.native_app
 
-    @log.catch
     def get_instance_path(self) -> str:
         """Return app's instance path."""
         return self.native_app.instance_path
 
-    @log.catch
     def run(self) -> None:
         """Run Flask app."""
         self.native_app.run(
-            host=self.host, port=self.port
-        )
+            host=self.host, port=self.port)
 
-    @log.catch
     def app_context(self) -> AppContext:
         return self.native_app.app_context()
 
-    @log.catch
     def test_request_context(self) -> RequestContext:
         return self.native_app.test_request_context()
 
-    @log.catch
     def register_view(self, view_ie: ViewIe) -> None:
         """Register given view cell for the app."""
         # Check if view has kwargs to avoid sending empty dict.
@@ -210,7 +201,6 @@ class Puft(Sv):
             handler_function: Callable) -> None:
         self.native_app.register_error_handler(error_class, handler_function)
 
-    @log.catch
     def push_turbo(self, action: TurboActionEnum, target: str, template_path: str, ctx_data: dict = {}) -> None:
         """Push turbo action to target with rendered from path template
         contextualized with given data.
@@ -252,7 +242,6 @@ class Puft(Sv):
         raise NotImplementedError(
             "Method `postbuild` hasn't been reimplemented.")
 
-    @log.catch
     def register_cli_cmd(self, *cmds: Callable) -> None:
         """Register cli cmds for the app."""
         # TODO: Implement.
@@ -260,13 +249,11 @@ class Puft(Sv):
         # for cmd in cmds:
         #     self.native_app.cli.add_command(cmd)
 
-    @log.catch
     def register_shell_processor(self, *shell_processors: Callable) -> None:
         """Register shell processors for the app."""
         for processor in shell_processors:
             self.native_app.shell_context_processor(processor)
 
-    @log.catch
     def run_shell(self) -> None:
         """Adapted version of ``Flask.cli.shell_command`` by Pallets.
 

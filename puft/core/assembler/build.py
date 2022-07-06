@@ -1,5 +1,8 @@
 import os
 from typing import Callable
+from build.lib.puft.tools.hints import CLIModeEnumUnion
+from puft.core.app.puft import Puft
+from puft.core.assembler.assembler import Assembler
 from puft.core.sock.default_sock_error_handler import default_sock_error_handler
 from puft.core.sock.sock_ie import SockIe
 
@@ -31,12 +34,6 @@ class Build:
         each_request_func: Callable | None = None,
         first_request_func: Callable | None = None,
     ) -> None:
-        # Use native root module path.
-        # Because this class imported from root directory, root_path below will be assigned from there during class's
-        # initialization.
-        # NOTE: This path can be overrided by assembler in order of getting arguments on it's own initialization.
-        self.root_path = os.getcwd()
-
         self.version = version
         self.config_dir = config_dir
         self.sv_ies = sv_ies
@@ -50,3 +47,18 @@ class Build:
         self.first_request_func = first_request_func
         self.sock_ies = sock_ies
         self.default_sock_error_handler = default_sock_error_handler
+
+    def build_app(
+            self,
+            mode_enum: CLIModeEnumUnion,
+            host: str = 'localhost',
+            port: int = 5000,
+            root_dir: str = os.getcwd()) -> Puft:
+        """Allows manually build assembler without immediate app running."""
+        assembler = Assembler(
+            mode_enum=mode_enum,
+            host=host,
+            port=port,
+            root_dir=root_dir,
+            build=self)
+        return assembler.puft

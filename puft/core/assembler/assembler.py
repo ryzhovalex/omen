@@ -1,5 +1,7 @@
 from __future__ import annotations
 import os
+import sys
+import importlib.util
 from typing import Dict, TYPE_CHECKING, Any, TypeVar
 
 from warepy import (
@@ -40,6 +42,24 @@ class Assembler(Singleton):
     
     Acts automatically and shouldn't be inherited directly by project in any
     form.
+
+    TODO: Write all init arguments
+    Args:
+        extra_configs_by_name (optional):
+            Configs to be appended to appropriate ones described in Build
+            class. Defaults to None.
+            Contain config name as key (which is compared to ConfigIe
+            name field) and configuration mapping as value, e.g.:
+    ```python
+    extra_configs_by_name = {
+        "app": {"TESTING": True},
+        "db": {"db_uri": "sqlite3:///:memory:"}
+    }
+    ```
+        root_dir (optional):
+            Root dir to execute project from. Defaults to `os.getcwd()`.
+            Required in cases of calling this function not from actual
+            project root (e.g. from tests) to set root path explicitly.
     """
     DEFAULT_LOG_PARAMS = {
         "path": "./var/logs/system.log",
@@ -50,42 +70,75 @@ class Assembler(Singleton):
         "serialize": False
     }
 
+
     def __init__(
-        self, 
-        mode_enum: CLIModeEnumUnion, host: str, port: int,
-        build: Build,
-        *args, **kwargs
-    ) -> None:
-        super().__init__(*args, **kwargs)
+            self, 
+            mode_enum: CLIModeEnumUnion,
+            source_filename: str = 'build',
+            build: Build | None = None,
+            host: str = 'localhost',
+            port: int = 5000,
+            root_dir: str = os.getcwd(),
+            extra_configs_by_name: dict[str, Any] | None = None) -> None:
         # Define attributes for getter methods to be used at builder
         # Do not set extra_configs_by_name to None at initialization, because
         # `get()` method called from this dictionary
         self.extra_configs_by_name = {}
-        self.root_path = build.root_path
-        self.sv_ies = build.sv_ies
-        self.view_ies = build.view_ies
-        self.error_ies: list[ErrorIe] = build.error_ies
-        self.emt_ies = build.emt_ies
-        self.mode_enum = mode_enum
-        self.shell_processors = build.shell_processors
-        self.cli_cmds = build.cli_cmds
-        self.ctx_processor_func = build.ctx_processor_func
-        self.each_request_func = build.each_request_func
-        self.first_request_func = build.first_request_func
+        self.root_dir = os.getcwd()
         self.default_wildcard_error_handler_func = handle_wildcard_error
-        self.sock_ies = build.sock_ies
-        self.default_sock_error_handler = build.default_sock_error_handler
-
+        self.mode_enum = mode_enum
         self.socket_enabled: bool = False
 
-        self._assign_config_ies(build.config_dir)
+        # Load build from module
+        if build:
+            self.build = build
+        else:
+            self.build = self._load_target_build(source_filename)
 
+        # Use build in further assignment
+        self.sv_ies = self.build.sv_ies
+        self.view_ies = self.build.view_ies
+        self.error_ies: list[ErrorIe] = self.build.error_ies
+        self.emt_ies = self.build.emt_ies
+        self.shell_processors = self.build.shell_processors
+        self.cli_cmds = self.build.cli_cmds
+        self.ctx_processor_func = self.build.ctx_processor_func
+        self.each_request_func = self.build.each_request_func
+        self.first_request_func = self.build.first_request_func
+        self.sock_ies = self.build.sock_ies
+        self.default_sock_error_handler = self.build.default_sock_error_handler
+        self._assign_config_ies(self.build.config_dir)
         # Traverse given configs and assign enabled builtin cells
         self._assign_builtin_sv_ies(mode_enum, host, port)
-
         # Namespace to hold all initialized services. Should be used only for
         # testing purposes, when direct import of services are unavailable
         self._custom_svs: dict[str, Any] = {}
+
+        # Add root_dir to sys.path to avoid ModuleNotFoundError during lib
+        # importing
+        sys.path.append(root_dir)
+
+        # Add extra configs
+        if extra_configs_by_name:
+            self.extra_configs_by_name = extra_configs_by_name
+
+        self._build_all()
+
+    def _load_target_build(self, source_filename: str) -> Build:
+        # Load target module spec from location, where cli were called
+        module_location = os.path.join(self.root_dir, source_filename + ".py")
+        module_spec = importlib.util.spec_from_file_location(
+            source_filename, module_location)
+        if module_spec and module_spec.loader:
+            main_module = importlib.util.module_from_spec(module_spec)
+            module_spec.loader.exec_module(main_module)
+            # TODO: Add validation of result build?
+            return main_module.build
+        else:
+            raise NameError(
+                format_message(
+                    "Could not resolve module spec for location: {}.",
+                    module_location))
 
     def get_puft(self) -> Puft:
         return self.puft
@@ -93,8 +146,8 @@ class Assembler(Singleton):
     def get_db(self) -> Db:
         return self.db
 
-    def get_root_path(self) -> str:
-        return self.root_path
+    def get_root_dir(self) -> str:
+        return self.root_dir
 
     def get_mode_enum(self) -> CLIModeEnumUnion:
         return self.mode_enum
@@ -112,7 +165,7 @@ class Assembler(Singleton):
         """
         self.config_ies: list[ConfigIe] = []
 
-        config_path: str = join_paths(self.root_path, config_dir)
+        config_path: str = join_paths(self.root_dir, config_dir)
         source_map_by_name: dict[str, dict[AppModeEnum, str]] = \
             self._find_config_files(config_path)
 
@@ -226,41 +279,8 @@ class Assembler(Singleton):
             if log_layers:
                 log.info(f'Enabled layers: {", ".join(log_layers)}')
 
-    @staticmethod
-    def build(
-            configs_by_name: Dict[str, dict] | None = None,
-            root_path: str | None = None) -> None:
-        """Initialize all given to Assembler instances in their dependencies.
-        
-        Reassign assembler's attributes to given ones and run it's setup
-        operations to assemble app and other project's instances.
-
-        Args:
-            configs_by_name (optional):
-                Configs to be appended to appropriate ones described in Build
-                class. Defaults to None.
-                Contain config name as key (which is compared to ConfigIe
-                name field) and configuration mapping as value, e.g.:
-        ```python
-        configs_by_name = {
-            "app": {"TESTING": True},
-            "db": {"db_uri": "sqlite3:///:memory:"}
-        }
-        ```
-            root_path (optional):
-                Root path to execute project from. Defaults to `os.getcwd()`.
-                Required in cases of calling this function not from actual
-                project root (e.g. from tests) to set root path explicitly.
-        """
-        # Get Assembler instance without args, because it should be initialized before (in root create_app function).
-        assembler = Assembler.instance()
-
-        if root_path:
-            assembler.root_path = root_path
-        if configs_by_name:
-            assembler.extra_configs_by_name = configs_by_name
-
-        assembler._build_all()
+    def run_app(self):
+        self.puft.run()
         
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
@@ -298,7 +318,7 @@ class Assembler(Singleton):
                     app_mode_enum = AppModeEnum.DEV
                 log_config = log_config_ie.parse(
                     app_mode_enum=app_mode_enum,
-                    root_path=self.root_path, 
+                    root_path=self.root_dir, 
                     update_with=self.extra_configs_by_name.get("log", None)
                 )
             self._init_log_class(config=log_config)
@@ -347,7 +367,7 @@ class Assembler(Singleton):
             # Each builtin sv should receive essential fields for their
             # configs, such as root_path, because they cannot import Assembler
             # due to circular import issue and get this fields by themselves
-            config["root_path"] = self.root_path
+            config["root_path"] = self.root_dir
 
             # Initialize sv.
             if type(cell) is PuftSvIe:
@@ -417,7 +437,7 @@ class Assembler(Singleton):
                     # Assign dev app mode for all other app modes.
                     app_mode_enum = AppModeEnum.DEV
                 config = config_ie_with_target_name.parse(
-                    root_path=self.root_path, 
+                    root_path=self.root_dir, 
                     update_with=self.extra_configs_by_name.get(name, None),
                     app_mode_enum=app_mode_enum)
         return config
@@ -429,7 +449,7 @@ class Assembler(Singleton):
             Replace this logic with senseful one. Better use configuration's
             version? Or __init__.py or main.py specified.
         """
-        info_data = load_yaml(join_paths(self.root_path, "./info.yaml"))
+        info_data = load_yaml(join_paths(self.root_dir, "./info.yaml"))
         project_version = info_data["version"]
         return project_version
 
