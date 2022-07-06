@@ -68,7 +68,6 @@ class Mapper(BaseModel):
         return args
 
     @classmethod
-    @log.catch(exclude=(NotImplementedError))
     def create(cls: AnyModel, **kwargs) -> AnyModel:
         """Create model and return it.
         
@@ -77,10 +76,11 @@ class Mapper(BaseModel):
 
         Model creation intended to be done only through this method.
         """
-        return cls(**kwargs)  # type: ignore
+        model = cls(**kwargs)
+        Db.instance().push(model)
+        return model
 
     @classmethod
-    @log.catch(exclude=(ModelNotFoundError))
     def get_first(
             cls,
             order_by: object | list[object] | None = None,
@@ -104,7 +104,6 @@ class Mapper(BaseModel):
             return model
 
     @classmethod
-    @log.catch(exclude=(ModelNotFoundError))
     def get_all(
             cls,
             order_by: object | list[object] | None = None,
