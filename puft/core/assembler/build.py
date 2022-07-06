@@ -1,6 +1,6 @@
 import os
 from typing import Callable
-from build.lib.puft.tools.hints import CLIModeEnumUnion
+from puft.tools.hints import CLIModeEnumUnion
 from puft.core.app.puft import Puft
 from puft.core.assembler.assembler import Assembler
 from puft.core.sock.default_sock_error_handler import default_sock_error_handler

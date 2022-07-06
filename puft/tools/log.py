@@ -72,3 +72,9 @@ class log(Singleton):
             rotation=rotation, 
             serialize=serialize
         )
+
+
+@log.catch
+def raise_error_to_log(error: Exception) -> None:
+    """Raise error with default logger catching."""
+    raise error

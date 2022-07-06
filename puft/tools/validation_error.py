@@ -1,5 +1,5 @@
 from typing import Any
-from puft import Error, log
+from puft.core.error.error import Error
 
 
 class ValidationError(Error):
