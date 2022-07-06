@@ -23,4 +23,4 @@ class TestAssembler():
 
         puft = Puft.instance()
         db = Db.instance()
-        user_sv = UserSv.instance()
+        user_sv: UserSv = assembler_dev.custom_svs['UserSv']

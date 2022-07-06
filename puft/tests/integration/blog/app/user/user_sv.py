@@ -4,7 +4,6 @@ from puft import Sv, log
 class UserSv(Sv):
     def __init__(self, config: dict) -> None:
         super().__init__(config)
-        log.debug('init')
 
     def get_license_number(self) -> int:
         try:

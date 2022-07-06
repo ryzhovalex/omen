@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from typing import Dict, TYPE_CHECKING, Any
+from typing import Dict, TYPE_CHECKING, Any, TypeVar
 
 from warepy import (
     join_paths, format_message, load_yaml, get_enum_values, Singleton
@@ -8,6 +8,7 @@ from warepy import (
 from flask_socketio import SocketIO
 
 from puft.core.sock.socket import Socket
+from puft.core.sv.sv import Sv
 from puft.tools.hints import CLIModeEnumUnion
 from puft.tools.log import log
 from puft.core.app.app_mode_enum import AppModeEnum
@@ -56,9 +57,9 @@ class Assembler(Singleton):
         *args, **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
-        # Define attributes for getter methods to be used at builder.
+        # Define attributes for getter methods to be used at builder
         # Do not set extra_configs_by_name to None at initialization, because
-        # `get()` method called from this dictionary.
+        # `get()` method called from this dictionary
         self.extra_configs_by_name = {}
         self.root_path = build.root_path
         self.sv_ies = build.sv_ies
@@ -79,8 +80,12 @@ class Assembler(Singleton):
 
         self._assign_config_ies(build.config_dir)
 
-        # Traverse given configs and assign enabled builtin cells.
+        # Traverse given configs and assign enabled builtin cells
         self._assign_builtin_sv_ies(mode_enum, host, port)
+
+        # Namespace to hold all initialized services. Should be used only for
+        # testing purposes, when direct import of services are unavailable
+        self._custom_svs: dict[str, Any] = {}
 
     def get_puft(self) -> Puft:
         return self.puft
@@ -371,8 +376,12 @@ class Assembler(Singleton):
                 else:
                     sv_config = {}
 
-                a = cell.sv_class(config=sv_config)
-                log.debug(a)
+                sv: Sv = cell.sv_class(config=sv_config)
+                self._custom_svs[cell.sv_class.__name__] = sv
+
+    @property
+    def custom_svs(self):
+        return self._custom_svs
 
     def _assemble_sv_config(
             self,

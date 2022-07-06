@@ -39,7 +39,6 @@ class Cell(Ie):
         try:
             cell_type = cell_type_by_model_type[model_type]
         except KeyError:
-            log.debug(cell_type_by_model_type)
             raise CellError(
                 f'Cannot find cell with requested model type: {model_type}\n'
                 'Maybe you forgot to add `Model=...` to Ie\'s definition?')
