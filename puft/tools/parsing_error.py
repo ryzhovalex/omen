@@ -1,5 +1,5 @@
 from puft.core.error.error import Error
-from tools.validation import validate
+from puft.tools.validation import validate
 
 
 class ParsingError(Error):
