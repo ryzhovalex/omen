@@ -1,7 +1,7 @@
 from typing import Any
 from enum import EnumMeta
 from puft.tools.log import log
-from puft.tools.validation_error import ValidationError
+from puft.core.validation.validation_error import ValidationError
 
 
 def validate(

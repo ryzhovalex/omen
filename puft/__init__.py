@@ -1,4 +1,4 @@
-__version__ = '0.4.2'
+__version__ = '0.4.3dev0'
 
 from .core.error.error import Error
 from .core.ie.ie import Ie
@@ -24,8 +24,8 @@ from .core.db.model_not_found_error import ModelNotFoundError
 from .core.sock.socket import Socket
 from .core.sock.sock_ie import SockIe
 from .core.sock.sock import Sock
-from .tools.validation import validate
-from .tools.validation_error import ValidationError
-from .tools.parsing_error import ParsingError, IntParsingError, KeyParsingError
 from .tools.query_parameter_error import QueryParameterError
 from .tools.filter_query_enum import FilterQueryEnum
+
+# Modules import
+from .core import validation, parsing
