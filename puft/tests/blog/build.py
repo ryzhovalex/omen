@@ -3,11 +3,11 @@ __version__ = '0.0.0'
 import os
 import sys
 
-# "blog" name used to aboid namespace conflicts during puft testing
-sys.path.append(os.path.dirname(__file__))
+# Add parent dir of app's dir
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from puft import (
-    Build, SvIe, ViewIe, SockIe)
+    Build, SvIe, ViewIe, SockIe, log)
 
 from blog.app.user.user_sv import UserSv
 from blog.tools.shell import import_main, import_std
@@ -26,7 +26,7 @@ sock_ies: list[SockIe] = [
 ]
 
 view_ies: list[ViewIe] = [
-    ViewIe('user', UserView, '/user/<int:id>')
+    ViewIe('/user/<id>', UserView)
 ]
 
 build = Build(

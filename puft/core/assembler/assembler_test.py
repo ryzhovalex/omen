@@ -5,7 +5,7 @@ from puft.core.cli.cli_run_enum import CLIRunEnum
 from puft.core.app.puft import Puft
 from puft.core.db.db import Db
 from puft.tools.log import log
-from puft.tests.integration.blog.app.user.user_sv import UserSv
+from puft.tests.blog.app.user.user_sv import UserSv
 
 
 @fixture

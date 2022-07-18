@@ -7,8 +7,8 @@ from .view import View
 
 @dataclass
 class ViewIe(Ie):
-    view_class: type[View]
     route: str  # Route will be the same for all methods.
+    view_class: type[View]
     endpoint: str | None = None
 
     def get_transformed_route(self) -> str:

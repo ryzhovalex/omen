@@ -5,14 +5,14 @@ from pytest import fixture
 from puft import (
     Build, SvIe, ViewIe, SockIe)
 
-from puft.tests.integration.build import build as _blog_build
+from puft.tests.blog.build import build as _blog_build
 from puft.tools.log import log
 
 
 @fixture
 def blog_build() -> Build:
     build = _blog_build
-    build.config_dir = './puft/tests/integration/blog/configs'
+    build.config_dir = './puft/tests/blog/configs'
 
     return build
 
