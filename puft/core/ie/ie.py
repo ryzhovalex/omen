@@ -12,6 +12,10 @@ class Ie:
     """Basic interface dataclass."""
     FORMATTED_NAME: ClassVar[str | None] = None
 
+    @property
+    def formatted_name(self):
+        return self._get_formatted_name
+
     def get_json(self) -> dict:
         return {
             self._get_formatted_name(): self._get_decomposed_dict()
