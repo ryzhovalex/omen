@@ -1,6 +1,7 @@
 from dataclasses import dataclass, fields
 from typing import Any
 import types
+from puft.tools.log import log
 from typing import ClassVar
 from warepy import snakefy
 from schema import Schema, Or, Optional
@@ -13,8 +14,25 @@ class Ie:
 
     def get_json(self) -> dict:
         return {
-            self._get_formatted_name(): self.__dict__
+            self._get_formatted_name(): self._get_decomposed_dict()
         }
+
+    def get_inner_json(self) -> dict:
+        """Return json without header."""
+        return self._get_decomposed_dict()
+
+    def _get_decomposed_dict(self) -> dict:
+        res_dict: dict = {}
+
+        # Decompose all keys in self dict
+        for k, v in self.__dict__.items():
+            if type(v) is Ie:
+                # For folded Ies make their own json decompositions
+                res_dict[k] = v.get_inner_json()
+            else:
+                res_dict[k] = v
+
+        return res_dict
 
     @classmethod
     def get_json_types(cls) -> dict:
