@@ -145,4 +145,5 @@ def parse_key(
                 strict=False)
             validate(
                 value, post_validation_type, key.capitalize(), strict=strict)
-        return value
+
+    return value
