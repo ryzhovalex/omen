@@ -15,7 +15,6 @@ class View(MethodView):
         https://flask.palletsprojects.com/en/2.0.x/views/#method-views-for-apis
     """
     __metaclass__ = makecls()
-    methods = ["GET", "POST", "PUT", "DELETE"]  # Methods allowed to access this view.
 
     # List of decorators to apply to all view's methods.
     # decorators = [log.catch]  
