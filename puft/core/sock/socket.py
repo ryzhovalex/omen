@@ -27,9 +27,6 @@ class Socket(Sv):
         return self.socketio.test_client(
             self.app.get_native_app(), namespace=namespace)
 
-    def register_handler_ie(self):
-        pass
-
     def emit(
         self,
         event,
