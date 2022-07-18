@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 
 from puft.core.ie.ie import Ie
 
@@ -24,5 +25,15 @@ class ViewIe(Ie):
         # 'my.perfect.route'
         ```
         """
+        res_route: str = ''
         route_pieces: list[str] = self.route.split('/')
-        return '.'.join(route_pieces)
+
+        for piece in route_pieces:
+            if re.match(r'\<.+\>', piece):
+                # Remove arrows around route, so /user/<id> transforms to
+                # user.id
+                res_route += piece[1:len(piece)-2]
+            else:
+                res_route += piece
+
+        return res_route

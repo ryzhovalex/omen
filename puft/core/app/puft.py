@@ -194,6 +194,7 @@ class Puft(Sv):
             endpoint = view_ie.endpoint
         else:
             endpoint = view_ie.get_transformed_route()
+        log.debug(endpoint)
 
         view = view_ie.view_class.as_view(endpoint)
         self.native_app.add_url_rule(
