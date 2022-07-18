@@ -49,6 +49,7 @@ class Mapper(BaseModel):
     # sqlalchemy used instead of `orm` class to avoid reference errors
     # https://flask-sqlalchemy.palletsprojects.com/en/2.x/customizing/
     id = sa.Column(sa.Integer, primary_key=True)
+    type = sa.Column(sa.String(250))
 
     @declared_attr
     def __tablename__(cls) -> str:
