@@ -19,5 +19,4 @@ class Error(Exception):
         return {"error": {
             "name": self.__class__.__name__,
             "message": "; ".join(self.args),
-            "status_code": self.status_code
         }}

@@ -8,4 +8,4 @@ def handle_wildcard_error(err: Error):
 
 
 def handle_wildcard_builtin_error(err: Exception):
-    return handle_wildcard_error(Error(' ; '.join(err.args), 400))
+    return handle_wildcard_error(Error('; '.join(err.args), 400))
