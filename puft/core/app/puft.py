@@ -190,7 +190,12 @@ class Puft(Sv):
         """Register given view cell for the app."""
         # Check if view has kwargs to avoid sending empty dict.
         # Use cell's name as view's endpoint.
-        view = view_ie.view_class.as_view(view_ie.endpoint)
+        if view_ie.endpoint:
+            endpoint = view_ie.endpoint
+        else:
+            endpoint = view_ie.get_transformed_route()
+
+        view = view_ie.view_class.as_view(endpoint)
         self.native_app.add_url_rule(
             view_ie.route, view_func=view,
             methods=get_enum_values(HTTPMethodEnum))
