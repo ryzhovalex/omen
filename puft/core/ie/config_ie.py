@@ -10,6 +10,7 @@ from warepy import join_paths, load_yaml
 from puft.core.app.app_mode_enum import AppModeEnum
 from ..assembler.config_extension_enum import ConfigExtensionEnum
 from .named_ie import NamedIe
+from puft.tools.log import log
 
 
 @dataclass
@@ -127,7 +128,10 @@ class ConfigIe(NamedIe):
                 # Find environs to be requested
                 # Exclude escaped curly brace like `\{not_environ}`
                 # Note that environs matching \w+ pattern only supported
-                envs: list[str] = re.findall(r"[^\\]\{\w+\}", v)
+                # 
+                # Negative look behind used:
+                # https://stackoverflow.com/a/3926546
+                envs: list[str] = re.findall(r"(?<!\\)\{\w+\}", v)
                 if envs:
                     for env in [
                                 x.replace("{", "").replace("}", "")
