@@ -111,9 +111,9 @@ class Mapper(BaseModel):
             **kwargs) -> list[orm.Model]:
         """Filter all ORM mapped models by given kwargs and return them.
 
-        Raise:
-            ValueError:
-                No such ORM model in db matched given kwargs
+        Return:
+            List of found models.
+            If no models found, empty list is returned.
         """
         query: Any = cls.query.filter_by(**kwargs)  # type: ignore
 
@@ -127,9 +127,10 @@ class Mapper(BaseModel):
 
         models: list[orm.Model] = query.all()
 
-        if not models:
+        if type(models) is not list:
             raise ModelNotFoundError(model_name=cls.__name__, **kwargs)
         else:
+            # Return models even if it's empty list
             return models
 
     @classmethod
