@@ -68,3 +68,6 @@ class Error(Exception):
             "message": self.message,
             "status_code": self.status_code
         }}
+
+    def __str__(self) -> str:
+        return self.message

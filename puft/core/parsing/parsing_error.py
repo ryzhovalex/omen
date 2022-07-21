@@ -10,12 +10,13 @@ class IntParsingError(ParsingError):
     def __init__(
             self,
             parsed_str: str,
-            message: str = '',
-            status_code: int = 400) -> None:
-        validate(parsed_str, str, 'Parsed str')
-        if message == '':
-            message = f'{parsed_str} is not parseable to int'
+            message: str | None = None,
+            status_code: int | None = None) -> None:
         super().__init__(message, status_code)
+
+        validate(parsed_str, str, 'Parsed str')
+        if message is None:
+            self.message = f'{parsed_str} is not parseable to int'
         
 
 class KeyParsingError(ParsingError):
@@ -23,11 +24,12 @@ class KeyParsingError(ParsingError):
             self,
             parsed_map: dict,
             failed_key: str,
-            message: str = '',
-            status_code: int = 400) -> None:
+            message: str | None = None,
+            status_code: int | None = None) -> None:
+        super().__init__(message, status_code)
+
         validate(parsed_map, dict, 'Parsed map')
         validate(failed_key, str, 'Failed key')
 
-        if message == '':
-            message = f'{parsed_map} has no key: \'{failed_key}\''
-        super().__init__(message, status_code)
+        if message is None:
+            self.message = f'{parsed_map} has no key: \'{failed_key}\''

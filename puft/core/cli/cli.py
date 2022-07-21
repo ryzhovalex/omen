@@ -1,118 +1,127 @@
 import os
+import re
 import sys
 import pytest
-import argparse
 from typing import get_args
 
 from warepy import (
     format_message, join_paths, match_enum_containing_value,
     get_enum_values, get_union_enum_values
 )
+from puft.core.cli.cli_error import CLIError
 from puft.tools.log import log
 from dotenv import load_dotenv
 
 from puft import __version__ as puft_version
 from puft.core.assembler.assembler import Assembler
+from puft.core import validation, parsing
 from puft.tools.hints import CLIModeEnumUnion
 from .cli_run_enum import CLIRunEnum
 from .cli_db_enum import CLIDbEnum
 from .cli_helper_enum import CLIHelperEnum
+from puft.core.cli.cli_input_ie import CLIInputIe
 
 
 def main() -> None:
-    # Envrons should be loaded from app's root directory
+    # Environs should be loaded from app's root directory
     load_dotenv(os.path.join(os.getcwd(), '.env'))
 
-    args = parse_input()
+    args: CLIInputIe = _parse_input()
 
-    if args.check_version:
-        print(f"Puft {puft_version}")
-        return
-    elif args.mode[0] in get_union_enum_values(CLIModeEnumUnion):
-        mode = args.mode[0] 
+    match args.mode_enum:
+        case CLIHelperEnum.VERSION:
+            print(f"Puft {puft_version}")
+            exit()
+        case _:
+            # Create and build assembler
+            assembler = Assembler(
+                mode_enum=args.mode_enum,
+                mode_args=args.mode_args,
+                host=args.host,
+                port=int(args.port))
 
-        # Find enum where mode assigned.
-        mode_enum_class = match_enum_containing_value(
-            mode, *get_args(CLIModeEnumUnion))
-
-        # Create according enum with mode value.
-        mode_enum = mode_enum_class(mode)
-    else:
-        raise NotImplementedError(f"Command {args.mode[0]} is not supported")
-        # Mode is probably targeted to custom command.
-        # mode_enum = CLIHelperEnum.CUSTOM_CMD
-        #!! custom_cmd = 
-
-    # Create and build assembler.
-    assembler = Assembler(
-        mode_enum=mode_enum,
-        host=args.host,
-        port=int(args.port),
-        root_dir=args.root_dir,
-        source_filename=args.source_filename)
-
-    # Make decision about proper run option
-    if type(mode_enum) in get_args(CLIModeEnumUnion):
-        # Call appropriate actions depend on chosen mode.
-        if type(mode_enum) is CLIRunEnum:
-            invoke_run(assembler)
-        elif type(mode_enum) is CLIDbEnum:
-            with assembler.get_puft().get_native_app().app_context():
-                invoke_db_change(assembler, mode_enum)
-        elif type(mode_enum) is CLIHelperEnum:
-            if mode_enum is CLIHelperEnum.SHELL:
-                invoke_shell(assembler)
-            elif mode_enum is CLIHelperEnum.CUSTOM_CMD: 
-                # TODO: Custom cmds after assembler build operations.
-                pass
-            elif mode_enum is CLIHelperEnum.DEPLOY:
-                # TODO: Implement deploy operation.
-                pass
-
-def invoke_shell(assembler: Assembler):
-    """Invoke Puft interactive shell."""
-    assembler.get_puft().run_shell()
+            assembler.run()
 
 
-def invoke_run(
-        assembler: Assembler) -> None:
-    if assembler.mode_enum is CLIRunEnum.TEST:
-        log.info('Run pytest')
-        # TODO: Move this logic to Assembler or Puft
-        pytest.main([
-            assembler.root_dir,
-            f"--rootdir={assembler.root_dir}"
-        ])
-    else:
-        assembler.run_app()
+def _parse_input() -> CLIInputIe:
+    args: list[str] = sys.argv
+    check_other_args: bool = True
+
+    ie_kwargs: dict = {}
+    ie_kwargs['mode_args'] = []
 
 
-def invoke_db_change(
-    assembler: Assembler,
-    mode_enum: CLIDbEnum
-) -> None:
-    db = assembler.get_db()
+    match args[1]:
+        case 'version':
+            if len(args) > 2:
+                raise CLIError(
+                    'Mode `version` shouldn\'t be'
+                    ' followed by any other arguments')
 
-    if mode_enum is CLIDbEnum.INIT:
-        db.init_migration()
-    elif mode_enum is CLIDbEnum.MIGRATE:
-        db.migrate_migration()
-    elif mode_enum is CLIDbEnum.UPGRADE:
-        db.upgrade_migration()
+            ie_kwargs['mode_enum'] = CLIHelperEnum.VERSION
+            check_other_args = False 
+        case _:
+            try:
+                # Find enum where mode assigned
+                mode_enum_class = match_enum_containing_value(
+                    args[1], *get_args(CLIModeEnumUnion))
+            except ValueError:
+                raise CLIError(
+                    f'Unrecognized mode: {args[1]}')
+            else:
+                # Create according enum with mode value
+                ie_kwargs['mode_enum'] = mode_enum_class(args[1])
 
+    if check_other_args:
+        # Traverse other args
+        for ix, arg in enumerate(args[2:]):
+            ix = ix + 2
 
-def parse_input() -> argparse.Namespace:
-    """Parse cli input and return argparse.Namespace object."""
-    # TODO: Add help descriptions to args.
-    parser = argparse.ArgumentParser()
-    parser.add_argument("mode", nargs="*")
-    parser.add_argument("-a", dest="host", default="127.0.0.1")
-    parser.add_argument("-p", dest="port", default="5000")
-    parser.add_argument("-dir", dest="root_dir", default=os.getcwd())
-    parser.add_argument("-src", dest="source_filename", default="build")
-    parser.add_argument(
-        "-v", "--version", action="store_true", dest="check_version")
-    return parser.parse_args()
+            match arg:
+                case '-h':
+                    if not isinstance(ie_kwargs['mode_enum'], CLIRunEnum):
+                        raise CLIError(
+                            'Flag -h applicable only to Run modes:'
+                            f' {get_enum_values(CLIRunEnum)}')
+                    elif '-h' in ie_kwargs:
+                        raise CLIError('Flag -h has been defined twice')
+                    else:
+                        try:
+                            host = args[ix+1]
+                        except KeyError:
+                            raise CLIError(
+                                'No host specified for defined flag -h')
+                        else:
+                            # Pattern from: https://stackoverflow.com/a/36760050
+                            validation.validate_re(
+                                host,
+                                r'^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$')
+                            ie_kwargs['host'] = host
+                case '-p':
+                    if not isinstance(ie_kwargs['mode_enum'], CLIRunEnum):
+                        raise CLIError(
+                            'Flag -p applicable only to Run modes:'
+                            f' {get_enum_values(CLIRunEnum)}')
+                    elif '-p' in ie_kwargs:
+                        raise CLIError('Flag -p has been defined twice')
+                    else:
+                        try:
+                            port = args[ix+1]
+                        except KeyError:
+                            raise CLIError(
+                                'No port specified for defined flag -p')
+                        else:
+                            validation.validate_re(
+                                port,
+                                r'^\d+$')
+                            ie_kwargs['port'] = port
+                case _:
+                    # In all other cases, write results to mode_args as it is,
+                    # this is required, e.g. in pytest as well as in all other
+                    # plugins and custom commands
+                    ie_kwargs['mode_args'].append(arg)
+
+    return CLIInputIe(**ie_kwargs)
 
 
 if __name__ == "__main__":

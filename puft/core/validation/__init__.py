@@ -1,7 +1,9 @@
+import re
 from typing import Any
 from enum import EnumMeta
 from puft.tools.log import log
-from puft.core.validation.validation_error import ValidationError
+from puft.core.validation.validation_error import (
+    ValidationError, ReValidationError)
 
 
 def validate(
@@ -25,3 +27,14 @@ def validate(
             raise ValidationError(obj_name, expected_type)
     else:
         raise TypeError('Expected type should be `type` type')
+
+
+def validate_re(string: str, pattern: str) -> None:
+    """Validate given string using re.match.
+    
+    Raises:
+        ValidationError:
+            String does not match given pattern.
+    """
+    if not re.match(pattern, string):
+        raise ReValidationError(validated_name=string, pattern=pattern)

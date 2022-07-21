@@ -8,6 +8,10 @@ from warepy import (
     join_paths, format_message, load_yaml, get_enum_values, Singleton
 )
 from flask_socketio import SocketIO
+import pytest
+from puft.core.cli.cli_db_enum import CLIDbEnum
+from puft.core.cli.cli_error import CLIError
+from puft.core.cli.cli_helper_enum import CLIHelperEnum
 
 from puft.core.sock.socket import Socket
 from puft.core.sv.sv import Sv
@@ -37,13 +41,12 @@ if TYPE_CHECKING:
 
 
 class Assembler(Singleton):
-    """Assembles all project instances from given `Builder` type's class and
-    initializes it.
-    
+    """Assembles all project instances and initializes it.
+
     Acts automatically and shouldn't be inherited directly by project in any
     form.
 
-    TODO: Write all init arguments
+    TODO: Write all init args
     Args:
         extra_configs_by_name (optional):
             Configs to be appended to appropriate ones described in Build
@@ -70,10 +73,10 @@ class Assembler(Singleton):
         "serialize": False
     }
 
-
     def __init__(
             self, 
             mode_enum: CLIModeEnumUnion,
+            mode_args: list[str] = [],
             source_filename: str = 'build',
             build: Build | None = None,
             host: str = 'localhost',
@@ -86,8 +89,10 @@ class Assembler(Singleton):
         self.extra_configs_by_name = {}
         self.root_dir = root_dir
         self.default_wildcard_error_handler_func = handle_wildcard_error
-        self.mode_enum = mode_enum
         self.socket_enabled: bool = False
+
+        self.mode_enum: CLIModeEnumUnion = mode_enum
+        self.mode_args: list[str] = mode_args
 
         # Load build from module
         if build:
@@ -288,8 +293,46 @@ class Assembler(Singleton):
             if log_layers:
                 log.info(f'Enabled layers: {", ".join(log_layers)}')
 
-    def run_app(self):
+    def run(self):
+        if isinstance(self.mode_enum, CLIRunEnum):
+            if self.mode_enum is CLIRunEnum.TEST:
+                self._run_test()
+            else:
+                self._run_app()
+        elif isinstance(self.mode_enum, CLIHelperEnum):
+            if self.mode_enum is CLIHelperEnum.SHELL:
+                self._run_shell()
+            elif self.mode_enum is CLIHelperEnum.CMD: 
+                # TODO: Custom cmds after assembler build operations.
+                raise NotImplementedError
+            elif self.mode_enum is CLIHelperEnum.DEPLOY:
+                # TODO: Implement deploy operation.
+                raise NotImplementedError
+            else:
+                raise TypeError
+        elif isinstance(self.mode_enum, CLIDbEnum):
+            with self.puft.app_context():
+                if self.mode_enum is CLIDbEnum.INIT:
+                    self.db.init_migration()
+                elif self.mode_enum is CLIDbEnum.MIGRATE:
+                    self.db.migrate_migration()
+                elif self.mode_enum is CLIDbEnum.UPGRADE:
+                    self.db.upgrade_migration()
+                else:
+                    raise TypeError
+        else:
+            raise TypeError
+
+    def _run_shell(self):
+        """Invoke Puft interactive shell."""
+        self.puft.run_shell()
+
+    def _run_app(self):
         self.puft.run()
+
+    def _run_test(self):
+        log.info('Run tests')
+        pytest.main(self.mode_args)
         
     def _build_all(self) -> None:
         """Send commands to build all given instances."""
