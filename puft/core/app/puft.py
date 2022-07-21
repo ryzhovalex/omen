@@ -8,6 +8,7 @@ from flask_cors import CORS
 from turbo_flask import Turbo
 from flask_session import Session
 from flask.testing import FlaskClient
+from puft.core import validation
 from puft.tools.log import log
 from flask import Flask
 from flask import cli as flask_cli
@@ -52,6 +53,7 @@ class Puft(Sv):
         # to register handler on build errors stage.
         self.wildcard_builtin_error_handler_enabled: bool = self.config.get(
             'wildcard_builtin_error_handler_enabled', True)
+        validation.validate(self.wildcard_builtin_error_handler_enabled, bool)
         if self.wildcard_builtin_error_handler_enabled:
             log.info('Wildcard builtin error handler enabled')
 
