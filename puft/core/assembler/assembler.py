@@ -16,7 +16,7 @@ from puft.tools.log import log
 from puft.core.app.app_mode_enum import AppModeEnum
 from puft.core.cli.cli_run_enum import CLIRunEnum
 from puft.core.error.error import Error
-from puft.tools.error_handlers import handle_wildcard_error
+from puft.tools.error_handlers import handle_wildcard_builtin_error, handle_wildcard_error
 from puft.core.ie.named_ie import NamedIe
 from puft.core.ie.config_ie import ConfigIe
 from puft.core.app.puft_sv_ie import PuftSvIe
@@ -485,13 +485,23 @@ class Assembler(Singleton):
     def _build_errors(self) -> None:
         # TODO: Test case when user same error class registered twice (e.g. in
         # duplicate cells)
-        is_wildcard_specified = False
+        wildcard_specified: bool = False
+
         for error_ie in self.error_ies:
             if type(error_ie.error_class) is Error:
-                is_wildcard_specified = True
+                log.info('Wildcard Error handler specified')
+                wildcard_specified = True
             self.puft.register_error(
                 error_ie.error_class, error_ie.handler_function)
+
         # If wildcard handler is not specified, apply the default one
-        if not is_wildcard_specified:
+        if not wildcard_specified:
             self.puft.register_error(
                 Error, self.default_wildcard_error_handler_func)
+
+        # Register wildcard builin error handler if this function is enabled
+        # in config. Do not allow user to specify own builtin error handlers,
+        # at least for now (maybe implement this in future)
+        if self.puft.wildcard_builtin_error_handler_enabled:
+            self.puft.register_error(
+                Exception, handle_wildcard_builtin_error)

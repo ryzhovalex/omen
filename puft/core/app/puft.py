@@ -24,9 +24,7 @@ from .turbo_action_enum import TurboActionEnum
 
 
 class Puft(Sv):
-    """Operates over Puft processes.
-    
-    Should be inherited by project's AppSv.
+    """Core app's class.
     """
     def __init__(
             self, 
@@ -49,6 +47,13 @@ class Puft(Sv):
         self.config = self._make_upper_keys(config)
         self._assign_defaults_to_config(self.config)
         self._validate_config(self.config)
+
+        # Flag for wildcard builtin error handler. Read by assembler in order
+        # to register handler on build errors stage.
+        self.wildcard_builtin_error_handler_enabled: bool = self.config.get(
+            'wildcard_builtin_error_handler_enabled', True)
+        if self.wildcard_builtin_error_handler_enabled:
+            log.info('Wildcard builtin error handler enabled')
 
         super().__init__(self.config)
         self.mode_enum = mode_enum
