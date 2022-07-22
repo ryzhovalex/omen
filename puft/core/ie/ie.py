@@ -13,12 +13,37 @@ class Ie:
     FORMATTED_NAME: ClassVar[str | None] = None
 
     @property
-    def formatted_name(self):
-        return self._get_formatted_name
+    def formatted_name(self) -> str:
+        return self._get_formatted_name()
 
-    def get_json(self) -> dict:
+    def get_json(self, formatted_name: str | None = None) -> dict:
+        """Translates interface to dict structure for API.
+        
+        Args:
+            formatted_name (str, optional):
+                Custom formatted name as external dictionary key.
+                Defaults to class's base defined (property formatted_name).
+
+        Returns:
+            dict:
+                Dictionary with interface decomposed to structure for API:
+        ```
+        {
+            ie_formatted_name: {
+                ...ie structure    
+            }
+        }
+        ```
+        """
+        _formatted_name: str
+
+        if formatted_name:
+            _formatted_name = formatted_name  
+        else:
+            _formatted_name = self._get_formatted_name()
+
         return {
-            self._get_formatted_name(): self._get_decomposed_dict()
+            _formatted_name: self._get_decomposed_dict()
         }
 
     def get_inner_json(self) -> dict:
